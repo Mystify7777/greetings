@@ -87,6 +87,11 @@ function moveEntity(e,dx,dy){
  if(!circleHitsWall(e.x,ny,e.r)){e.y=ny}
 }
 function resetPlayer(reason){
+ if(state.armour>0){
+   state.armour--;state.player.x=1.5*TILE;state.player.y=1.5*TILE;updateStats();
+   setLog('ARMOUR ABSORBED THE HIT. The maze still has more to teach you.');
+   return;
+ }
  state.deaths++;state.bravery++;state.mobility=Math.min(2.5,state.mobility+.1);
  state.hp=3;state.player.x=1.5*TILE;state.player.y=1.5*TILE;
  updateStats();setLog(reason+' You learned something. Next attempt starts faster.');
@@ -217,6 +222,20 @@ function updateBoss(dt){
  bossState.shots.forEach(s=>{if(Math.hypot(s.x-bossState.player.x,s.y-bossState.player.y)<bossState.player.r+5){s.x=-99;bossState.player.hp--;bossPlayerHp.textContent='♥'.repeat(bossState.player.hp)+'♡'.repeat(5-bossState.player.hp);bossMessage.textContent='HIT. Read the pattern, then move.';if(bossState.player.hp<=0)bossDefeat()}});
  bossState.playerShots.forEach(s=>{if(Math.hypot(s.x-b.x,s.y-b.y)<b.r+5){s.x=9999;b.hp--;bossMessage.textContent=b.phase===1?'Good hit. The pattern is opening.':b.phase===2?'The boss is changing phases. Keep moving.':'Final phase. Do not stop.';updateBossHud();if(b.hp<=0)winBoss()}});
  drawBoss();
+}
+function drawBoss(){
+ bctx.clearRect(0,0,bossCanvas.width,bossCanvas.height);
+ bctx.fillStyle='#070b14';bctx.fillRect(0,0,bossCanvas.width,bossCanvas.height);
+ for(let i=0;i<12;i++){bctx.strokeStyle=i%2?'#101a2b':'#0d1625';bctx.beginPath();bctx.moveTo(i*70,0);bctx.lineTo(i*70,bossCanvas.height);bctx.stroke()}
+ for(let i=0;i<7;i++){bctx.strokeStyle='#101a2b';bctx.beginPath();bctx.moveTo(0,i*70);bctx.lineTo(bossCanvas.width,i*70);bctx.stroke()}
+ const b=bossState.boss,p=bossState.player;
+ bctx.strokeStyle=b.phase===3?'#ff647c':'#ff78ad';bctx.lineWidth=2;bctx.beginPath();bctx.arc(b.x,b.y,38+Math.sin(performance.now()/120)*4,0,Math.PI*2);bctx.stroke();
+ bctx.fillStyle=b.phase===3?'#ff647c':b.phase===2?'#ff5f9a':'#ff78ad';bctx.beginPath();bctx.arc(b.x,b.y,b.r,0,Math.PI*2);bctx.fill();
+ bctx.fillStyle='#330b1e';bctx.font='bold 18px monospace';bctx.textAlign='center';bctx.fillText('B',b.x,b.y+6);
+ bctx.fillStyle='#70e6d6';bctx.beginPath();bctx.arc(p.x,p.y,p.r,0,Math.PI*2);bctx.fill();bctx.fillStyle='#06211e';bctx.font='bold 11px monospace';bctx.fillText('R',p.x,p.y+4);
+ bctx.fillStyle='#ff647c';bossState.shots.forEach(s=>{bctx.beginPath();bctx.arc(s.x,s.y,5,0,Math.PI*2);bctx.fill()});
+ bctx.fillStyle='#ffd866';bossState.playerShots.forEach(s=>{bctx.beginPath();bctx.arc(s.x,s.y,4,0,Math.PI*2);bctx.fill()});
+ bctx.fillStyle='#71809e';bctx.font='10px monospace';bctx.textAlign='left';bctx.fillText('PHASE '+b.phase,14,20);
 }
 function updateBossHud(){bossBar.style.width=Math.max(0,bossState.boss.hp/bossState.boss.maxHp*100)+'%';bossHpText.textContent=Math.max(0,bossState.boss.hp)+' / '+bossState.boss.maxHp}
 function bossDefeat(){bossState.active=false;state.bossDeaths++;state.bravery++;state.mobility=Math.min(2.5,state.mobility+.12);updateStats();bossMessage.textContent=['DOWN, NOT OUT. You learned the attack timing.','THE BOSS WON THAT ROUND. Now you know what to dodge.','DEFEATED. Good. Knowledge acquired.','ONE MORE ROUND. The opening is there.'][state.bossDeaths%4];setTimeout(()=>initBoss(),500)}
