@@ -53,7 +53,8 @@ const mobDefs=[
  {x:13.5,y:8.5,speed:1.5,mode:'loop',path:[[13,8],[13,9],[13,10],[14,10],[15,10],[14,10],[13,10],[13,9]]},
  {x:11.5,y:11.5,speed:1.45,mode:'hunter',path:[[10,11],[11,11],[12,11],[13,11],[14,11]]}
 ];
-const mobs=mobDefs.map((m,i)=>({...m,index:i,px:m.x*TILE,py:m.y*TILE,target:0,dir:1,alert:0,pulse:0}));
+const mobColors=['#52b7ff','#ffad4d','#b77cff','#5fe39a','#ff647c'];
+const mobs=mobDefs.map((m,i)=>({...m,index:i,color:mobColors[i],px:m.x*TILE,py:m.y*TILE,target:0,dir:1,alert:0,pulse:0}));
 
 const rewards=Object.fromEntries(relics.map((r,i)=>[i,r]));
 
@@ -191,7 +192,7 @@ function drawMaze(){
    const g=gateAt(x,y);if(g&&!isGateOpen(g)){ctx.fillStyle='#2a1730';ctx.fillRect(x*TILE+4,y*TILE+4,TILE-8,TILE-8);ctx.strokeStyle='#ff78ad';ctx.lineWidth=2;ctx.strokeRect(x*TILE+6,y*TILE+6,TILE-12,TILE-12);ctx.lineWidth=1;ctx.fillStyle='#ff78ad';ctx.font='bold 9px monospace';ctx.textAlign='center';ctx.fillText(g.need+'',x*TILE+20,y*TILE+24)}
  }
  relics.forEach((r,i)=>{if(state.collected.has(i))return;const cx=(r.x+.5)*TILE,cy=(r.y+.5)*TILE,pulse=Math.sin(performance.now()/280+i)*2;ctx.beginPath();ctx.arc(cx,cy,10+pulse,0,Math.PI*2);ctx.fillStyle='#ffd866';ctx.fill();ctx.fillStyle='#3b2b0b';ctx.font='bold 10px monospace';ctx.textAlign='center';ctx.fillText(String(i+1),cx,cy+3)});
- mobs.forEach(m=>{const bob=Math.sin(m.pulse*5+m.index)*2,cx=m.px,cy=m.py+bob;ctx.beginPath();ctx.arc(cx,cy,14+(m.alert*2),0,Math.PI*2);ctx.fillStyle=m.alert>.2?'#ff5f88':'#ff78ad';ctx.fill();ctx.fillStyle='#310d1e';ctx.font='bold 13px monospace';ctx.textAlign='center';ctx.fillText('!',cx,cy+5);if(m.alert>.2){ctx.strokeStyle='#ff78ad66';ctx.beginPath();ctx.arc(cx,cy,21+Math.sin(m.pulse*8)*3,0,Math.PI*2);ctx.stroke()}});
+ mobs.forEach(m=>{const bob=Math.sin(m.pulse*5+m.index)*2,cx=m.px,cy=m.py+bob;ctx.beginPath();ctx.arc(cx,cy,14+(m.alert*2),0,Math.PI*2);ctx.fillStyle=m.alert>.2?m.color:m.color;ctx.globalAlpha=m.alert>.2?1:.82;ctx.fill();ctx.globalAlpha=1;ctx.fillStyle='#310d1e';ctx.font='bold 13px monospace';ctx.textAlign='center';ctx.fillText('!',cx,cy+5);if(m.alert>.2){ctx.strokeStyle=m.color+'88';ctx.beginPath();ctx.arc(cx,cy,21+Math.sin(m.pulse*8)*3,0,Math.PI*2);ctx.stroke()}});
  const p=state.player;ctx.beginPath();ctx.arc(p.x,p.y,12,0,Math.PI*2);ctx.fillStyle='#70e6d6';ctx.fill();ctx.fillStyle='#06211e';ctx.font='bold 10px monospace';ctx.textAlign='center';ctx.fillText('R',p.x,p.y+4);
 }
 function frame(t){
@@ -201,8 +202,8 @@ function frame(t){
 }
 requestAnimationFrame(frame);
 
-const bossState={active:false,player:{x:100,y:210,r:11,hp:5},boss:{x:620,y:210,r:25,hp:12,maxHp:12,phase:1,shotTimer:0,moveTimer:0,dir:1},shots:[],playerShots:[],attackQueued:false,last:0};
-function initBoss(){bossState.active=true;bossState.player={x:100,y:210,r:11,hp:5};bossState.boss={x:620,y:210,r:25,hp:12,maxHp:12,phase:1,shotTimer:0,moveTimer:0,dir:1};bossState.shots=[];bossState.playerShots=[];bossState.last=performance.now();bossMessage.textContent='The boss is waiting. Find the rhythm.';bossPlayerHp.textContent='♥♥♥♥♥';}
+const bossState={active:false,player:{x:100,y:210,r:11,hp:5},boss:{x:620,y:210,r:25,hp:20,maxHp:20,phase:1,shotTimer:0,moveTimer:0,dir:1},shots:[],playerShots:[],attackQueued:false,last:0};
+function initBoss(){bossState.active=true;bossState.player={x:100,y:210,r:11,hp:5};bossState.boss={x:620,y:210,r:25,hp:20,maxHp:20,phase:1,shotTimer:0,moveTimer:0,dir:1};bossState.shots=[];bossState.playerShots=[];bossState.last=performance.now();bossMessage.textContent='The boss is waiting. Find the rhythm.';bossPlayerHp.textContent='♥♥♥♥♥';}
 function bossMove(dt){
  let dx=0,dy=0;if(state.keys.has('arrowleft')||state.keys.has('a'))dx--;if(state.keys.has('arrowright')||state.keys.has('d'))dx++;if(state.keys.has('arrowup')||state.keys.has('w'))dy--;if(state.keys.has('arrowdown')||state.keys.has('s'))dy++;
  if(dx||dy){const l=Math.hypot(dx,dy);bossState.player.x=Math.max(15,Math.min(745,bossState.player.x+dx/l*170*state.mobility*dt));bossState.player.y=Math.max(15,Math.min(405,bossState.player.y+dy/l*170*state.mobility*dt))}
@@ -211,10 +212,10 @@ function bossMove(dt){
 function updateBoss(dt){
  if(!bossState.active)return;
  bossMove(dt);const b=bossState.boss;
- b.phase=b.hp<=4?3:b.hp<=8?2:1;b.moveTimer+=dt;b.shotTimer+=dt;
+ b.phase=b.hp<=6?3:b.hp<=13?2:1;b.moveTimer+=dt;b.shotTimer+=dt;
  const targetY=210+Math.sin(b.moveTimer*(b.phase===3?3.4:2.2))*110;
  b.y+=(targetY-b.y)*dt*2.2;
- if(b.shotTimer>(b.phase===3?.58:b.phase===2?.78:1.05)){b.shotTimer=0;const a=Math.atan2(bossState.player.y-b.y,bossState.player.x-b.x),speed=b.phase===3?250:205;bossState.shots.push({x:b.x,y:b.y,vx:Math.cos(a)*speed,vy:Math.sin(a)*speed})}
+ if(b.shotTimer>(b.phase===3?.48:b.phase===2?.68:.95)){b.shotTimer=0;const a=Math.atan2(bossState.player.y-b.y,bossState.player.x-b.x),speed=b.phase===3?270:b.phase===2?225:205;bossState.shots.push({x:b.x,y:b.y,vx:Math.cos(a)*speed,vy:Math.sin(a)*speed});if(b.phase>=2){const spread=b.phase===3?.16:.1;[-spread,spread].forEach(offset=>bossState.shots.push({x:b.x,y:b.y,vx:Math.cos(a+offset)*speed,vy:Math.sin(a+offset)*speed}))}}
  bossState.shots.forEach(s=>{s.x+=s.vx*dt;s.y+=s.vy*dt});
  bossState.playerShots.forEach(s=>{s.x+=s.vx*dt;s.y+=s.vy*dt});
  bossState.shots=bossState.shots.filter(s=>s.x>-20&&s.x<780&&s.y>-20&&s.y<440);
@@ -230,7 +231,7 @@ function drawBoss(){
  for(let i=0;i<7;i++){bctx.strokeStyle='#101a2b';bctx.beginPath();bctx.moveTo(0,i*70);bctx.lineTo(bossCanvas.width,i*70);bctx.stroke()}
  const b=bossState.boss,p=bossState.player;
  bctx.strokeStyle=b.phase===3?'#ff647c':'#ff78ad';bctx.lineWidth=2;bctx.beginPath();bctx.arc(b.x,b.y,38+Math.sin(performance.now()/120)*4,0,Math.PI*2);bctx.stroke();
- bctx.fillStyle=b.phase===3?'#ff647c':b.phase===2?'#ff5f9a':'#ff78ad';bctx.beginPath();bctx.arc(b.x,b.y,b.r,0,Math.PI*2);bctx.fill();
+ bctx.fillStyle=b.phase===3?'#ff647c':b.phase===2?'#ffad4d':'#ff78ad';bctx.beginPath();bctx.arc(b.x,b.y,b.r,0,Math.PI*2);bctx.fill();
  bctx.fillStyle='#330b1e';bctx.font='bold 18px monospace';bctx.textAlign='center';bctx.fillText('B',b.x,b.y+6);
  bctx.fillStyle='#70e6d6';bctx.beginPath();bctx.arc(p.x,p.y,p.r,0,Math.PI*2);bctx.fill();bctx.fillStyle='#06211e';bctx.font='bold 11px monospace';bctx.fillText('R',p.x,p.y+4);
  bctx.fillStyle='#ff647c';bossState.shots.forEach(s=>{bctx.beginPath();bctx.arc(s.x,s.y,5,0,Math.PI*2);bctx.fill()});
@@ -238,7 +239,7 @@ function drawBoss(){
  bctx.fillStyle='#71809e';bctx.font='10px monospace';bctx.textAlign='left';bctx.fillText('PHASE '+b.phase,14,20);
 }
 function updateBossHud(){bossBar.style.width=Math.max(0,bossState.boss.hp/bossState.boss.maxHp*100)+'%';bossHpText.textContent=Math.max(0,bossState.boss.hp)+' / '+bossState.boss.maxHp}
-function bossDefeat(){bossState.active=false;state.bossDeaths++;state.bravery++;state.mobility=Math.min(2.5,state.mobility+.12);updateStats();bossMessage.textContent=['DOWN, NOT OUT. You learned the attack timing.','THE BOSS WON THAT ROUND. Now you know what to dodge.','DEFEATED. Good. Knowledge acquired.','ONE MORE ROUND. The opening is there.'][state.bossDeaths%4];setTimeout(()=>initBoss(),500)}
+function bossDefeat(){bossState.active=false;state.bossDeaths++;state.bravery++;state.mobility=Math.min(2.5,state.mobility+.15);updateStats();bossMessage.textContent=['DOWN, NOT OUT. You learned the attack timing.','THE BOSS WON THAT ROUND. Now you know what to dodge.','DEFEATED. Good. Knowledge acquired.','ONE MORE ROUND. The opening is there.'][state.bossDeaths%4];setTimeout(()=>initBoss(),500)}
 function winBoss(){bossState.active=false;bossMessage.textContent='BOSS DEFEATED. QUEST COMPLETE.';ending.hidden=false;runSummary.textContent='MEMORIES 7/7 · BRAVERY '+state.bravery+' · MOBILITY '+state.mobility.toFixed(1)+'× · MAZE DEATHS '+state.deaths+' · BOSS ATTEMPTS '+(state.bossDeaths+1);ending.scrollIntoView({behavior:'smooth',block:'center'});}
 function bossFrame(t){const dt=Math.min(.035,(t-bossState.last)/1000||0);bossState.last=t;if(state.started&&!state.paused&&bossState.active)updateBoss(dt);requestAnimationFrame(bossFrame)}
 requestAnimationFrame(bossFrame);
