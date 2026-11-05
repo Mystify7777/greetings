@@ -191,11 +191,7 @@ function drawMaze(){
 }
 function frame(t){
  const dt=Math.min(.035,(t-state.lastTime)/1000||0);state.lastTime=t;
- if(state.started&&!state.paused&&!bossShell.hidden&&!ending.hidden){/* boss is handled below */}
- if(state.started&&!state.paused&&!bossShell.hidden===false&&ending.hidden){}
- if(state.started&&!state.paused&&!bossShell.hidden){updatePlayer(dt);updateMobs(dt);drawMaze()}
- else if(state.started&&!state.paused&&bossShell.hidden){updatePlayer(dt);updateMobs(dt);drawMaze()}
- if(state.started&&!state.paused&&bossShell.hidden)drawMaze();
+ if(state.started&&!state.paused&&bossShell.hidden&&ending.hidden){updatePlayer(dt);updateMobs(dt);drawMaze()}
  requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
@@ -205,7 +201,7 @@ function initBoss(){bossState.active=true;bossState.player={x:100,y:210,r:11,hp:
 function bossMove(dt){
  let dx=0,dy=0;if(state.keys.has('arrowleft')||state.keys.has('a'))dx--;if(state.keys.has('arrowright')||state.keys.has('d'))dx++;if(state.keys.has('arrowup')||state.keys.has('w'))dy--;if(state.keys.has('arrowdown')||state.keys.has('s'))dy++;
  if(dx||dy){const l=Math.hypot(dx,dy);bossState.player.x=Math.max(15,Math.min(745,bossState.player.x+dx/l*170*state.mobility*dt));bossState.player.y=Math.max(15,Math.min(405,bossState.player.y+dy/l*170*state.mobility*dt))}
- if(bossState.attackQueued){bossState.attackQueued=false;if(bossState.playerShots.length<4)bossState.playerShots.push({x:bossState.player.x+15,y:bossState.player.y,vx:7,vy:0})}
+ if(bossState.attackQueued){bossState.attackQueued=false;if(bossState.playerShots.length<4){const a=Math.atan2(bossState.boss.y-bossState.player.y,bossState.boss.x-bossState.player.x);bossState.playerShots.push({x:bossState.player.x+15*Math.cos(a),y:bossState.player.y+15*Math.sin(a),vx:Math.cos(a)*420,vy:Math.sin(a)*420})}}
 }
 function updateBoss(dt){
  if(!bossState.active)return;
@@ -215,7 +211,7 @@ function updateBoss(dt){
  b.y+=(targetY-b.y)*dt*2.2;
  if(b.shotTimer>(b.phase===3?.58:b.phase===2?.78:1.05)){b.shotTimer=0;const a=Math.atan2(bossState.player.y-b.y,bossState.player.x-b.x),speed=b.phase===3?250:205;bossState.shots.push({x:b.x,y:b.y,vx:Math.cos(a)*speed,vy:Math.sin(a)*speed})}
  bossState.shots.forEach(s=>{s.x+=s.vx*dt;s.y+=s.vy*dt});
- bossState.playerShots.forEach(s=>{s.x+=s.vx*60*dt});
+ bossState.playerShots.forEach(s=>{s.x+=s.vx*dt;s.y+=s.vy*dt});
  bossState.shots=bossState.shots.filter(s=>s.x>-20&&s.x<780&&s.y>-20&&s.y<440);
  bossState.playerShots=bossState.playerShots.filter(s=>s.x<780);
  bossState.shots.forEach(s=>{if(Math.hypot(s.x-bossState.player.x,s.y-bossState.player.y)<bossState.player.r+5){s.x=-99;bossState.player.hp--;bossPlayerHp.textContent='♥'.repeat(bossState.player.hp)+'♡'.repeat(5-bossState.player.hp);bossMessage.textContent='HIT. Read the pattern, then move.';if(bossState.player.hp<=0)bossDefeat()}});
