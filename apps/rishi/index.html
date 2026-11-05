@@ -1,13 +1,97 @@
 <!doctype html>
 <html lang="en">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#111625"><meta name="description" content="Player 24 has entered the birthday arena."><title>Rishi // Player 24</title><link rel="stylesheet" href="style.css"></head>
-<body><div class="scanlines" aria-hidden="true"></div><main class="shell">
-<header class="hud"><a href="../" class="back">← EXIT TO BIRTHDAY HUB</a><div class="status"><span class="online"></span> SYSTEM ONLINE</div></header>
-<section class="screen hero-screen"><div class="terminal-label">BIRTHDAY.EXE <span>BUILD 11.24</span></div><div class="pixel-badge" aria-hidden="true"><div class="pixel-star">★</div><div class="pixel-cake">▰<br>▰▰▰</div></div><div class="hero-copy"><p class="overline">PLAYER DETECTED // NOV 24</p><h1>RISHI<span class="cursor">_</span></h1><p class="subtitle">LEVEL UP DAY HAS ARRIVED.</p><p class="body-copy">The calendar has spoken. Your birthday quest is ready. No tutorial needed. Probably.</p><button id="startQuest" class="start-btn"><span>▶</span> START QUEST</button></div><div class="hero-bottom"><span>PLAYER 24</span><span>PRESS START TO CONTINUE</span><span>♥ ♥ ♥</span></div></section>
-<section id="quest" class="screen quest-screen" hidden><div class="section-top"><div><p class="overline">MAIN QUEST // 01</p><h2>Collect the birthday loot.</h2></div><div class="counter"><span id="score">00</span><small>/ 03 ITEMS</small></div></div><p class="quest-instruction">Find all three items to unlock the final message. Click a crate to inspect it.</p><div class="loot-grid">
-<button class="loot" data-loot="0"><span class="loot-art">▤</span><span class="loot-name">THE XP CRATE</span><span class="loot-desc">+ years, + wisdom</span><span class="loot-state">LOCKED</span></button>
-<button class="loot" data-loot="1"><span class="loot-art">✦</span><span class="loot-name">RARE DROP</span><span class="loot-desc">Legendary good luck</span><span class="loot-state">LOCKED</span></button>
-<button class="loot" data-loot="2"><span class="loot-art">♥</span><span class="loot-name">EXTRA LIFE</span><span class="loot-desc">For the respawn days</span><span class="loot-state">LOCKED</span></button>
-</div><div class="quest-log" aria-live="polite"><span class="log-label">QUEST LOG</span><span id="logText">Awaiting player input...</span></div><div id="unlock" class="unlock" hidden><div class="unlock-tag">ACHIEVEMENT UNLOCKED</div><h3>HAPPY BIRTHDAY, RISHI!</h3><p>May your next level bring legendary moments, ridiculously good luck, and fewer bugs than the average game launch.</p><p class="personalize">Add your own inside joke or personal message in <code>rishi/script.js</code>.</p><div class="final-photo" id="finalPhoto"><span>OPTIONAL PHOTO SLOT<br><code>assets/rishi.jpg</code></span></div><button id="replay" class="replay">↻ PLAY AGAIN</button></div></section>
-<footer class="footer"><span>© BIRTHDAY ARCADE</span><span>NO MICROTRANSACTIONS. ONLY CAKE.</span></footer>
-</main><script src="script.js"></script></body></html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#090d18">
+<meta name="description" content="Rishi's birthday RPG adventure: The Maze of Memories.">
+<title>Rishi // The Maze of Memories</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="scanlines" aria-hidden="true"></div>
+<main class="shell">
+<header class="hud">
+  <a href="../" class="back">← BIRTHDAY WORLDS</a>
+  <div class="status"><span class="online"></span> ADVENTURE ONLINE</div>
+</header>
+
+<section class="intro screen" id="intro">
+  <div class="eyebrow">RISHI // PLAYER 24</div>
+  <h1>THE MAZE OF<br><span>MEMORIES.</span></h1>
+  <p class="intro-copy">Seven memories are hidden beyond the maze. Guardians know the routes. You learn faster than they do.</p>
+  <button id="startAdventure" class="primary">▶ START ADVENTURE</button>
+  <div class="intro-meta"><span>WASD / ARROWS</span><span>SPACE = ATTACK</span><span>7 RELICS</span></div>
+</section>
+
+<section class="game-shell" id="gameShell" hidden>
+  <div class="game-top">
+    <div>
+      <p class="eyebrow">MISSION 01 // THE MAZE OF MEMORIES</p>
+      <p id="missionText">Recover all seven relics. Guardians patrol predictable routes. Learn them.</p>
+    </div>
+    <div class="mission-state" id="missionState">READY</div>
+  </div>
+
+  <div class="stats" aria-label="Adventure stats">
+    <div><span>HP</span><strong id="hpStat">♥♥♥</strong></div>
+    <div><span>ARMOUR</span><strong id="armourStat">0</strong></div>
+    <div><span>BRAVERY</span><strong id="braveryStat">0</strong></div>
+    <div><span>MOBILITY</span><strong id="mobilityStat">1.0×</strong></div>
+    <div><span>MEMORIES</span><strong id="memoryStat">0 / 7</strong></div>
+  </div>
+
+  <div class="game-stage-wrap">
+    <div class="game-stage" id="gameStage" tabindex="0" role="application" aria-label="Rishi's memory maze. Use WASD or arrow keys to move. Avoid pink guardians and collect gold memories.">
+      <canvas id="mazeCanvas" width="760" height="560"></canvas>
+      <div class="stage-hint" id="stageHint">FOCUS LOCKED · CLICK OR PRESS A KEY TO PLAY</div>
+    </div>
+  </div>
+
+  <div class="mobile-controls" aria-label="Mobile movement controls">
+    <button data-dir="up" aria-label="Move up">▲</button>
+    <div><button data-dir="left" aria-label="Move left">◀</button><button data-dir="down" aria-label="Move down">▼</button><button data-dir="right" aria-label="Move right">▶</button></div>
+  </div>
+
+  <div class="game-log" aria-live="polite">
+    <span>QUEST LOG</span><strong id="gameLog">Find the first memory.</strong>
+  </div>
+
+  <section class="boss-shell" id="bossShell" hidden>
+    <div class="boss-heading">
+      <div><p class="eyebrow">MISSION 02 // THE BIRTHDAY BOSS</p><h2>THE LAST OBSTACLE.</h2></div>
+      <div class="boss-hp"><span>BOSS</span><div><i id="bossBar"></i></div><strong id="bossHpText">12 / 12</strong></div>
+    </div>
+    <p class="boss-copy">Move, dodge, and attack. The pattern changes when the boss gets angry. Getting knocked down makes you faster.</p>
+    <div class="boss-stage" id="bossStage" tabindex="0" role="application" aria-label="Birthday boss arena. Use WASD or arrow keys to move and Space to attack.">
+      <canvas id="bossCanvas" width="760" height="420"></canvas>
+      <div class="boss-hint">WASD / ARROWS · SPACE = ATTACK</div>
+    </div>
+    <div class="boss-status" aria-live="polite"><span id="bossMessage">The arena is waiting.</span><strong id="bossPlayerHp">♥♥♥♥♥</strong></div>
+  </section>
+
+  <section class="ending screen" id="ending" hidden>
+    <div class="eyebrow">★ QUEST COMPLETE</div>
+    <h2>HAPPY BIRTHDAY,<br><span>RISHI.</span></h2>
+    <p id="endingText">You learned the routes, opened every memory, got knocked down, got faster, and kept going.</p>
+    <div class="final-memory"><span>FINAL MEMORY SLOT</span><strong>THE BEST ONE GOES HERE.</strong><small>Add the real photo, video or message when the birthday content is ready.</small></div>
+    <div class="run-summary" id="runSummary"></div>
+  </section>
+</section>
+
+<footer class="footer"><span>NO MICROTRANSACTIONS. ONLY MEMORIES.</span><span>BUILD 11.24</span></footer>
+</main>
+
+<div class="modal" id="rewardModal" aria-hidden="true">
+  <div class="modal-backdrop" data-close-modal></div>
+  <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="rewardTitle" aria-describedby="rewardBody">
+    <button class="modal-close" id="modalClose" type="button" aria-label="Close memory">×</button>
+    <div class="eyebrow" id="rewardKicker">MEMORY RECOVERED</div>
+    <h2 id="rewardTitle">Memory</h2>
+    <div id="rewardBody"></div>
+  </section>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
