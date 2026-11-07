@@ -168,6 +168,7 @@ function updatePlayer(dt){
  if(dx||dy){const len=Math.hypot(dx,dy);const speed=115*state.mobility;moveEntity(state.player,dx/len*speed*dt,dy/len*speed*dt)}
  const tx=Math.floor(state.player.x/TILE),ty=Math.floor(state.player.y/TILE);
  relics.forEach((r,i)=>{if(!state.collected.has(i)&&Math.hypot(state.player.x-(r.x+.5)*TILE,state.player.y-(r.y+.5)*TILE)<15)collectRelic(i)});
+ if(state.paused)return;
  mobs.forEach(m=>{if(Math.hypot(state.player.x-m.px,state.player.y-m.py)<20)resetPlayer('GUARDIAN CONTACT.')});
 }
 function pathPoint(m){const p=m.path[m.target];return {x:(p[0]+.5)*TILE,y:(p[1]+.5)*TILE}}
@@ -247,6 +248,6 @@ function winBoss(){bossState.active=false;bossMessage.textContent='BOSS DEFEATED
 function bossFrame(t){const dt=Math.min(.035,(t-bossState.last)/1000||0);bossState.last=t;if(state.started&&!state.paused&&bossState.active)updateBoss(dt);requestAnimationFrame(bossFrame)}
 requestAnimationFrame(bossFrame);
 
-document.addEventListener('visibilitychange',()=>{if(document.hidden){state.keys.clear();state.paused=true}else if(modal.getAttribute('aria-hidden')==='true'){state.paused=false}});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){state.keys.clear();state.paused=true}else if(modal.getAttribute('aria-hidden')==='true'&&!state.resumeUntil){state.paused=false}});
 
 updateStats();
