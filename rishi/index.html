@@ -43,8 +43,9 @@
 
   <div class="game-stage-wrap">
     <div class="game-stage" id="gameStage" tabindex="0" role="application" aria-label="Rishi's memory maze. Use WASD or arrow keys to move. Avoid pink guardians and collect gold memories.">
-      <canvas id="mazeCanvas" width="760" height="560"></canvas>
+      <canvas id="mazeCanvas" width="1000" height="680"></canvas>
       <div class="stage-hint" id="stageHint">FOCUS LOCKED · CLICK OR PRESS A KEY TO PLAY</div>
+      <div class="resume-overlay" id="resumeOverlay" hidden aria-live="assertive"><span>RESUMING ADVENTURE</span><strong id="resumeCount">GET READY</strong></div>
     </div>
   </div>
 
@@ -60,7 +61,7 @@
   <section class="boss-shell" id="bossShell" hidden>
     <div class="boss-heading">
       <div><p class="eyebrow">MISSION 02 // THE BIRTHDAY BOSS</p><h2>THE LAST OBSTACLE.</h2></div>
-      <div class="boss-hp"><span>BOSS</span><div><i id="bossBar"></i></div><strong id="bossHpText">12 / 12</strong></div>
+      <div class="boss-hp"><span>BOSS</span><div><i id="bossBar"></i></div><strong id="bossHpText">26 / 26</strong></div>
     </div>
     <p class="boss-copy">Move, dodge, and attack. The pattern changes when the boss gets angry. Getting knocked down makes you faster.</p>
     <div class="boss-stage" id="bossStage" tabindex="0" role="application" aria-label="Birthday boss arena. Use WASD or arrow keys to move and Space to attack.">
