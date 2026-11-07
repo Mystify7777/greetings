@@ -17,18 +17,43 @@
 </header>
 
 <section class="intro screen" id="intro">
-  <div class="eyebrow">RISHI // PLAYER 24</div>
-  <h1>THE MAZE OF<br><span>MEMORIES.</span></h1>
-  <p class="intro-copy">Seven memories are hidden beyond the maze. Guardians know the routes. You learn faster than they do.</p>
-  <button id="startAdventure" class="primary">▶ START ADVENTURE</button>
-  <div class="intro-meta"><span>WASD / ARROWS</span><span>SPACE = ATTACK</span><span>7 RELICS</span></div>
+  <div class="eyebrow">RISHI // BORN 2003 // 22 YEARS IN</div>
+  <h1>THE STORY OF<br><span>RISHI.</span></h1>
+  <p class="intro-copy">Every life looks simple from the outside. Rishi's is a collection of ordinary days, hard lessons, ridiculous victories, quiet memories, and the people who stayed. This birthday, you do not just read the story. You walk through it.</p>
+  <button id="startAdventure" class="primary">▶ ENTER THE STORY</button>
+  <div class="intro-meta"><span>CHAPTER I · THE ROAD SO FAR</span><span>2003 → 2026</span><span>23RD CHAPTER AHEAD</span></div>
+</section>
+
+<section class="story-prologue screen" aria-labelledby="storyTitle">
+  <div class="story-copy">
+    <div class="eyebrow">A STORY IN FIVE CHAPTERS</div>
+    <h2 id="storyTitle">THE BOY WHO KEPT<br><span>GETTING BACK UP.</span></h2>
+    <p>Rishi's story is not a straight line. It is a map made from detours. Some doors opened because he was ready. Some opened because he refused to stop knocking. Some were never meant to be easy.</p>
+    <p class="story-age"><strong>2003</strong><span>THE BEGINNING</span><strong>2026</strong><span>THE STORY SO FAR</span><strong>23</strong><span>THE NEXT CHAPTER</span></p>
+  </div>
+  <div class="story-chapters">
+    <article><span>01</span><strong>THE BEGINNING</strong><small>Before the memories became stories.</small></article>
+    <article><span>02</span><strong>THE YEARS</strong><small>People, games, ordinary days, difficult ones.</small></article>
+    <article><span>03</span><strong>THE MAZE</strong><small>You will have to live this chapter.</small></article>
+    <article><span>04</span><strong>THE FIGHT</strong><small>Failure stops being an ending.</small></article>
+    <article><span>05</span><strong>THE NEXT CHAPTER</strong><small>23 is not a finish line.</small></article>
+  </div>
 </section>
 
 <section class="game-shell" id="gameShell" hidden>
+  <div class="story-beat" id="storyBeat">
+    <div class="story-beat-marker" id="storyBeatMarker">CHAPTER I</div>
+    <div>
+      <p class="eyebrow" id="storyBeatKicker">THE ROAD SO FAR</p>
+      <h2 id="storyBeatTitle">Some stories are easier to tell after you survive them.</h2>
+      <p id="storyBeatText">The maze ahead is not a punishment. It is a way to turn the invisible parts of growing up into something you can actually walk through.</p>
+    </div>
+  </div>
+
   <div class="game-top">
     <div>
-      <p class="eyebrow">MISSION 01 // THE MAZE OF MEMORIES</p>
-      <p id="missionText">Recover all seven relics. Guardians patrol predictable routes. Learn them.</p>
+      <p class="eyebrow">CHAPTER III // THE MAZE</p>
+      <p id="missionText">Seven memories are scattered through the maze. Every one you recover changes what Rishi carries into the next part of the story.</p>
     </div>
     <div class="mission-state" id="missionState">READY</div>
   </div>
@@ -72,9 +97,15 @@
   </section>
 
   <section class="ending screen" id="ending" hidden>
-    <div class="eyebrow">★ QUEST COMPLETE</div>
+    <div class="eyebrow">CHAPTER V // THE NEXT CHAPTER</div>
     <h2>HAPPY BIRTHDAY,<br><span>RISHI.</span></h2>
-    <p id="endingText">You learned the routes, opened every memory, got knocked down, got faster, and kept going.</p>
+    <p id="endingText">You learned the routes, opened every memory, got knocked down, got faster, and kept going. That is the point of the story: not that the road was easy, but that you kept moving through it.</p>
+    <div class="ending-story">
+      <span>2003 → 2026</span>
+      <strong>22 YEARS DOWN.</strong>
+      <strong>THE 23RD CHAPTER STARTS NOW.</strong>
+      <small>There are still places you have not been, people you have not met, things you have not built, and stories you have not told. This one does not end at the boss fight.</small>
+    </div>
     <div class="final-memory"><span>FINAL MEMORY SLOT</span><strong>THE BEST ONE GOES HERE.</strong><small>Add the real photo, video or message when the birthday content is ready.</small></div>
     <div class="run-summary" id="runSummary"></div>
   </section>
