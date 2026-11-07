@@ -7,51 +7,54 @@ const modal=document.querySelector('#rewardModal'),modalClose=document.querySele
 const bossShell=document.querySelector('#bossShell'),bossStage=document.querySelector('#bossStage'),bossBar=document.querySelector('#bossBar'),bossHpText=document.querySelector('#bossHpText'),bossMessage=document.querySelector('#bossMessage'),bossPlayerHp=document.querySelector('#bossPlayerHp');
 const ending=document.querySelector('#ending'),runSummary=document.querySelector('#runSummary');
 
-const TILE=40,W=19,H=14;
+const TILE=40,W=25,H=17;
 const MAP=[
-"1111111111111111111",
-"1000001000001000001",
-"1011101011101011101",
-"1000101000101000001",
-"1110101110101110111",
-"1000100000100000101",
-"1011111011111010101",
-"1000001000001010101",
-"1111101011101010101",
-"1000001010001000101",
-"1011111010111110101",
-"1000000010000000101",
-"1001111110111110001",
-"1111111111111111111"
+"1111111111111111111111111",
+"1000000000101000000000001",
+"1110111110101010101111101",
+"1000000010101010000010001",
+"1110111010101011111010111",
+"1000101010100010000010001",
+"1011101010101110111110101",
+"1010000010000010100000101",
+"1011101111111010101011101",
+"1000100000001000101010001",
+"1010111110101111111010111",
+"1010001000001000000010101",
+"1111101111111011101010101",
+"1000001000000010101010101",
+"1010111011111010101110101",
+"1000000000000000100000001",
+"1111111111111111111111111"
 ];
 
 const gates=[
-  {x:15,y:5,need:2,label:'MEMORY GATE I'},
-  {x:15,y:11,need:4,label:'MEMORY GATE II'},
-  {x:9,y:11,need:6,label:'MEMORY GATE III'}
+  {x:9,y:10,need:2,label:'MEMORY GATE I'},
+  {x:15,y:8,need:4,label:'MEMORY GATE II'},
+  {x:21,y:14,need:6,label:'MEMORY GATE III'}
 ];
 
 const relics=[
- {x:3,y:1,title:'First Memory',type:'PHOTO',icon:'✦',text:'The first little piece of the birthday archive. This slot is waiting for a real photo.',reward:'Recovered memory: +1 armour.'},
- {x:11,y:3,title:'A Hidden Note',type:'MESSAGE',icon:'✉',text:'Something small, personal and probably embarrassing in exactly the right way.',reward:'Recovered memory: +1 bravery.'},
- {x:5,y:5,title:'The Moving Memory',type:'VIDEO',icon:'▶',text:'A moving memory belongs here. Later this becomes a real video reveal.',reward:'Recovered memory: +1 mobility.'},
- {x:17,y:5,title:'Player Memory',type:'GAME',icon:'◆',text:'A memory from the years of games, chaos and questionable victory celebrations.',reward:'Recovered memory: +1 armour.'},
- {x:13,y:9,title:'The Ordinary Day',type:'MEMORY',icon:'◇',text:'The ordinary moments are usually the ones that become the good stories.',reward:'Recovered memory: +1 bravery.'},
- {x:17,y:11,title:'Birthday Letter',type:'LETTER',icon:'✎',text:'The proper birthday message goes here. For now, the chest is deliberately sealed around a placeholder.',reward:'Recovered memory: +1 armour and bravery.'},
- {x:9,y:12,title:'The Final Relic',type:'LEGEND',icon:'★',text:'The strongest memory is saved for last. Recovering it opens the final arena.',reward:'Final relic recovered: the Birthday Boss is awake.'}
+ {x:7,y:3,title:'First Memory',type:'PHOTO',icon:'✦',text:'The first little piece of the birthday archive. This slot is waiting for a real photo.',reward:'Recovered memory: +1 armour.'},
+ {x:5,y:7,title:'A Hidden Note',type:'MESSAGE',icon:'✉',text:'Something small, personal and probably embarrassing in exactly the right way.',reward:'Recovered memory: +1 bravery.'},
+ {x:7,y:9,title:'The Moving Memory',type:'VIDEO',icon:'▶',text:'A moving memory belongs here. Later this becomes a real video reveal.',reward:'Recovered memory: +1 mobility.'},
+ {x:13,y:3,title:'Player Memory',type:'GAME',icon:'◆',text:'A memory from the years of games, chaos and questionable victory celebrations.',reward:'Recovered memory: +1 armour.'},
+ {x:16,y:3,title:'The Ordinary Day',type:'MEMORY',icon:'◇',text:'The ordinary moments are usually the ones that become the good stories.',reward:'Recovered memory: +1 bravery.'},
+ {x:10,y:13,title:'Birthday Letter',type:'LETTER',icon:'✎',text:'The proper birthday message goes here. For now, the chest is deliberately sealed around a placeholder.',reward:'Recovered memory: +1 armour and bravery.'},
+ {x:22,y:15,title:'The Final Relic',type:'LEGEND',icon:'★',text:'The strongest memory is saved for last. Recovering it opens the final arena.',reward:'Final relic recovered: the Birthday Boss is awake.'}
 ];
 
 const state={
  started:false,paused:false,keys:new Set(),player:{x:1.5*TILE,y:1.5*TILE,r:10},hp:3,armour:0,bravery:0,mobility:1,memory:0,deaths:0,lastTime:0,modalReturnFocus:gameStage,
- collected:new Set(),gateNotice:new Set(),bossUnlocked:false,bossDeaths:0
+ collected:new Set(),gateNotice:new Set(),bossUnlocked:false,bossDeaths:0,resumeUntil:0,pendingBossUnlock:false
 };
 
 const mobDefs=[
- {x:1.5,y:3.5,speed:1.55,mode:'vertical',path:[[1,3],[1,4],[1,5],[1,6],[1,7]]},
- {x:8.5,y:3.5,speed:1.35,mode:'horizontal',path:[[7,3],[8,3],[9,3],[10,3]]},
- {x:5.5,y:8.5,speed:1.7,mode:'horizontal',path:[[5,8],[6,8],[7,8],[8,8]]},
- {x:13.5,y:8.5,speed:1.5,mode:'loop',path:[[13,8],[13,9],[13,10],[14,10],[15,10],[14,10],[13,10],[13,9]]},
- {x:11.5,y:11.5,speed:1.45,mode:'hunter',path:[[10,11],[11,11],[12,11],[13,11],[14,11]]}
+ {x:7.5,y:1.5,speed:1.55,mode:'horizontal',path:[[7,1],[8,1],[9,1],[9,2],[9,3],[9,4],[9,5],[9,6],[9,7],[7,7],[7,6],[7,5],[7,4]]},
+ {x:11.5,y:1.5,speed:1.35,mode:'vertical',path:[[11,1],[11,2],[11,3],[11,4],[11,5],[11,6],[11,7],[10,7]]},
+ {x:5.5,y:5.5,speed:1.7,mode:'loop',path:[[5,5],[5,6],[5,7],[6,7],[7,7],[7,6],[7,5],[7,4],[7,3],[6,3],[5,3],[4,3],[3,3],[3,2],[3,1],[4,1],[5,1],[6,1],[7,1],[8,1],[9,1],[9,2],[9,3],[9,4],[9,5],[9,6],[9,7],[10,7],[11,7],[11,6],[11,5]]},
+ {x:13.5,y:9.5,speed:1.5,mode:'vertical',path:[[13,9],[14,9],[15,9],[15,8],[15,7],[15,6],[15,5],[16,5],[17,5],[18,5],[19,5],[19,4],[19,3],[18,3],[17,3],[17,2],[17,1],[18,1],[19,1],[20,1],[21,1],[22,1],[23,1],[23,2],[23,3],[22,3],[21,3],[21,4],[21,5],[21,6],[21,7],[20,7],[19,7],[19,8],[19,9],[19,10],[19,11],[18,11],[17,11],[16,11],[15,11],[14,11],[13,11],[13,12],[13,13],[13,14],[13,15]]},
+ {x:17.5,y:11.5,speed:1.45,mode:'hunter',path:[[17,11],[17,12],[17,13],[17,14],[17,15],[18,15],[19,15],[20,15],[21,15],[22,15],[23,15]]}
 ];
 const mobColors=['#52b7ff','#ffad4d','#b77cff','#5fe39a','#ff647c'];
 const mobs=mobDefs.map((m,i)=>({...m,index:i,color:mobColors[i],px:m.x*TILE,py:m.y*TILE,target:0,dir:1,alert:0,pulse:0}));
@@ -108,14 +111,13 @@ function collectRelic(index){
  else setLog('Memory '+state.memory+' recovered. New route unlocked.');
 }
 function openReward(index){
- state.paused=true;gameStage.inert=true;modal.classList.add('open');modal.setAttribute('aria-hidden','false');state.modalReturnFocus=gameStage;
+ state.keys.clear();state.paused=true;gameStage.inert=true;modal.classList.add('open');modal.setAttribute('aria-hidden','false');state.modalReturnFocus=gameStage;
  const r=rewards[index];rewardKicker.textContent='MEMORY '+String(index+1).padStart(2,'0')+' // '+r.type;rewardTitle.textContent=r.icon+' '+r.title;
  rewardBody.innerHTML='<div class="reward-media"><div><strong>'+r.type+' SLOT</strong><br>Replace this panel with the real birthday photo, video or message.</div></div><p>'+r.text+'</p><div class="reward-reward">'+r.reward+'</div>';
  setTimeout(()=>modalClose.focus(),0);
 }
 function closeReward(){
- modal.classList.remove('open');modal.setAttribute('aria-hidden','true');gameStage.inert=false;state.paused=false;setTimeout(()=>gameStage.focus(),0);
- if(state.memory===7&&!state.bossUnlocked)unlockBoss();
+ state.keys.clear();modal.classList.remove('open');modal.setAttribute('aria-hidden','true');gameStage.inert=false;state.paused=true;state.resumeUntil=performance.now()+1400;state.pendingBossUnlock=state.memory===7&&!state.bossUnlocked;resumeOverlay.hidden=false;resumeCount.textContent='GET READY';setTimeout(()=>gameStage.focus(),0);
 }
 function unlockBoss(){
  state.bossUnlocked=true;bossShell.hidden=false;bossShell.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth',block:'center'});bossStage.focus();initBoss();missionState.textContent='BOSS';setLog('FINAL RELIC RECOVERED. ENTER THE BIRTHDAY ARENA.');
@@ -140,7 +142,7 @@ function handleKeyDown(e){
 }
 function handleKeyUp(e){state.keys.delete(e.key.toLowerCase())}
 gameStage.addEventListener('keydown',handleKeyDown);bossStage.addEventListener('keydown',handleKeyDown);
-gameStage.addEventListener('keyup',handleKeyUp);bossStage.addEventListener('keyup',handleKeyUp);
+document.addEventListener('keyup',handleKeyUp);
 gameStage.addEventListener('click',()=>gameStage.focus());bossStage.addEventListener('click',()=>bossStage.focus());
 
 document.querySelectorAll('[data-dir]').forEach(btn=>{
@@ -166,6 +168,7 @@ function updatePlayer(dt){
  if(dx||dy){const len=Math.hypot(dx,dy);const speed=115*state.mobility;moveEntity(state.player,dx/len*speed*dt,dy/len*speed*dt)}
  const tx=Math.floor(state.player.x/TILE),ty=Math.floor(state.player.y/TILE);
  relics.forEach((r,i)=>{if(!state.collected.has(i)&&Math.hypot(state.player.x-(r.x+.5)*TILE,state.player.y-(r.y+.5)*TILE)<15)collectRelic(i)});
+ if(state.paused)return;
  mobs.forEach(m=>{if(Math.hypot(state.player.x-m.px,state.player.y-m.py)<20)resetPlayer('GUARDIAN CONTACT.')});
 }
 function pathPoint(m){const p=m.path[m.target];return {x:(p[0]+.5)*TILE,y:(p[1]+.5)*TILE}}
@@ -197,13 +200,14 @@ function drawMaze(){
 }
 function frame(t){
  const dt=Math.min(.035,(t-state.lastTime)/1000||0);state.lastTime=t;
+ if(state.resumeUntil){const remaining=state.resumeUntil-t;if(remaining<=0){state.resumeUntil=0;resumeOverlay.hidden=true;state.paused=false;if(state.pendingBossUnlock){state.pendingBossUnlock=false;unlockBoss()}}else{resumeCount.textContent=remaining>900?'READY':remaining>450?'2':'1'}}
  if(state.started&&!state.paused&&bossShell.hidden&&ending.hidden){updatePlayer(dt);updateMobs(dt);drawMaze()}
  requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
 
-const bossState={active:false,player:{x:100,y:210,r:11,hp:5},boss:{x:620,y:210,r:25,hp:20,maxHp:20,phase:1,shotTimer:0,moveTimer:0,dir:1},shots:[],playerShots:[],attackQueued:false,last:0};
-function initBoss(){bossState.active=true;bossState.player={x:100,y:210,r:11,hp:5};bossState.boss={x:620,y:210,r:25,hp:20,maxHp:20,phase:1,shotTimer:0,moveTimer:0,dir:1};bossState.shots=[];bossState.playerShots=[];bossState.last=performance.now();bossMessage.textContent='The boss is waiting. Find the rhythm.';bossPlayerHp.textContent='♥♥♥♥♥';}
+const bossState={active:false,player:{x:100,y:210,r:11,hp:5},boss:{x:620,y:210,r:25,hp:26,maxHp:26,phase:1,shotTimer:0,moveTimer:0,dir:1,vx:0,vy:0},shots:[],playerShots:[],attackQueued:false,last:0};
+function initBoss(){bossState.active=true;bossState.player={x:100,y:210,r:11,hp:5};bossState.boss={x:620,y:210,r:25,hp:26,maxHp:26,phase:1,shotTimer:0,moveTimer:0,dir:1,vx:0,vy:0};bossState.shots=[];bossState.playerShots=[];bossState.last=performance.now();bossMessage.textContent='The boss is waiting. Find the rhythm.';bossPlayerHp.textContent='♥♥♥♥♥';updateBossHud();}
 function bossMove(dt){
  let dx=0,dy=0;if(state.keys.has('arrowleft')||state.keys.has('a'))dx--;if(state.keys.has('arrowright')||state.keys.has('d'))dx++;if(state.keys.has('arrowup')||state.keys.has('w'))dy--;if(state.keys.has('arrowdown')||state.keys.has('s'))dy++;
  if(dx||dy){const l=Math.hypot(dx,dy);bossState.player.x=Math.max(15,Math.min(745,bossState.player.x+dx/l*170*state.mobility*dt));bossState.player.y=Math.max(15,Math.min(405,bossState.player.y+dy/l*170*state.mobility*dt))}
@@ -212,10 +216,10 @@ function bossMove(dt){
 function updateBoss(dt){
  if(!bossState.active)return;
  bossMove(dt);const b=bossState.boss;
- b.phase=b.hp<=6?3:b.hp<=13?2:1;b.moveTimer+=dt;b.shotTimer+=dt;
- const targetY=210+Math.sin(b.moveTimer*(b.phase===3?3.4:2.2))*110;
- b.y+=(targetY-b.y)*dt*2.2;
- if(b.shotTimer>(b.phase===3?.48:b.phase===2?.68:.95)){b.shotTimer=0;const a=Math.atan2(bossState.player.y-b.y,bossState.player.x-b.x),speed=b.phase===3?270:b.phase===2?225:205;bossState.shots.push({x:b.x,y:b.y,vx:Math.cos(a)*speed,vy:Math.sin(a)*speed});if(b.phase>=2){const spread=b.phase===3?.16:.1;[-spread,spread].forEach(offset=>bossState.shots.push({x:b.x,y:b.y,vx:Math.cos(a+offset)*speed,vy:Math.sin(a+offset)*speed}))}}
+ b.phase=b.hp<=7?3:b.hp<=16?2:1;b.moveTimer+=dt;b.shotTimer+=dt;
+ const dx=bossState.player.x-b.x,dy=bossState.player.y-b.y,d=Math.hypot(dx,dy)||1,aggression=b.phase===3?1:b.phase===2?.72:.42,desiredSpeed=b.phase===3?92:b.phase===2?68:48,orbit=Math.sin(b.moveTimer*2.2)*(b.phase===3?55:35),tx=bossState.player.x+(-dy/d)*orbit,ty=bossState.player.y+(dx/d)*orbit;
+ b.vx+=(tx-b.x)/Math.max(1,d)*desiredSpeed*aggression*dt*3;b.vy+=(ty-b.y)/Math.max(1,d)*desiredSpeed*aggression*dt*3;const v=Math.hypot(b.vx,b.vy)||1;if(v>desiredSpeed){b.vx=b.vx/v*desiredSpeed;b.vy=b.vy/v*desiredSpeed}b.x=Math.max(35,Math.min(725,b.x+b.vx*dt));b.y=Math.max(35,Math.min(385,b.y+b.vy*dt));
+ if(b.shotTimer>(b.phase===3?.38:b.phase===2?.55:.78)){b.shotTimer=0;const a=Math.atan2(bossState.player.y-b.y,bossState.player.x-b.x),speed=b.phase===3?305:b.phase===2?260:225;bossState.shots.push({x:b.x,y:b.y,vx:Math.cos(a)*speed,vy:Math.sin(a)*speed});if(b.phase>=2){const spread=b.phase===3?.22:.14;[-spread,spread].forEach(offset=>bossState.shots.push({x:b.x,y:b.y,vx:Math.cos(a+offset)*speed,vy:Math.sin(a+offset)*speed}))}if(b.phase===3){for(let i=0;i<4;i++){const aa=(Math.PI/2)*i+b.moveTimer*.25;bossState.shots.push({x:b.x,y:b.y,vx:Math.cos(aa)*185,vy:Math.sin(aa)*185})}}}
  bossState.shots.forEach(s=>{s.x+=s.vx*dt;s.y+=s.vy*dt});
  bossState.playerShots.forEach(s=>{s.x+=s.vx*dt;s.y+=s.vy*dt});
  bossState.shots=bossState.shots.filter(s=>s.x>-20&&s.x<780&&s.y>-20&&s.y<440);
@@ -244,6 +248,6 @@ function winBoss(){bossState.active=false;bossMessage.textContent='BOSS DEFEATED
 function bossFrame(t){const dt=Math.min(.035,(t-bossState.last)/1000||0);bossState.last=t;if(state.started&&!state.paused&&bossState.active)updateBoss(dt);requestAnimationFrame(bossFrame)}
 requestAnimationFrame(bossFrame);
 
-document.addEventListener('visibilitychange',()=>{if(document.hidden){state.keys.clear();state.paused=true}else if(modal.getAttribute('aria-hidden')==='true'){state.paused=false}});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){state.keys.clear();state.paused=true}else if(modal.getAttribute('aria-hidden')==='true'&&!state.resumeUntil){state.paused=false}});
 
 updateStats();
