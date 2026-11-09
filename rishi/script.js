@@ -69,7 +69,7 @@ const secretRoutes=[
 ];
 
 function updateStats(){
- hpStat.textContent='♥'.repeat(Math.max(0,state.hp))+'♡'.repeat(3-Math.max(0,state.hp));
+ hpStat.textContent='♥'.repeat(Math.max(0,state.hp))+'♡'.repeat(5-Math.max(0,state.hp));
  armourStat.textContent=String(state.armour);
  braveryStat.textContent=String(state.bravery);
  mobilityStat.textContent=state.mobility.toFixed(1)+'×';
@@ -296,7 +296,7 @@ function updateBoss(dt){
  bossState.playerShots.forEach(s=>{s.x+=s.vx*dt;s.y+=s.vy*dt});
  bossState.shots=bossState.shots.filter(s=>s.x>-20&&s.x<780&&s.y>-20&&s.y<440);
  bossState.playerShots=bossState.playerShots.filter(s=>s.x<780);
- bossState.shots.forEach(s=>{if(Math.hypot(s.x-bossState.player.x,s.y-bossState.player.y)<bossState.player.r+5&&performance.now()>=bossState.player.invulnerableUntil){s.x=-99;bossState.player.invulnerableUntil=performance.now()+650;if(bossState.player.armour>0){bossState.player.armour--;bossMessage.textContent='ARMOUR BROKE. The hit did not reach Rishi.'}else{bossState.player.hp--;bossMessage.textContent='HIT. HP -1. Read the pattern, then move.'}updateBossHud();if(bossState.player.hp<=0)bossDefeat()}});
+ bossState.shots.forEach(s=>{if(Math.hypot(s.x-bossState.player.x,s.y-bossState.player.y)<bossState.player.r+5&&performance.now()>=bossState.player.invulnerableUntil){s.x=-99;bossState.player.invulnerableUntil=performance.now()+650;if(bossState.player.armour>0){bossState.player.armour--;bossMessage.textContent='ARMOUR BROKE. The hit did not reach Rishi.'}else{bossState.player.hp--;bossMessage.textContent='HIT. HP -1. Read the pattern, then move.'}state.hp=bossState.player.hp;state.armour=bossState.player.armour;updateStats();updateBossHud();if(bossState.player.hp<=0)bossDefeat()}});
  bossState.playerShots.forEach(s=>{if(Math.hypot(s.x-b.x,s.y-b.y)<b.r+5){s.x=9999;b.hp--;bossMessage.textContent=b.phase===1?'Good hit. The pattern is opening.':b.phase===2?'The boss is changing phases. Keep moving.':'Final phase. Do not stop.';updateBossHud();if(b.hp<=0)winBoss()}});
  drawBoss();
 }
