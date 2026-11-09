@@ -1,4 +1,4 @@
-const CACHE_NAME="rishi-audio-v1";
+const CACHE_NAME="rishi-audio-v2";
 const CORE_ASSETS=["./","./index.html","./style.css","./script.js","./vendor/howler.min.js","./vendor/HOWLER-LICENSE.md"];
 
 self.addEventListener("install",event=>{
