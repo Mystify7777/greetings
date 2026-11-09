@@ -313,8 +313,8 @@ function frame(t){
 }
 requestAnimationFrame(frame);
 
-const bossState={active:false,startingHp:5,startingArmour:0,rechallengeCount:0,player:{x:100,y:210,r:11,hp:5,armour:0,invulnerableUntil:0},boss:{x:620,y:210,r:25,hp:50,maxHp:50,phase:1,shotTimer:0,moveTimer:0,dir:1,vx:0,vy:0},shots:[],playerShots:[],attackQueued:false,last:0};
-function initBoss(){bossState.active=true;bossState.startingHp=Math.max(1,state.hp);bossState.startingArmour=state.armour;const level=bossState.rechallengeCount;const maxHp=50+level*25;bossState.player={x:100,y:210,r:11,hp:bossState.startingHp,armour:bossState.startingArmour,invulnerableUntil:0};bossState.boss={x:620,y:210,r:25,hp:maxHp,maxHp,phase:1,shotTimer:0,moveTimer:0,dir:1,vx:0,vy:0};bossState.shots=[];bossState.playerShots=[];bossState.last=performance.now();bossMessage.textContent=level===0?"The boss is waiting. Find the rhythm. Your maze health and armour carried forward.":"REMATCH "+level+". Rishi starts fresh. The boss does not.";updateBossHud();}
+const bossState={active:false,startingHp:5,startingArmour:0,rechallengeCount:0,player:{x:100,y:210,r:11,hp:5,armour:0,invulnerableUntil:0},boss:{x:620,y:210,r:25,hp:50,maxHp:50,phase:1,shotTimer:0,moveTimer:0,dir:1,vx:0,vy:0},shots:[],playerShots:[],attackQueued:false,last:0,buffs:[]};
+function initBoss(){bossState.active=true;bossState.startingHp=Math.max(1,state.hp);bossState.startingArmour=state.armour;const level=bossState.rechallengeCount;const maxHp=50+level*25;bossState.player={x:100,y:210,r:11,hp:bossState.startingHp,armour:bossState.startingArmour,invulnerableUntil:0};bossState.boss={x:620,y:210,r:25,hp:maxHp,maxHp,phase:1,shotTimer:0,moveTimer:0,dir:1,vx:0,vy:0};bossState.shots=[];bossState.playerShots=[];bossState.buffs=[];bossState.last=performance.now();bossMessage.textContent=level===0?"The boss is waiting. Find the rhythm. Your maze health and armour carried forward.":"REMATCH "+level+". Rishi starts fresh. The boss does not.";updateBossHud();}
 function bossMove(dt){
  let dx=0,dy=0;if(state.keys.has('arrowleft')||state.keys.has('a'))dx--;if(state.keys.has('arrowright')||state.keys.has('d'))dx++;if(state.keys.has('arrowup')||state.keys.has('w'))dy--;if(state.keys.has('arrowdown')||state.keys.has('s'))dy++;
  if(dx||dy){const l=Math.hypot(dx,dy);bossState.player.x=Math.max(15,Math.min(745,bossState.player.x+dx/l*170*state.mobility*dt));bossState.player.y=Math.max(15,Math.min(405,bossState.player.y+dy/l*170*state.mobility*dt))}
@@ -331,8 +331,27 @@ function updateBoss(dt){
  bossState.playerShots.forEach(s=>{s.x+=s.vx*dt;s.y+=s.vy*dt});
  bossState.shots=bossState.shots.filter(s=>s.x>-20&&s.x<780&&s.y>-20&&s.y<440);
  bossState.playerShots=bossState.playerShots.filter(s=>s.x<780);
+ const now=performance.now();
+ bossState.buffs=bossState.buffs.filter(buff=>buff.expiresAt>now&&buff.active!==false);
+ bossState.buffs.forEach(buff=>{
+  buff.pulse+=dt;
+  if(Math.hypot(buff.x-bossState.player.x,buff.y-bossState.player.y)<bossState.player.r+buff.r){
+   buff.active=false;
+   if(buff.type==="hp"){bossState.player.hp=Math.min(5,bossState.player.hp+1);bossMessage.textContent="A GOOD MOMENT. HP +1."}
+   if(buff.type==="armour"){bossState.player.armour++;bossMessage.textContent="A LITTLE EXTRA COVER. ARMOUR +1."}
+   if(buff.type==="mobility"){state.mobility=Math.min(2.5,state.mobility+.2);bossMessage.textContent="A BETTER STEP. MOBILITY +0.2×."}
+   state.hp=bossState.player.hp;state.armour=bossState.player.armour;updateStats();updateBossHud();
+  }
+ });
  bossState.shots.forEach(s=>{if(Math.hypot(s.x-bossState.player.x,s.y-bossState.player.y)<bossState.player.r+5&&performance.now()>=bossState.player.invulnerableUntil){s.x=-99;bossState.player.invulnerableUntil=performance.now()+650;if(bossState.player.armour>0){bossState.player.armour--;bossMessage.textContent='ARMOUR BROKE. The hit did not reach Rishi.'}else{bossState.player.hp--;bossMessage.textContent='HIT. HP -1. Read the pattern, then move.'}state.hp=bossState.player.hp;state.armour=bossState.player.armour;updateStats();updateBossHud();if(bossState.player.hp<=0)bossDefeat()}});
- bossState.playerShots.forEach(s=>{if(Math.hypot(s.x-b.x,s.y-b.y)<b.r+5){s.x=9999;b.hp--;bossMessage.textContent=b.phase===1?'Good hit. The pattern is opening.':b.phase===2?'The boss is changing phases. Keep moving.':'Final phase. Do not stop.';updateBossHud();if(b.hp<=0)winBoss()}});
+ bossState.playerShots.forEach(s=>{if(Math.hypot(s.x-b.x,s.y-b.y)<b.r+5){s.x=9999;b.hp--;bossMessage.textContent=b.phase===1?'Good hit. The pattern is opening.':b.phase===2?'The boss is changing phases. Keep moving.':'Final phase. Do not stop.';
+ if(Math.random()<0.2){
+  const roll=Math.random();
+  const type=roll<0.45?"hp":roll<0.75?"armour":"mobility";
+  bossState.buffs.push({x:b.x,y:b.y,r:13,type,pulse:Math.random()*Math.PI*2,expiresAt:performance.now()+4200,active:true});
+  bossMessage.textContent="AN OPPORTUNITY APPEARED. Reach it before it fades.";
+ }
+ updateBossHud();if(b.hp<=0)winBoss()}});
  drawBoss();
 }
 function drawBoss(){
@@ -345,6 +364,17 @@ function drawBoss(){
  bctx.fillStyle=b.phase===3?'#ff647c':b.phase===2?'#ffad4d':'#ff78ad';bctx.beginPath();bctx.arc(b.x,b.y,b.r,0,Math.PI*2);bctx.fill();
  bctx.fillStyle='#330b1e';bctx.font='bold 18px monospace';bctx.textAlign='center';bctx.fillText('B',b.x,b.y+6);
  bctx.fillStyle='#70e6d6';bctx.beginPath();bctx.arc(p.x,p.y,p.r,0,Math.PI*2);bctx.fill();bctx.fillStyle='#06211e';bctx.font='bold 11px monospace';bctx.fillText('R',p.x,p.y+4);
+ bossState.buffs.forEach(buff=>{
+  const pulse=1+Math.sin(buff.pulse*5)*.12;
+  bctx.save();bctx.globalAlpha=Math.max(0,Math.min(1,(buff.expiresAt-performance.now())/700));
+  bctx.strokeStyle=buff.type==="hp"?"#70e6d6":buff.type==="armour"?"#ffd866":"#b18cff";
+  bctx.lineWidth=3;bctx.beginPath();bctx.arc(buff.x,buff.y,buff.r*pulse,0,Math.PI*2);bctx.stroke();
+  bctx.fillStyle=buff.type==="hp"?"#70e6d6":buff.type==="armour"?"#ffd866":"#b18cff";
+  bctx.beginPath();bctx.arc(buff.x,buff.y,6,0,Math.PI*2);bctx.fill();
+  bctx.fillStyle="#061018";bctx.font="bold 9px monospace";bctx.textAlign="center";
+  bctx.fillText(buff.type==="hp"?"+HP":buff.type==="armour"?"+A":"+M",buff.x,buff.y+3);
+  bctx.restore();
+ });
  bctx.fillStyle='#ff647c';bossState.shots.forEach(s=>{bctx.beginPath();bctx.arc(s.x,s.y,5,0,Math.PI*2);bctx.fill()});
  bctx.fillStyle='#ffd866';bossState.playerShots.forEach(s=>{bctx.beginPath();bctx.arc(s.x,s.y,4,0,Math.PI*2);bctx.fill()});
  bctx.fillStyle='#71809e';bctx.font='10px monospace';bctx.textAlign='left';bctx.fillText('PHASE '+b.phase,14,20);
