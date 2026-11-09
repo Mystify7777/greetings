@@ -7,7 +7,7 @@ const hpStat=document.querySelector('#hpStat'),armourStat=document.querySelector
 const modal=document.querySelector('#rewardModal'),modalClose=document.querySelector('#modalClose'),rewardKicker=document.querySelector('#rewardKicker'),rewardTitle=document.querySelector('#rewardTitle'),rewardBody=document.querySelector('#rewardBody');
 const relicPrompt=document.querySelector('#relicPrompt'),relicPromptType=document.querySelector('#relicPromptType'),relicPromptTitle=document.querySelector('#relicPromptTitle'),claimMemory=document.querySelector('#claimMemory');
 const chapter4Intro=document.querySelector('#chapter4Intro'),bossShell=document.querySelector('#bossShell'),bossStage=document.querySelector('#bossStage'),bossBar=document.querySelector('#bossBar'),bossHpText=document.querySelector('#bossHpText'),bossMessage=document.querySelector('#bossMessage'),bossPlayerHp=document.querySelector('#bossPlayerHp');
-const ending=document.querySelector('#ending'),runSummary=document.querySelector('#runSummary'),secretReveal=document.querySelector('#secretReveal'),bossRechallenge=document.querySelector('#bossRechallenge'),rechallengeBoss=document.querySelector('#rechallengeBoss'),roadGame=document.querySelector('#roadGame'),roadCanvas=document.querySelector('#roadCanvas'),roadCtx=roadCanvas?.getContext('2d'),roadOverlay=document.querySelector('#roadOverlay'),roadOverlayKicker=document.querySelector('#roadOverlayKicker'),roadOverlayTitle=document.querySelector('#roadOverlayTitle'),roadOverlayText=document.querySelector('#roadOverlayText'),roadStart=document.querySelector('#roadStart'),roadCheckpoint=document.querySelector('#roadCheckpoint'),roadDistance=document.querySelector('#roadDistance'),roadScore=document.querySelector('#roadScore'),roadBest=document.querySelector('#roadBest'),roadLog=document.querySelector('#roadLog');
+const ending=document.querySelector('#ending'),runSummary=document.querySelector('#runSummary'),secretReveal=document.querySelector('#secretReveal'),bossRechallenge=document.querySelector('#bossRechallenge'),rechallengeBoss=document.querySelector('#rechallengeBoss'),roadGame=document.querySelector('#roadGame'),roadCanvas=document.querySelector('#roadCanvas'),roadCtx=roadCanvas?.getContext('2d'),roadOverlay=document.querySelector('#roadOverlay'),roadOverlayKicker=document.querySelector('#roadOverlayKicker'),roadOverlayTitle=document.querySelector('#roadOverlayTitle'),roadOverlayText=document.querySelector('#roadOverlayText'),roadStartButton=document.querySelector('#roadStart'),roadCheckpoint=document.querySelector('#roadCheckpoint'),roadDistance=document.querySelector('#roadDistance'),roadScore=document.querySelector('#roadScore'),roadBest=document.querySelector('#roadBest'),roadLog=document.querySelector('#roadLog');
 
 const TILE=40,W=25,H=17;
 const MAP=[
@@ -459,7 +459,7 @@ function roadSetOverlay(kicker,title,text,buttonText){
  roadOverlayKicker.textContent=kicker;
  roadOverlayTitle.textContent=title;
  roadOverlayText.textContent=text;
- roadStart.textContent=buttonText;
+ roadStartButton.textContent=buttonText;
  roadOverlay.hidden=false;
 }
 function roadUnlock(){
@@ -625,7 +625,7 @@ if(roadSafeGet(ROAD_UNLOCK_KEY)==="1"){
 }else if(roadGame){
  roadGame.hidden=true;
 }
-roadStart.addEventListener("click",roadStart);
+roadStartButton.addEventListener("click",roadStart);
 document.querySelectorAll("[data-road-dir]").forEach(button=>{
  button.addEventListener("pointerdown",e=>{
   e.preventDefault();
