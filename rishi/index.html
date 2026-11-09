@@ -98,14 +98,14 @@
   <section class="boss-shell" id="bossShell" hidden>
     <div class="boss-heading">
       <div><p class="eyebrow">MISSION 02 // THE BIRTHDAY BOSS</p><h2>THE LAST OBSTACLE.</h2></div>
-      <div class="boss-hp"><span>BOSS</span><div><i id="bossBar"></i></div><strong id="bossHpText">26 / 26</strong></div>
+      <div class="boss-hp"><span>BOSS</span><div><i id="bossBar"></i></div><strong id="bossHpText">50 / 50</strong></div>
     </div>
     <p class="boss-copy">Move, dodge, and attack. The pattern changes when the boss gets angry. Getting knocked down makes you faster.</p>
     <div class="boss-stage" id="bossStage" tabindex="0" role="application" aria-label="Birthday boss arena. Use WASD or arrow keys to move and Space to attack.">
       <canvas id="bossCanvas" width="760" height="420"></canvas>
       <div class="boss-hint">WASD / ARROWS · SPACE = ATTACK</div>
     </div>
-    <div class="boss-status" aria-live="polite"><span id="bossMessage">The arena is waiting.</span><strong id="bossPlayerHp">♥♥♥♥♥</strong></div>
+    <div class="boss-status" aria-live="polite"><span id="bossMessage">The arena is waiting.</span><strong id="bossPlayerHp">HP ♥♥♥♥♥ · ARMOUR 0</strong></div>
   </section>
 
   <section class="ending screen" id="ending" hidden>
@@ -120,6 +120,15 @@
     </div>
     <div class="final-memory"><span>CHAPTER V // BIRTHDAY</span><strong>HAPPY BIRTHDAY, RISHI.</strong><small>22 years down. The 23rd chapter starts now. The best memories are still ahead.</small></div>
     <div class="run-summary" id="runSummary"></div>
+    <section class="secret-reveal" id="secretReveal" hidden aria-labelledby="secretRevealTitle">
+      <div class="eyebrow">THE ARCHIVE LEFT A LOCK BEHIND</div>
+      <h3 id="secretRevealTitle">TWO ROUTES. TWO VERY DIFFERENT MEMORIES.</h3>
+      <p>You did not find either secret route this time. The archive will not hide the answer forever. Solve the clues, then replay the maze and claim the seven memories in the right order.</p>
+      <div class="secret-puzzles">
+        <article><span>THE TRICK</span><strong>“No detours. No cleverness. The archive numbers itself. Walk the memories exactly as they first appear.”</strong><small>1 → 2 → 3 → 4 → 5 → 6 → 7</small></article>
+        <article><span>THE TREAT</span><strong>“Start at the beginning. Then open the second gate. Take the final relic. Return for the second memory. Find the letter. Watch the moving memory. End with the ordinary day.”</strong><small>1 → 4 → 7 → 2 → 6 → 3 → 5</small></article>
+      </div>
+    </section>
   </section>
 </section>
 
