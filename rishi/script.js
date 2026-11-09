@@ -370,6 +370,7 @@ const roadState = {
  best:0,
  checkpoint:0,
  checkpointScore:0,
+ checkpointScores:Array(roadCheckpointDistances.length).fill(0),
  checkpointAttempts:Array(roadCheckpointDistances.length).fill(0),
  lane:1,
  targetLane:1,
@@ -393,7 +394,8 @@ function roadSave(){
   best:roadState.best,
   checkpoint:roadState.checkpoint,
   checkpointScore:roadState.checkpointScore,
-  checkpointAttempts:roadState.checkpointAttempts
+  checkpointAttempts:roadState.checkpointAttempts,
+  checkpointScores:roadState.checkpointScores
  }));
 }
 function roadLoad(){
@@ -457,6 +459,7 @@ function roadAdvanceCheckpoint(){
  if(next>=roadCheckpointDistances.length)return;
  roadState.checkpoint=next;
  roadState.checkpointScore=Math.floor(roadState.score);
+ roadState.checkpointScores[next]=roadState.checkpointScore;
  roadState.checkpointAttempts[next]=0;
  roadState.distance=roadCheckpointDistances[next];
  roadSave();
@@ -474,7 +477,7 @@ function roadCrash(){
   const fallback=current-1;
   for(let i=fallback+1;i<roadState.checkpointAttempts.length;i++)roadState.checkpointAttempts[i]=0;
   roadState.checkpoint=fallback;
-  roadState.checkpointScore=roadState.checkpoint===0?0:roadState.checkpointScore;
+  roadState.checkpointScore=roadState.checkpointScores[fallback]||0;
   roadState.distance=roadCheckpointDistances[fallback];
   roadState.score=roadState.checkpointScore;
   roadLog.textContent="THREE FAILURES ON THE SAME STRETCH. You fell back to checkpoint "+String(fallback).padStart(2,"0")+". The road ahead has been reset.";
@@ -506,10 +509,10 @@ function roadInput(dir){
 function roadUpdate(dt){
  if(!roadState.active)return;
  roadState.crashCooldown=Math.max(0,roadState.crashCooldown-dt);
+ roadState.speed=260+Math.min(180,roadState.distance/20);
  roadState.distance+=roadState.speed*dt*.32;
  roadState.score+=roadState.speed*dt*.045;
- const target=roadLaneX[roadState.targetLane];
- roadState.lane+=(target-roadLaneX[Math.round(roadState.lane)]||target)*dt*7/Math.max(1,roadState.speed/250);
+ roadState.lane+=(roadState.targetLane-roadState.lane)*Math.min(1,dt*9);
  roadState.lane=Math.max(0,Math.min(2,roadState.lane));
  const laneX=roadLaneX[roadState.targetLane];
  const currentX=roadLaneX[0]+(roadLaneX[2]-roadLaneX[0])*(roadState.lane/2);
