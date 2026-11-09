@@ -9,6 +9,98 @@ const relicPrompt=document.querySelector('#relicPrompt'),relicPromptType=documen
 const chapter4Intro=document.querySelector('#chapter4Intro'),bossShell=document.querySelector('#bossShell'),bossStage=document.querySelector('#bossStage'),bossBar=document.querySelector('#bossBar'),bossHpText=document.querySelector('#bossHpText'),bossMessage=document.querySelector('#bossMessage'),bossPlayerHp=document.querySelector('#bossPlayerHp');
 const ending=document.querySelector('#ending'),runSummary=document.querySelector('#runSummary'),secretReveal=document.querySelector('#secretReveal'),bossRechallenge=document.querySelector('#bossRechallenge'),rechallengeBoss=document.querySelector('#rechallengeBoss'),roadGame=document.querySelector('#roadGame'),roadCanvas=document.querySelector('#roadCanvas'),roadCtx=roadCanvas?.getContext('2d'),roadOverlay=document.querySelector('#roadOverlay'),roadOverlayKicker=document.querySelector('#roadOverlayKicker'),roadOverlayTitle=document.querySelector('#roadOverlayTitle'),roadOverlayText=document.querySelector('#roadOverlayText'),roadStartButton=document.querySelector('#roadStart'),roadCheckpoint=document.querySelector('#roadCheckpoint'),roadDistance=document.querySelector('#roadDistance'),roadScore=document.querySelector('#roadScore'),roadBest=document.querySelector('#roadBest'),roadLog=document.querySelector('#roadLog');
 
+
+const soundToggle=document.querySelector('#soundToggle');
+const audioState={
+ enabled:(()=>{try{return localStorage.getItem('rishi-sound-enabled')!=='0'}catch{return true}})(),
+ stepTimer:0,
+ lastRelic:null,
+ lastPhase:1
+};
+const AUDIO_CUES={
+ click:[[1200,.045,.16,'square',900]],
+ confirm:[[700,.08,.18,'triangle',980],[1050,.12,.16,'triangle',1400]],
+ step:[[150,.07,.09,'triangle',110]],
+ relicNear:[[820,.08,.14,'triangle',1080],[1180,.08,.1,'triangle',1320]],
+ relicCollect:[[660,.1,.18,'triangle',900],[990,.1,.18,'triangle',1320],[1320,.14,.16,'triangle',1760]],
+ gate:[[220,.12,.16,'sine',360],[360,.12,.16,'sine',540],[540,.16,.15,'sine',760]],
+ collision:[[95,.12,.2,'noise',70]],
+ armour:[[240,.08,.18,'square',120],[120,.12,.15,'triangle',80]],
+ hit:[[110,.08,.22,'noise',65],[70,.1,.16,'sine',45]],
+ attack:[[320,.06,.16,'square',620]],
+ bossHit:[[520,.07,.18,'square',280]],
+ bossStart:[[180,.12,.12,'sine',240],[260,.12,.14,'sine',360],[380,.18,.16,'sine',520]],
+ phase:[[220,.09,.14,'saw',330],[330,.09,.14,'saw',495],[495,.18,.16,'saw',740]],
+ buffSpawn:[[620,.08,.14,'triangle',900],[900,.14,.14,'triangle',1320]],
+ buffCollect:[[880,.08,.16,'triangle',1120],[1120,.08,.16,'triangle',1460],[1460,.16,.15,'triangle',1760]],
+ buffExpire:[[520,.08,.12,'triangle',300]],
+ gameOver:[[440,.16,.16,'sine',300],[300,.16,.15,'sine',190],[190,.24,.14,'sine',100]],
+ victory:[[660,.1,.15,'triangle',880],[880,.1,.16,'triangle',1100],[1100,.1,.17,'triangle',1320],[1320,.24,.18,'triangle',1760]],
+ roadStart:[[220,.1,.14,'sine',300],[300,.1,.15,'sine',440],[440,.2,.17,'sine',660]],
+ lane:[[300,.045,.1,'square',520]],
+ crash:[[70,.16,.2,'noise',45],[120,.2,.15,'sine',70]],
+ opportunity:[[760,.08,.15,'triangle',1040],[1040,.13,.16,'triangle',1460]],
+ checkpoint:[[660,.1,.15,'triangle',880],[880,.1,.16,'triangle',1100],[1100,.2,.18,'triangle',1460]],
+ setback:[[320,.12,.14,'sine',220],[220,.18,.13,'sine',140]]
+};
+function audioTone(freq,duration,volume,wave,slide,sampleRate){
+ const n=Math.max(1,Math.floor(duration*sampleRate)),out=new Float32Array(n);
+ for(let i=0;i<n;i++){
+  const t=i/(n-1||1),f=freq+(slide-freq)*t,phase=2*Math.PI*f*(i/sampleRate);
+  let v=wave==='square'?(Math.sin(phase)>=0?1:-1):wave==='saw'?2*(phase/(2*Math.PI)-Math.floor(.5+phase/(2*Math.PI))):wave==='triangle'?2*Math.abs(2*(phase/(2*Math.PI)-Math.floor(.5+phase/(2*Math.PI))))-1:Math.sin(phase);
+  const env=Math.min(1,t/.015)*Math.min(1,(1-t)/.035);
+  out[i]=v*volume*env;
+ }
+ return out;
+}
+function audioNoise(duration,volume,slide,sampleRate){
+ const n=Math.max(1,Math.floor(duration*sampleRate)),out=new Float32Array(n),seed=0x9e3779b9;
+ let x=seed;
+ for(let i=0;i<n;i++){x=(1664525*x+1013904223)>>>0;const t=i/(n-1||1);out[i]=((x/4294967296)*2-1)*volume*Math.min(1,t/.008)*Math.min(1,(1-t)/.04)}
+ return out;
+}
+function audioConcat(parts,gap,sampleRate){
+ const gapSamples=Math.floor(gap*sampleRate),total=parts.reduce((n,p)=>n+p.length,0)+Math.max(0,parts.length-1)*gapSamples,out=new Float32Array(total);
+ let at=0;
+ parts.forEach((p,i)=>{out.set(p,at);at+=p.length;if(i<parts.length-1)at+=gapSamples});
+ return out;
+}
+function audioWavDataUri(samples,sampleRate){
+ const bytes=new Uint8Array(44+samples.length*2),view=new DataView(bytes.buffer);
+ const write=(o,str)=>{for(let i=0;i<str.length;i++)view.setUint8(o+i,str.charCodeAt(i))};
+ write(0,'RIFF');view.setUint32(4,36+samples.length*2,true);write(8,'WAVE');write(12,'fmt ');
+ view.setUint32(16,16,true);view.setUint16(20,1,true);view.setUint16(22,1,true);view.setUint32(24,sampleRate,true);
+ view.setUint32(28,sampleRate*2,true);view.setUint16(32,2,true);view.setUint16(34,16,true);write(36,'data');view.setUint32(40,samples.length*2,true);
+ for(let i=0;i<samples.length;i++){const v=Math.max(-1,Math.min(1,samples[i]));view.setInt16(44+i*2,v<0?v*32768:v*32767,true)}
+ let binary='';const chunk=0x8000;for(let i=0;i<bytes.length;i+=chunk)binary+=String.fromCharCode(...bytes.subarray(i,i+chunk));
+ return 'data:audio/wav;base64,'+btoa(binary);
+}
+function buildAudioSprite(){
+ const rate=16000,sprite={},parts=[],gap=.045;let offset=0;
+ Object.entries(AUDIO_CUES).forEach(([name,segments])=>{
+  const rendered=segments.map(([f,d,v,w,slide])=>w==='noise'?audioNoise(d,v,slide,rate):audioTone(f,d,v,w,slide,rate));
+  const samples=audioConcat(rendered,0,rate);
+  parts.push(samples);
+  sprite[name]=[Math.round(offset*1000),Math.round(samples.length/rate*1000)];
+  offset+=samples.length/rate+gap;
+ });
+ return {src:audioWavDataUri(audioConcat(parts,gap,rate),rate),sprite};
+}
+const audioPack=buildAudioSprite();
+const gameAudio=window.Howl?new Howl({src:[audioPack.src],format:['wav'],sprite:audioPack.sprite,volume:.42,preload:true}):null;
+function playCue(name,volume=1,rate=1){
+ if(!audioState.enabled||!gameAudio)return;
+ try{const id=gameAudio.play(name);gameAudio.volume(.42*volume,id);if(rate!==1)gameAudio.rate(rate,id)}catch{}
+}
+function setSoundEnabled(enabled){
+ audioState.enabled=enabled;
+ try{localStorage.setItem('rishi-sound-enabled',enabled?'1':'0')}catch{}
+ if(gameAudio&&!enabled)gameAudio.stop();
+ soundToggle.textContent=enabled?'SOUND ON':'SOUND OFF';
+ soundToggle.setAttribute('aria-pressed',String(enabled));
+}
+if(soundToggle){soundToggle.addEventListener('click',()=>setSoundEnabled(!audioState.enabled));setSoundEnabled(audioState.enabled)}
+
 const TILE=40,W=25,H=17;
 const MAP=[
 "1111111111111111111111111",
@@ -113,20 +205,21 @@ function moveEntity(e,dx,dy){
 }
 function resetPlayer(reason){
  if(performance.now()<state.invulnerableUntil)return;
+ playCue('collision',.8);
  state.invulnerableUntil=performance.now()+750;
  if(state.armour>0){
-   state.armour--;state.player.x=1.5*TILE;state.player.y=1.5*TILE;updateStats();
+   state.armour--;playCue('armour');state.player.x=1.5*TILE;state.player.y=1.5*TILE;updateStats();
    setLog('ARMOUR ABSORBED THE HIT. '+reason+' The shield held.');
    return;
  }
- state.hp--;
+ state.hp--;playCue('hit');
  if(state.hp>0){
    state.player.x=1.5*TILE;state.player.y=1.5*TILE;updateStats();
    setLog(reason+' HP -1. You have '+state.hp+' heart'+(state.hp===1?'':'s')+' left.');
    missionText.textContent=state.hp<=2?'Low health. The next memory matters.':'The maze hit hard. Keep moving.';
    return;
  }
- state.deaths++;state.bravery++;state.mobility=Math.min(2.5,state.mobility+.1);
+ state.deaths++;state.bravery++;state.mobility=Math.min(2.5,state.mobility+.1);playCue('gameOver');
  state.hp=5;state.armour=0;state.player.x=1.5*TILE;state.player.y=1.5*TILE;
  updateStats();setLog(reason+' You ran out of HP. The next attempt starts with a full recovery.');
  missionText.textContent=state.deaths%2?'The maze won that round. It does not keep the win.':'Caught. Good. Now you know where the danger is.';
@@ -134,7 +227,9 @@ function resetPlayer(reason){
 }
 function collectRelic(index){
  if(state.collected.has(index))return;
+ playCue('relicCollect');
  state.collected.add(index);state.memory++;state.bravery++;state.claimOrder.push(index+1);
+ if(gates.some(g=>g.need===state.memory))playCue('gate');
  state.pendingRelic=null;relicPrompt.hidden=true;
  if(index===0||index===3||index===5)state.armour++;
  if(index===1||index===4||index===5)state.hp=Math.min(5,state.hp+1);
@@ -241,6 +336,7 @@ const preventGameContextMenu=e=>e.preventDefault();
 });
 
 startButton.addEventListener('click',()=>{
+ playCue('confirm');
  gameShell.hidden=false;state.started=true;missionState.textContent='ACTIVE';stageHint.textContent='FOCUS ACTIVE · WASD / ARROWS TO MOVE';
  gameShell.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth',block:'center'});
  setTimeout(()=>gameStage.focus(),matchMedia('(prefers-reduced-motion:reduce)').matches?0:180);
@@ -254,12 +350,13 @@ function updatePlayer(dt){
  if(state.keys.has('arrowright')||state.keys.has('d'))dx++;
  if(state.keys.has('arrowup')||state.keys.has('w'))dy--;
  if(state.keys.has('arrowdown')||state.keys.has('s'))dy++;
- if(dx||dy){const len=Math.hypot(dx,dy);const speed=115*state.mobility;moveEntity(state.player,dx/len*speed*dt,dy/len*speed*dt)}
+ if(dx||dy){const len=Math.hypot(dx,dy);const speed=115*state.mobility;moveEntity(state.player,dx/len*speed*dt,dy/len*speed*dt);audioState.stepTimer-=dt;if(audioState.stepTimer<=0){playCue('step',.65,1+Math.random()*.08);audioState.stepTimer=.17/state.mobility}}else audioState.stepTimer=0;
  let nearbyRelic=null;
  relics.forEach((r,i)=>{
   if(!state.collected.has(i)&&Math.hypot(state.player.x-(r.x+.5)*TILE,state.player.y-(r.y+.5)*TILE)<30)nearbyRelic=i;
  });
  if(nearbyRelic!==null){
+  if(audioState.lastRelic!==nearbyRelic){playCue('relicNear');audioState.lastRelic=nearbyRelic}
   state.pendingRelic=nearbyRelic;
   const r=relics[nearbyRelic];
   relicPromptType.textContent='MEMORY '+String(nearbyRelic+1).padStart(2,'0')+' // '+r.type;
@@ -267,6 +364,7 @@ function updatePlayer(dt){
   relicPrompt.hidden=false;
  }else{
   state.pendingRelic=null;
+  audioState.lastRelic=null;
   relicPrompt.hidden=true;
  }
  if(state.paused)return;
@@ -314,16 +412,16 @@ function frame(t){
 requestAnimationFrame(frame);
 
 const bossState={active:false,startingHp:5,startingArmour:0,rechallengeCount:0,player:{x:100,y:210,r:11,hp:5,armour:0,invulnerableUntil:0},boss:{x:620,y:210,r:25,hp:50,maxHp:50,phase:1,shotTimer:0,moveTimer:0,dir:1,vx:0,vy:0},shots:[],playerShots:[],attackQueued:false,last:0,buffs:[]};
-function initBoss(){bossState.active=true;bossState.startingHp=Math.max(1,state.hp);bossState.startingArmour=state.armour;const level=bossState.rechallengeCount;const maxHp=50+level*25;bossState.player={x:100,y:210,r:11,hp:bossState.startingHp,armour:bossState.startingArmour,invulnerableUntil:0};bossState.boss={x:620,y:210,r:25,hp:maxHp,maxHp,phase:1,shotTimer:0,moveTimer:0,dir:1,vx:0,vy:0};bossState.shots=[];bossState.playerShots=[];bossState.buffs=[];bossState.last=performance.now();bossMessage.textContent=level===0?"The boss is waiting. Find the rhythm. Your maze health and armour carried forward.":"REMATCH "+level+". Rishi starts fresh. The boss does not.";updateBossHud();}
+function initBoss(playIntroCue=true){if(playIntroCue)playCue('bossStart',.9);bossState.active=true;bossState.startingHp=Math.max(1,state.hp);bossState.startingArmour=state.armour;const level=bossState.rechallengeCount;const maxHp=50+level*25;bossState.player={x:100,y:210,r:11,hp:bossState.startingHp,armour:bossState.startingArmour,invulnerableUntil:0};bossState.boss={x:620,y:210,r:25,hp:maxHp,maxHp,phase:1,shotTimer:0,moveTimer:0,dir:1,vx:0,vy:0};bossState.shots=[];bossState.playerShots=[];bossState.buffs=[];bossState.last=performance.now();bossMessage.textContent=level===0?"The boss is waiting. Find the rhythm. Your maze health and armour carried forward.":"REMATCH "+level+". Rishi starts fresh. The boss does not.";updateBossHud();}
 function bossMove(dt){
  let dx=0,dy=0;if(state.keys.has('arrowleft')||state.keys.has('a'))dx--;if(state.keys.has('arrowright')||state.keys.has('d'))dx++;if(state.keys.has('arrowup')||state.keys.has('w'))dy--;if(state.keys.has('arrowdown')||state.keys.has('s'))dy++;
  if(dx||dy){const l=Math.hypot(dx,dy);bossState.player.x=Math.max(15,Math.min(745,bossState.player.x+dx/l*170*state.mobility*dt));bossState.player.y=Math.max(15,Math.min(405,bossState.player.y+dy/l*170*state.mobility*dt))}
- if(bossState.attackQueued){bossState.attackQueued=false;if(bossState.playerShots.length<4){const a=Math.atan2(bossState.boss.y-bossState.player.y,bossState.boss.x-bossState.player.x);bossState.playerShots.push({x:bossState.player.x+15*Math.cos(a),y:bossState.player.y+15*Math.sin(a),vx:Math.cos(a)*420,vy:Math.sin(a)*420})}}
+ if(bossState.attackQueued){bossState.attackQueued=false;if(bossState.playerShots.length<4){playCue('attack',.75);const a=Math.atan2(bossState.boss.y-bossState.player.y,bossState.boss.x-bossState.player.x);bossState.playerShots.push({x:bossState.player.x+15*Math.cos(a),y:bossState.player.y+15*Math.sin(a),vx:Math.cos(a)*420,vy:Math.sin(a)*420})}}
 }
 function updateBoss(dt){
  if(!bossState.active)return;
  bossMove(dt);const b=bossState.boss;
- const phaseTwo=Math.round(b.maxHp*.64),phaseThree=Math.round(b.maxHp*.32);b.phase=b.hp<=phaseThree?3:b.hp<=phaseTwo?2:1;b.moveTimer+=dt;b.shotTimer+=dt;
+ const phaseTwo=Math.round(b.maxHp*.64),phaseThree=Math.round(b.maxHp*.32);const previousPhase=b.phase;b.phase=b.hp<=phaseThree?3:b.hp<=phaseTwo?2:1;if(b.phase!==previousPhase){playCue('phase',.85);}b.moveTimer+=dt;b.shotTimer+=dt;
  const buff=1+bossState.rechallengeCount*.12;const dx=bossState.player.x-b.x,dy=bossState.player.y-b.y,d=Math.hypot(dx,dy)||1,aggression=(b.phase===3?1:b.phase===2?.72:.42)*buff,desiredSpeed=(b.phase===3?92:b.phase===2?68:48)*buff,orbit=Math.sin(b.moveTimer*2.2)*(b.phase===3?55:35),tx=bossState.player.x+(-dy/d)*orbit,ty=bossState.player.y+(dx/d)*orbit;
  b.vx+=(tx-b.x)/Math.max(1,d)*desiredSpeed*aggression*dt*3;b.vy+=(ty-b.y)/Math.max(1,d)*desiredSpeed*aggression*dt*3;const v=Math.hypot(b.vx,b.vy)||1;if(v>desiredSpeed){b.vx=b.vx/v*desiredSpeed;b.vy=b.vy/v*desiredSpeed}b.x=Math.max(35,Math.min(725,b.x+b.vx*dt));b.y=Math.max(35,Math.min(385,b.y+b.vy*dt));
  if(b.shotTimer>(b.phase===3?.38:b.phase===2?.55:.78)){b.shotTimer=0;const a=Math.atan2(bossState.player.y-b.y,bossState.player.x-b.x),speed=(b.phase===3?305:b.phase===2?260:225)*buff;bossState.shots.push({x:b.x,y:b.y,vx:Math.cos(a)*speed,vy:Math.sin(a)*speed});if(b.phase>=2){const spread=b.phase===3?.22:.14;[-spread,spread].forEach(offset=>bossState.shots.push({x:b.x,y:b.y,vx:Math.cos(a+offset)*speed,vy:Math.sin(a+offset)*speed}))}if(b.phase===3){for(let i=0;i<4;i++){const aa=(Math.PI/2)*i+b.moveTimer*.25;bossState.shots.push({x:b.x,y:b.y,vx:Math.cos(aa)*185,vy:Math.sin(aa)*185})}}}
@@ -336,7 +434,7 @@ function updateBoss(dt){
  bossState.buffs.forEach(buff=>{
   buff.pulse+=dt;
   if(Math.hypot(buff.x-bossState.player.x,buff.y-bossState.player.y)<bossState.player.r+buff.r){
-   buff.active=false;
+   buff.active=false;playCue('buffCollect');
    if(buff.type==="hp"){bossState.player.hp=Math.min(5,bossState.player.hp+1);bossMessage.textContent="A GOOD MOMENT. HP +1."}
    if(buff.type==="armour"){bossState.player.armour++;bossMessage.textContent="A LITTLE EXTRA COVER. ARMOUR +1."}
    if(buff.type==="mobility"){state.mobility=Math.min(2.5,state.mobility+.2);bossMessage.textContent="A BETTER STEP. MOBILITY +0.2×."}
@@ -344,14 +442,14 @@ function updateBoss(dt){
   }
  });
  bossState.shots.forEach(s=>{if(Math.hypot(s.x-bossState.player.x,s.y-bossState.player.y)<bossState.player.r+5&&performance.now()>=bossState.player.invulnerableUntil){s.x=-99;bossState.player.invulnerableUntil=performance.now()+650;if(bossState.player.armour>0){bossState.player.armour--;bossMessage.textContent='ARMOUR BROKE. The hit did not reach Rishi.'}else{bossState.player.hp--;bossMessage.textContent='HIT. HP -1. Read the pattern, then move.'}state.hp=bossState.player.hp;state.armour=bossState.player.armour;updateStats();updateBossHud();if(bossState.player.hp<=0)bossDefeat()}});
- bossState.playerShots.forEach(s=>{if(Math.hypot(s.x-b.x,s.y-b.y)<b.r+5){s.x=9999;b.hp--;bossMessage.textContent=b.phase===1?'Good hit. The pattern is opening.':b.phase===2?'The boss is changing phases. Keep moving.':'Final phase. Do not stop.';
+ bossState.playerShots.forEach(s=>{if(Math.hypot(s.x-b.x,s.y-b.y)<b.r+5){s.x=9999;b.hp--;playCue('bossHit',.85);bossMessage.textContent=b.phase===1?'Good hit. The pattern is opening.':b.phase===2?'The boss is changing phases. Keep moving.':'Final phase. Do not stop.';
  if(b.hp>0&&Math.random()<0.2){
   const available=[];
   if(bossState.player.hp<5)available.push("hp");
   available.push("armour");
   if(state.mobility<2.5)available.push("mobility");
   const type=available[Math.floor(Math.random()*available.length)];
-  bossState.buffs.push({x:b.x,y:b.y,r:13,type,pulse:Math.random()*Math.PI*2,expiresAt:performance.now()+4200,active:true});
+  bossState.buffs.push({x:b.x,y:b.y,r:13,type,pulse:Math.random()*Math.PI*2,expiresAt:performance.now()+4200,active:true});playCue('buffSpawn',.8);
   bossMessage.textContent="AN OPPORTUNITY APPEARED. Reach it before it fades.";
  }
  updateBossHud();if(b.hp<=0)winBoss()}});
@@ -383,8 +481,8 @@ function drawBoss(){
  bctx.fillStyle='#71809e';bctx.font='10px monospace';bctx.textAlign='left';bctx.fillText('PHASE '+b.phase,14,20);
 }
 function updateBossHud(){bossBar.style.width=Math.max(0,bossState.boss.hp/bossState.boss.maxHp*100)+'%';bossHpText.textContent=Math.max(0,bossState.boss.hp)+' / '+bossState.boss.maxHp;bossPlayerHp.textContent='HP '+('♥'.repeat(Math.max(0,bossState.player.hp))+'♡'.repeat(Math.max(0,5-bossState.player.hp)))+' · ARMOUR '+bossState.player.armour}
-function bossDefeat(){bossState.active=false;state.hp=bossState.startingHp;state.armour=bossState.startingArmour;state.bossDeaths++;state.bravery++;state.mobility=Math.min(2.5,state.mobility+.15);updateStats();bossMessage.textContent=['DOWN, NOT OUT. You learned the attack timing.','THE BOSS WON THAT ROUND. Now you know what to dodge.','DEFEATED. Good. Knowledge acquired.','ONE MORE ROUND. The opening is there.'][state.bossDeaths%4];setStory("CHAPTER IV","THE SETBACK","The boss wins this round. Rishi is still here.","This is the part the story needed. A setback is not a verdict. Every attempt teaches a little more, and the next attempt starts with everything you learned.");setTimeout(()=>initBoss(),500)}
-function winBoss(){bossState.active=false;bossMessage.textContent="BOSS DEFEATED. QUEST COMPLETE.";setStory("CHAPTER V","THE NEXT CHAPTER","The fight is over. Rishi's story is not.","The maze, the memories and the boss were only a metaphor for one thing: the road ahead will contain hard chapters too. Keep moving through them.");ending.hidden=false;bossRechallenge.hidden=false;secretReveal.hidden=state.collected.size>0&&secretRoutes.some(route=>route.sequence.every((value,i)=>state.claimOrder[i]===value));runSummary.textContent="MEMORIES 7/7 · FINAL HP "+state.hp+" · FINAL ARMOUR "+state.armour+" · BRAVERY "+state.bravery+" · MOBILITY "+state.mobility.toFixed(1)+"× · MAZE DEATHS "+state.deaths+" · BOSS ATTEMPTS "+(state.bossDeaths+1)+" · REMATCHES "+bossState.rechallengeCount;unlockRoadGame();ending.scrollIntoView({behavior:"smooth",block:"center"});}
+function bossDefeat(){bossState.active=false;playCue('setback',.8);state.hp=bossState.startingHp;state.armour=bossState.startingArmour;state.bossDeaths++;state.bravery++;state.mobility=Math.min(2.5,state.mobility+.15);updateStats();bossMessage.textContent=['DOWN, NOT OUT. You learned the attack timing.','THE BOSS WON THAT ROUND. Now you know what to dodge.','DEFEATED. Good. Knowledge acquired.','ONE MORE ROUND. The opening is there.'][state.bossDeaths%4];setStory("CHAPTER IV","THE SETBACK","The boss wins this round. Rishi is still here.","This is the part the story needed. A setback is not a verdict. Every attempt teaches a little more, and the next attempt starts with everything you learned.");setTimeout(()=>initBoss(false),500)}
+function winBoss(){bossState.active=false;playCue('victory');bossMessage.textContent="BOSS DEFEATED. QUEST COMPLETE.";setStory("CHAPTER V","THE NEXT CHAPTER","The fight is over. Rishi's story is not.","The maze, the memories and the boss were only a metaphor for one thing: the road ahead will contain hard chapters too. Keep moving through them.");ending.hidden=false;bossRechallenge.hidden=false;secretReveal.hidden=state.collected.size>0&&secretRoutes.some(route=>route.sequence.every((value,i)=>state.claimOrder[i]===value));runSummary.textContent="MEMORIES 7/7 · FINAL HP "+state.hp+" · FINAL ARMOUR "+state.armour+" · BRAVERY "+state.bravery+" · MOBILITY "+state.mobility.toFixed(1)+"× · MAZE DEATHS "+state.deaths+" · BOSS ATTEMPTS "+(state.bossDeaths+1)+" · REMATCHES "+bossState.rechallengeCount;unlockRoadGame();ending.scrollIntoView({behavior:"smooth",block:"center"});}
 function bossFrame(t){const dt=Math.min(.035,(t-bossState.last)/1000||0);bossState.last=t;if(state.started&&!state.paused&&bossState.active)updateBoss(dt);requestAnimationFrame(bossFrame)}
 requestAnimationFrame(bossFrame);
 
@@ -481,6 +579,7 @@ function roadResetSegment(){
  roadState.crashCooldown=1.2;
 }
 function roadStart(){
+ playCue('roadStart',.9);
  roadLoad();
  roadState.active=true;
  roadState.last=performance.now();
@@ -495,6 +594,7 @@ function roadAdvanceCheckpoint(){
  roadState.checkpoint=next;
  roadState.checkpointScore=Math.floor(roadState.score);
  roadState.checkpointScores[next]=roadState.checkpointScore;
+ playCue('checkpoint',.85);
  roadState.checkpointAttempts[next]=0;
  roadState.distance=roadCheckpointDistances[next];
  roadSave();
@@ -502,6 +602,7 @@ function roadAdvanceCheckpoint(){
 }
 function roadCrash(){
  if(roadState.crashCooldown>0)return;
+ playCue('crash');
  roadState.best=Math.max(roadState.best,Math.floor(roadState.score));
  const current=roadState.checkpoint;
  roadState.checkpointAttempts[current]=(roadState.checkpointAttempts[current]||0)+1;
@@ -523,7 +624,7 @@ function roadCrash(){
  }
  roadSave();
  roadUpdateHud();
- roadSetOverlay("SETBACK","GET BACK ON THE ROAD.","Your checkpoint held. The road does not care how many times you fall, only what you change before the next run.","↻ TRY AGAIN");
+ playCue('setback',.75);roadSetOverlay("SETBACK","GET BACK ON THE ROAD.","Your checkpoint held. The road does not care how many times you fall, only what you change before the next run.","↻ TRY AGAIN");
 }
 function roadSpawn(){
  const lane=Math.floor(Math.random()*3);
@@ -539,7 +640,7 @@ function roadSpawn(){
 }
 function roadInput(dir){
  if(!roadState.active)return;
- roadState.targetLane=Math.max(0,Math.min(2,roadState.targetLane+dir));
+ const nextLane=Math.max(0,Math.min(2,roadState.targetLane+dir));if(nextLane!==roadState.targetLane)playCue('lane',.65);roadState.targetLane=nextLane;
 }
 function roadUpdate(dt){
  if(!roadState.active)return;
@@ -561,7 +662,7 @@ function roadUpdate(dt){
   const hit=Math.abs(o.x-currentX)<38&&Math.abs(o.y-350)<34;
   if(hit){
    if(o.type==="opportunity"){
-    o.y=999;
+    o.y=999;playCue('opportunity',.8);
     roadState.score+=150;
     roadLog.textContent="OPPORTUNITY TAKEN. +150. Keep your eyes open.";
    }else{
