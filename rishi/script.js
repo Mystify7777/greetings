@@ -361,7 +361,7 @@ updateStats();
 
 const ROAD_SAVE_KEY = "rishi-road-progress-v1";
 const ROAD_UNLOCK_KEY = "rishi-road-unlocked-v1";
-const roadCheckpointDistances = [0,100,160,260,420,680,1100,1780,2880,4660,7540];
+const roadCheckpointDistances = [0,100,260,520,940,1620,2720,4500,7380,12040,19620];
 const roadLaneX = [205,380,555];
 const roadState = {
  active:false,
