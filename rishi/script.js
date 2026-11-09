@@ -198,11 +198,46 @@ document.addEventListener('keyup',handleKeyUp);
 claimMemory.addEventListener('click',()=>{if(state.pendingRelic!==null&&!state.paused)collectRelic(state.pendingRelic)});
 gameStage.addEventListener('click',()=>gameStage.focus());bossStage.addEventListener('click',()=>bossStage.focus());
 
+const mobilePointers=new Map();
 document.querySelectorAll('[data-dir]').forEach(btn=>{
  const dir=btn.dataset.dir;
  const map={up:'arrowup',down:'arrowdown',left:'arrowleft',right:'arrowright'};
- const press=()=>state.keys.add(map[dir]),release=()=>state.keys.delete(map[dir]);
- btn.addEventListener('pointerdown',e=>{e.preventDefault();press()});btn.addEventListener('pointerup',release);btn.addEventListener('pointerleave',release);
+ const press=e=>{
+  e.preventDefault();
+  btn.setPointerCapture?.(e.pointerId);
+  mobilePointers.set(e.pointerId,map[dir]);
+  state.keys.add(map[dir]);
+  btn.classList.add('pressed');
+ };
+ const release=e=>{
+  e.preventDefault();
+  const key=mobilePointers.get(e.pointerId);
+  if(key)state.keys.delete(key);
+  mobilePointers.delete(e.pointerId);
+  btn.classList.remove('pressed');
+ };
+ btn.addEventListener('pointerdown',press);
+ btn.addEventListener('pointerup',release);
+ btn.addEventListener('pointercancel',release);
+ btn.addEventListener('lostpointercapture',release);
+});
+document.querySelectorAll('[data-action="attack"]').forEach(btn=>{
+ btn.addEventListener('pointerdown',e=>{
+  e.preventDefault();
+  btn.setPointerCapture?.(e.pointerId);
+  bossState.attackQueued=true;
+  btn.classList.add('pressed');
+ });
+ const release=e=>{e.preventDefault();btn.classList.remove('pressed')};
+ btn.addEventListener('pointerup',release);
+ btn.addEventListener('pointercancel',release);
+ btn.addEventListener('lostpointercapture',release);
+});
+const preventGameContextMenu=e=>e.preventDefault();
+[gameStage,bossStage,...document.querySelectorAll('.mobile-controls')].forEach(el=>{
+ el.addEventListener('contextmenu',preventGameContextMenu);
+ el.addEventListener('dragstart',preventGameContextMenu);
+ el.addEventListener('selectstart',preventGameContextMenu);
 });
 
 startButton.addEventListener('click',()=>{
