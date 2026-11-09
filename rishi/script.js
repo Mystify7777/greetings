@@ -7,7 +7,7 @@ const hpStat=document.querySelector('#hpStat'),armourStat=document.querySelector
 const modal=document.querySelector('#rewardModal'),modalClose=document.querySelector('#modalClose'),rewardKicker=document.querySelector('#rewardKicker'),rewardTitle=document.querySelector('#rewardTitle'),rewardBody=document.querySelector('#rewardBody');
 const relicPrompt=document.querySelector('#relicPrompt'),relicPromptType=document.querySelector('#relicPromptType'),relicPromptTitle=document.querySelector('#relicPromptTitle'),claimMemory=document.querySelector('#claimMemory');
 const chapter4Intro=document.querySelector('#chapter4Intro'),bossShell=document.querySelector('#bossShell'),bossStage=document.querySelector('#bossStage'),bossBar=document.querySelector('#bossBar'),bossHpText=document.querySelector('#bossHpText'),bossMessage=document.querySelector('#bossMessage'),bossPlayerHp=document.querySelector('#bossPlayerHp');
-const ending=document.querySelector('#ending'),runSummary=document.querySelector('#runSummary'),secretReveal=document.querySelector('#secretReveal');
+const ending=document.querySelector('#ending'),runSummary=document.querySelector('#runSummary'),secretReveal=document.querySelector('#secretReveal'),bossRechallenge=document.querySelector('#bossRechallenge'),rechallengeBoss=document.querySelector('#rechallengeBoss'),roadGame=document.querySelector('#roadGame'),roadCanvas=document.querySelector('#roadCanvas'),roadCtx=roadCanvas?.getContext('2d'),roadOverlay=document.querySelector('#roadOverlay'),roadOverlayKicker=document.querySelector('#roadOverlayKicker'),roadOverlayTitle=document.querySelector('#roadOverlayTitle'),roadOverlayText=document.querySelector('#roadOverlayText'),roadStart=document.querySelector('#roadStart'),roadCheckpoint=document.querySelector('#roadCheckpoint'),roadDistance=document.querySelector('#roadDistance'),roadScore=document.querySelector('#roadScore'),roadBest=document.querySelector('#roadBest'),roadLog=document.querySelector('#roadLog');
 
 const TILE=40,W=25,H=17;
 const MAP=[
@@ -313,8 +313,8 @@ function frame(t){
 }
 requestAnimationFrame(frame);
 
-const bossState={active:false,startingHp:5,startingArmour:0,player:{x:100,y:210,r:11,hp:5,armour:0,invulnerableUntil:0},boss:{x:620,y:210,r:25,hp:50,maxHp:50,phase:1,shotTimer:0,moveTimer:0,dir:1,vx:0,vy:0},shots:[],playerShots:[],attackQueued:false,last:0};
-function initBoss(){bossState.active=true;bossState.startingHp=Math.max(1,state.hp);bossState.startingArmour=state.armour;bossState.player={x:100,y:210,r:11,hp:bossState.startingHp,armour:bossState.startingArmour,invulnerableUntil:0};bossState.boss={x:620,y:210,r:25,hp:50,maxHp:50,phase:1,shotTimer:0,moveTimer:0,dir:1,vx:0,vy:0};bossState.shots=[];bossState.playerShots=[];bossState.last=performance.now();bossMessage.textContent='The boss is waiting. Find the rhythm. Your maze health and armour carried forward.';updateBossHud();}
+const bossState={active:false,startingHp:5,startingArmour:0,rechallengeCount:0,player:{x:100,y:210,r:11,hp:5,armour:0,invulnerableUntil:0},boss:{x:620,y:210,r:25,hp:50,maxHp:50,phase:1,shotTimer:0,moveTimer:0,dir:1,vx:0,vy:0},shots:[],playerShots:[],attackQueued:false,last:0};
+function initBoss(){bossState.active=true;bossState.startingHp=Math.max(1,state.hp);bossState.startingArmour=state.armour;const level=bossState.rechallengeCount;const maxHp=50+level*25;bossState.player={x:100,y:210,r:11,hp:bossState.startingHp,armour:bossState.startingArmour,invulnerableUntil:0};bossState.boss={x:620,y:210,r:25,hp:maxHp,maxHp,phase:1,shotTimer:0,moveTimer:0,dir:1,vx:0,vy:0};bossState.shots=[];bossState.playerShots=[];bossState.last=performance.now();bossMessage.textContent=level===0?"The boss is waiting. Find the rhythm. Your maze health and armour carried forward.":"REMATCH "+level+". Rishi starts fresh. The boss does not.";updateBossHud();}
 function bossMove(dt){
  let dx=0,dy=0;if(state.keys.has('arrowleft')||state.keys.has('a'))dx--;if(state.keys.has('arrowright')||state.keys.has('d'))dx++;if(state.keys.has('arrowup')||state.keys.has('w'))dy--;if(state.keys.has('arrowdown')||state.keys.has('s'))dy++;
  if(dx||dy){const l=Math.hypot(dx,dy);bossState.player.x=Math.max(15,Math.min(745,bossState.player.x+dx/l*170*state.mobility*dt));bossState.player.y=Math.max(15,Math.min(405,bossState.player.y+dy/l*170*state.mobility*dt))}
@@ -323,10 +323,10 @@ function bossMove(dt){
 function updateBoss(dt){
  if(!bossState.active)return;
  bossMove(dt);const b=bossState.boss;
- b.phase=b.hp<=16?3:b.hp<=32?2:1;b.moveTimer+=dt;b.shotTimer+=dt;
- const dx=bossState.player.x-b.x,dy=bossState.player.y-b.y,d=Math.hypot(dx,dy)||1,aggression=b.phase===3?1:b.phase===2?.72:.42,desiredSpeed=b.phase===3?92:b.phase===2?68:48,orbit=Math.sin(b.moveTimer*2.2)*(b.phase===3?55:35),tx=bossState.player.x+(-dy/d)*orbit,ty=bossState.player.y+(dx/d)*orbit;
+ const phaseTwo=Math.round(b.maxHp*.64),phaseThree=Math.round(b.maxHp*.32);b.phase=b.hp<=phaseThree?3:b.hp<=phaseTwo?2:1;b.moveTimer+=dt;b.shotTimer+=dt;
+ const buff=1+bossState.rechallengeCount*.12;const dx=bossState.player.x-b.x,dy=bossState.player.y-b.y,d=Math.hypot(dx,dy)||1,aggression=(b.phase===3?1:b.phase===2?.72:.42)*buff,desiredSpeed=(b.phase===3?92:b.phase===2?68:48)*buff,orbit=Math.sin(b.moveTimer*2.2)*(b.phase===3?55:35),tx=bossState.player.x+(-dy/d)*orbit,ty=bossState.player.y+(dx/d)*orbit;
  b.vx+=(tx-b.x)/Math.max(1,d)*desiredSpeed*aggression*dt*3;b.vy+=(ty-b.y)/Math.max(1,d)*desiredSpeed*aggression*dt*3;const v=Math.hypot(b.vx,b.vy)||1;if(v>desiredSpeed){b.vx=b.vx/v*desiredSpeed;b.vy=b.vy/v*desiredSpeed}b.x=Math.max(35,Math.min(725,b.x+b.vx*dt));b.y=Math.max(35,Math.min(385,b.y+b.vy*dt));
- if(b.shotTimer>(b.phase===3?.38:b.phase===2?.55:.78)){b.shotTimer=0;const a=Math.atan2(bossState.player.y-b.y,bossState.player.x-b.x),speed=b.phase===3?305:b.phase===2?260:225;bossState.shots.push({x:b.x,y:b.y,vx:Math.cos(a)*speed,vy:Math.sin(a)*speed});if(b.phase>=2){const spread=b.phase===3?.22:.14;[-spread,spread].forEach(offset=>bossState.shots.push({x:b.x,y:b.y,vx:Math.cos(a+offset)*speed,vy:Math.sin(a+offset)*speed}))}if(b.phase===3){for(let i=0;i<4;i++){const aa=(Math.PI/2)*i+b.moveTimer*.25;bossState.shots.push({x:b.x,y:b.y,vx:Math.cos(aa)*185,vy:Math.sin(aa)*185})}}}
+ if(b.shotTimer>(b.phase===3?.38:b.phase===2?.55:.78)){b.shotTimer=0;const a=Math.atan2(bossState.player.y-b.y,bossState.player.x-b.x),speed=(b.phase===3?305:b.phase===2?260:225)*buff;bossState.shots.push({x:b.x,y:b.y,vx:Math.cos(a)*speed,vy:Math.sin(a)*speed});if(b.phase>=2){const spread=b.phase===3?.22:.14;[-spread,spread].forEach(offset=>bossState.shots.push({x:b.x,y:b.y,vx:Math.cos(a+offset)*speed,vy:Math.sin(a+offset)*speed}))}if(b.phase===3){for(let i=0;i<4;i++){const aa=(Math.PI/2)*i+b.moveTimer*.25;bossState.shots.push({x:b.x,y:b.y,vx:Math.cos(aa)*185,vy:Math.sin(aa)*185})}}}
  bossState.shots.forEach(s=>{s.x+=s.vx*dt;s.y+=s.vy*dt});
  bossState.playerShots.forEach(s=>{s.x+=s.vx*dt;s.y+=s.vy*dt});
  bossState.shots=bossState.shots.filter(s=>s.x>-20&&s.x<780&&s.y>-20&&s.y<440);
@@ -351,10 +351,287 @@ function drawBoss(){
 }
 function updateBossHud(){bossBar.style.width=Math.max(0,bossState.boss.hp/bossState.boss.maxHp*100)+'%';bossHpText.textContent=Math.max(0,bossState.boss.hp)+' / '+bossState.boss.maxHp;bossPlayerHp.textContent='HP '+('♥'.repeat(Math.max(0,bossState.player.hp))+'♡'.repeat(Math.max(0,5-bossState.player.hp)))+' · ARMOUR '+bossState.player.armour}
 function bossDefeat(){bossState.active=false;state.hp=bossState.startingHp;state.armour=bossState.startingArmour;state.bossDeaths++;state.bravery++;state.mobility=Math.min(2.5,state.mobility+.15);updateStats();bossMessage.textContent=['DOWN, NOT OUT. You learned the attack timing.','THE BOSS WON THAT ROUND. Now you know what to dodge.','DEFEATED. Good. Knowledge acquired.','ONE MORE ROUND. The opening is there.'][state.bossDeaths%4];setStory("CHAPTER IV","THE SETBACK","The boss wins this round. Rishi is still here.","This is the part the story needed. A setback is not a verdict. Every attempt teaches a little more, and the next attempt starts with everything you learned.");setTimeout(()=>initBoss(),500)}
-function winBoss(){bossState.active=false;bossMessage.textContent='BOSS DEFEATED. QUEST COMPLETE.';setStory("CHAPTER V","THE NEXT CHAPTER","The fight is over. Rishi's story is not.","The maze, the memories and the boss were only a metaphor for one thing: the road ahead will contain hard chapters too. Keep moving through them.");ending.hidden=false;secretReveal.hidden=state.collected.size>0&&secretRoutes.some(route=>route.sequence.every((value,i)=>state.claimOrder[i]===value));runSummary.textContent='MEMORIES 7/7 · FINAL HP '+state.hp+' · FINAL ARMOUR '+state.armour+' · BRAVERY '+state.bravery+' · MOBILITY '+state.mobility.toFixed(1)+'× · MAZE DEATHS '+state.deaths+' · BOSS ATTEMPTS '+(state.bossDeaths+1);ending.scrollIntoView({behavior:'smooth',block:'center'});}
+function winBoss(){bossState.active=false;bossMessage.textContent="BOSS DEFEATED. QUEST COMPLETE.";setStory("CHAPTER V","THE NEXT CHAPTER","The fight is over. Rishi's story is not.","The maze, the memories and the boss were only a metaphor for one thing: the road ahead will contain hard chapters too. Keep moving through them.");ending.hidden=false;bossRechallenge.hidden=false;secretReveal.hidden=state.collected.size>0&&secretRoutes.some(route=>route.sequence.every((value,i)=>state.claimOrder[i]===value));runSummary.textContent="MEMORIES 7/7 · FINAL HP "+state.hp+" · FINAL ARMOUR "+state.armour+" · BRAVERY "+state.bravery+" · MOBILITY "+state.mobility.toFixed(1)+"× · MAZE DEATHS "+state.deaths+" · BOSS ATTEMPTS "+(state.bossDeaths+1)+" · REMATCHES "+bossState.rechallengeCount;unlockRoadGame();ending.scrollIntoView({behavior:"smooth",block:"center"});}
 function bossFrame(t){const dt=Math.min(.035,(t-bossState.last)/1000||0);bossState.last=t;if(state.started&&!state.paused&&bossState.active)updateBoss(dt);requestAnimationFrame(bossFrame)}
 requestAnimationFrame(bossFrame);
 
 document.addEventListener('visibilitychange',()=>{if(document.hidden){state.keys.clear();state.paused=true}else if(modal.getAttribute('aria-hidden')==='true'&&!state.resumeUntil){state.paused=false}});
 
 updateStats();
+
+const ROAD_SAVE_KEY = "rishi-road-progress-v1";
+const ROAD_UNLOCK_KEY = "rishi-road-unlocked-v1";
+const roadCheckpointDistances = [0,100,260,520,940,1620,2720,4500,7380,12040,19620];
+const roadLaneX = [205,380,555];
+const roadState = {
+ active:false,
+ distance:0,
+ score:0,
+ best:0,
+ checkpoint:0,
+ checkpointScore:0,
+ checkpointScores:Array(roadCheckpointDistances.length).fill(0),
+ checkpointAttempts:Array(roadCheckpointDistances.length).fill(0),
+ lane:1,
+ targetLane:1,
+ objects:[],
+ spawnTimer:0,
+ last:0,
+ crashCooldown:0,
+ seed:1
+};
+
+function roadSafeGet(key){
+ try{return localStorage.getItem(key)}catch{return null}
+}
+function roadSafeSet(key,value){
+ try{localStorage.setItem(key,value)}catch{}
+}
+function roadSave(){
+ roadSafeSet(ROAD_SAVE_KEY,JSON.stringify({
+  distance:roadState.distance,
+  score:roadState.score,
+  best:roadState.best,
+  checkpoint:roadState.checkpoint,
+  checkpointScore:roadState.checkpointScore,
+  checkpointAttempts:roadState.checkpointAttempts,
+  checkpointScores:roadState.checkpointScores
+ }));
+}
+function roadLoad(){
+ const raw=roadSafeGet(ROAD_SAVE_KEY);
+ if(!raw)return false;
+ try{
+  const saved=JSON.parse(raw);
+  roadState.distance=Number(saved.distance)||0;
+  roadState.score=Number(saved.score)||0;
+  roadState.best=Number(saved.best)||roadState.score;
+  roadState.checkpoint=Math.max(0,Math.min(roadCheckpointDistances.length-1,Number(saved.checkpoint)||0));
+  roadState.checkpointScore=Number(saved.checkpointScore)||roadState.score;
+  roadState.checkpointScores=Array.isArray(saved.checkpointScores)?saved.checkpointScores.slice(0,roadCheckpointDistances.length):Array(roadCheckpointDistances.length).fill(0);
+  while(roadState.checkpointScores.length<roadCheckpointDistances.length)roadState.checkpointScores.push(0);
+  roadState.checkpointAttempts=Array.isArray(saved.checkpointAttempts)?saved.checkpointAttempts.slice(0,roadCheckpointDistances.length):Array(roadCheckpointDistances.length).fill(0);
+  while(roadState.checkpointAttempts.length<roadCheckpointDistances.length)roadState.checkpointAttempts.push(0);
+  return true;
+ }catch{return false}
+}
+function roadUpdateHud(){
+ const cp=roadState.checkpoint===0?"START":"CHECKPOINT "+String(roadState.checkpoint).padStart(2,"0");
+ roadCheckpoint.textContent=cp;
+ roadDistance.textContent=Math.floor(roadState.distance).toLocaleString();
+ roadScore.textContent=Math.floor(roadState.score).toLocaleString();
+ roadBest.textContent=Math.floor(roadState.best).toLocaleString();
+}
+function roadSetOverlay(kicker,title,text,buttonText){
+ roadOverlayKicker.textContent=kicker;
+ roadOverlayTitle.textContent=title;
+ roadOverlayText.textContent=text;
+ roadStart.textContent=buttonText;
+ roadOverlay.hidden=false;
+}
+function roadUnlock(){
+ roadSafeSet(ROAD_UNLOCK_KEY,"1");
+ if(roadGame)roadGame.hidden=false;
+}
+function unlockRoadGame(){
+ roadUnlock();
+ roadSetOverlay("CHAPTER VI // THE LONG ROAD","THE NEXT SUCCESS IS FARTHER.","The road remembers where you stopped. The next checkpoint will demand more distance than the last.","▶ START THE ROAD");
+ roadGame.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion:reduce)").matches?"auto":"smooth",block:"center"});
+}
+function roadResetSegment(){
+ roadState.distance=roadCheckpointDistances[roadState.checkpoint];
+ roadState.score=roadState.checkpointScore;
+ roadState.lane=1;
+ roadState.targetLane=1;
+ roadState.objects=[];
+ roadState.spawnTimer=.35;
+ roadState.crashCooldown=1.2;
+}
+function roadStart(){
+ roadLoad();
+ roadState.active=true;
+ roadState.last=performance.now();
+ roadOverlay.hidden=true;
+ roadGame.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion:reduce)").matches?"auto":"smooth",block:"center"});
+ roadLog.textContent=roadState.checkpoint===0?"The first checkpoint is close. The next one will not be.":"Checkpoint "+roadState.checkpoint+" restored. The road ahead is yours again.";
+ roadStage.focus();
+}
+function roadAdvanceCheckpoint(){
+ const next=roadState.checkpoint+1;
+ if(next>=roadCheckpointDistances.length)return;
+ roadState.checkpoint=next;
+ roadState.checkpointScore=Math.floor(roadState.score);
+ roadState.checkpointScores[next]=roadState.checkpointScore;
+ roadState.checkpointAttempts[next]=0;
+ roadState.distance=roadCheckpointDistances[next];
+ roadSave();
+ roadLog.textContent="CHECKPOINT "+String(next).padStart(2,"0")+" CLEARED AT "+roadState.checkpointScore+" POINTS. The next stretch is longer.";
+}
+function roadCrash(){
+ if(roadState.crashCooldown>0)return;
+ roadState.best=Math.max(roadState.best,Math.floor(roadState.score));
+ const current=roadState.checkpoint;
+ roadState.checkpointAttempts[current]=(roadState.checkpointAttempts[current]||0)+1;
+ const attempts=roadState.checkpointAttempts[current];
+ roadState.active=false;
+ roadState.objects=[];
+ if(attempts>2&&current>0){
+  const fallback=current-1;
+  for(let i=fallback+1;i<roadState.checkpointAttempts.length;i++){roadState.checkpointAttempts[i]=0;roadState.checkpointScores[i]=0;}
+  roadState.checkpoint=fallback;
+  roadState.checkpointScore=roadState.checkpointScores[fallback]||0;
+  roadState.distance=roadCheckpointDistances[fallback];
+  roadState.score=roadState.checkpointScore;
+  roadLog.textContent="THREE FAILURES ON THE SAME STRETCH. You fell back to checkpoint "+String(fallback).padStart(2,"0")+". The road ahead has been reset.";
+ }else{
+  roadState.distance=roadCheckpointDistances[current];
+  roadState.score=roadState.checkpointScore;
+  roadLog.textContent="CRASH. Back to checkpoint "+(current===0?"START":String(current).padStart(2,"0"))+". Change something before the next attempt.";
+ }
+ roadSave();
+ roadUpdateHud();
+ roadSetOverlay("SETBACK","GET BACK ON THE ROAD.","Your checkpoint held. The road does not care how many times you fall, only what you change before the next run.","↻ TRY AGAIN");
+}
+function roadSpawn(){
+ const lane=Math.floor(Math.random()*3);
+ const opportunity=Math.random()<.27;
+ roadState.objects.push({
+  lane,
+  x:roadLaneX[lane],
+  y:-45,
+  type:opportunity?"opportunity":"obstacle",
+  speed:roadState.speed*(opportunity?.96:1),
+  pulse:Math.random()*Math.PI*2
+ });
+}
+function roadInput(dir){
+ if(!roadState.active)return;
+ roadState.targetLane=Math.max(0,Math.min(2,roadState.targetLane+dir));
+}
+function roadUpdate(dt){
+ if(!roadState.active)return;
+ roadState.crashCooldown=Math.max(0,roadState.crashCooldown-dt);
+ roadState.speed=260+Math.min(180,roadState.distance/20);
+ roadState.distance+=roadState.speed*dt*.32;
+ roadState.score+=roadState.speed*dt*.045;
+ roadState.lane+=(roadState.targetLane-roadState.lane)*Math.min(1,dt*9);
+ roadState.lane=Math.max(0,Math.min(2,roadState.lane));
+ const laneX=roadLaneX[roadState.targetLane];
+ const currentX=roadLaneX[0]+(roadLaneX[2]-roadLaneX[0])*(roadState.lane/2);
+ roadState.spawnTimer-=dt;
+ if(roadState.spawnTimer<=0){
+  roadSpawn();
+  roadState.spawnTimer=Math.max(.34,1.05-roadState.distance/9000);
+ }
+ roadState.objects.forEach(o=>{o.y+=o.speed*dt;o.pulse+=dt});
+ for(const o of roadState.objects){
+  const hit=Math.abs(o.x-currentX)<38&&Math.abs(o.y-350)<34;
+  if(hit){
+   if(o.type==="opportunity"){
+    o.y=999;
+    roadState.score+=150;
+    roadLog.textContent="OPPORTUNITY TAKEN. +150. Keep your eyes open.";
+   }else{
+    roadCrash();
+    return;
+   }
+  }
+ }
+ roadState.objects=roadState.objects.filter(o=>o.y<470);
+ while(roadState.checkpoint<roadCheckpointDistances.length-1&&roadState.distance>=roadCheckpointDistances[roadState.checkpoint+1]){
+  roadAdvanceCheckpoint();
+  roadState.checkpointAttempts[roadState.checkpoint]=0;
+ }
+ roadState.best=Math.max(roadState.best,Math.floor(roadState.score));
+ roadUpdateHud();
+ roadDraw();
+}
+function roadDraw(){
+ roadCtx.clearRect(0,0,roadCanvas.width,roadCanvas.height);
+ roadCtx.fillStyle="#061018";roadCtx.fillRect(0,0,roadCanvas.width,roadCanvas.height);
+ roadCtx.fillStyle="#101a24";roadCtx.fillRect(110,0,540,roadCanvas.height);
+ roadCtx.fillStyle="#26313b";roadCtx.fillRect(120,0,520,roadCanvas.height);
+ roadCtx.fillStyle="#0b121a";roadCtx.fillRect(140,0,480,roadCanvas.height);
+ roadCtx.strokeStyle="#596574";roadCtx.lineWidth=3;roadCtx.setLineDash([26,22]);
+ roadCtx.beginPath();roadCtx.moveTo(300,0);roadCtx.lineTo(300,roadCanvas.height);roadCtx.stroke();
+ roadCtx.beginPath();roadCtx.moveTo(460,0);roadCtx.lineTo(460,roadCanvas.height);roadCtx.stroke();
+ roadCtx.setLineDash([]);
+ roadCtx.strokeStyle="#70e6d6";roadCtx.lineWidth=2;roadCtx.strokeRect(120,0,520,roadCanvas.height);
+ const currentX=roadLaneX[0]+(roadLaneX[2]-roadLaneX[0])*(roadState.lane/2);
+ roadState.objects.forEach(o=>{
+  if(o.type==="opportunity"){
+   roadCtx.fillStyle="#70e6d6";roadCtx.beginPath();roadCtx.arc(o.x,o.y,14+Math.sin(o.pulse*4)*2,0,Math.PI*2);roadCtx.fill();
+   roadCtx.fillStyle="#06211e";roadCtx.font="bold 12px monospace";roadCtx.textAlign="center";roadCtx.fillText("+",o.x,o.y+4);
+  }else{
+   roadCtx.fillStyle="#ff647c";roadCtx.fillRect(o.x-18,o.y-25,36,50);
+   roadCtx.fillStyle="#300b19";roadCtx.fillRect(o.x-12,o.y-17,24,8);roadCtx.fillRect(o.x-12,o.y+9,24,8);
+  }
+ });
+ roadCtx.save();
+ roadCtx.translate(currentX,350);
+ roadCtx.fillStyle="#ffd866";roadCtx.fillRect(-18,-28,36,56);
+ roadCtx.fillStyle="#121a25";roadCtx.fillRect(-12,-20,24,12);roadCtx.fillRect(-12,8,24,12);
+ roadCtx.fillStyle="#70e6d6";roadCtx.fillRect(-22,-20,5,12);roadCtx.fillRect(17,-20,5,12);roadCtx.fillRect(-22,8,5,12);roadCtx.fillRect(17,8,5,12);
+ roadCtx.restore();
+ roadCtx.fillStyle="#71809e";roadCtx.font="10px monospace";roadCtx.textAlign="left";roadCtx.fillText("DISTANCE "+Math.floor(roadState.distance),14,20);
+ roadCtx.textAlign="right";roadCtx.fillText("NEXT "+(roadState.checkpoint<roadCheckpointDistances.length-1?roadCheckpointDistances[roadState.checkpoint+1]: "∞"),746,20);
+}
+function roadFrame(t){
+ const dt=Math.min(.035,(t-roadState.last)/1000||0);
+ roadState.last=t;
+ if(roadState.active&&!document.hidden)roadUpdate(dt);
+ requestAnimationFrame(roadFrame);
+}
+requestAnimationFrame(roadFrame);
+
+if(roadSafeGet(ROAD_UNLOCK_KEY)==="1"){
+ roadGame.hidden=false;
+ roadLoad();
+ roadUpdateHud();
+ roadSetOverlay("CHAPTER VI // CONTINUE","THE ROAD REMEMBERS.","Checkpoint "+(roadState.checkpoint===0?"START":String(roadState.checkpoint).padStart(2,"0"))+" is saved with a score of "+Math.floor(roadState.checkpointScore)+".","▶ CONTINUE THE ROAD");
+}else if(roadGame){
+ roadGame.hidden=true;
+}
+roadStart.addEventListener("click",roadStart);
+document.querySelectorAll("[data-road-dir]").forEach(button=>{
+ button.addEventListener("pointerdown",e=>{
+  e.preventDefault();
+  button.setPointerCapture?.(e.pointerId);
+  roadInput(button.dataset.roadDir==="left"?-1:1);
+  button.classList.add("pressed");
+ });
+ const release=e=>{e.preventDefault();button.classList.remove("pressed")};
+ button.addEventListener("pointerup",release);
+ button.addEventListener("pointercancel",release);
+ button.addEventListener("lostpointercapture",release);
+ button.addEventListener("contextmenu",e=>e.preventDefault());
+});
+roadStage.addEventListener("keydown",e=>{
+ const k=e.key.toLowerCase();
+ if(k==="arrowleft"||k==="a"){e.preventDefault();roadInput(-1)}
+ if(k==="arrowright"||k==="d"){e.preventDefault();roadInput(1)}
+});
+roadStage.addEventListener("click",()=>roadStage.focus());
+
+rechallengeBoss.addEventListener("click",()=>{
+ bossState.rechallengeCount++;
+ state.hp=5;
+ state.armour=0;
+ state.mobility=1;
+ state.bossDeaths=0;
+ bossRechallenge.hidden=true;
+ ending.hidden=true;
+ missionState.textContent="REMATCH";
+ setStory("CHAPTER IV","THE REMATCH","Same arena. New difficulty.","The character resets to the beginning. The obstacle does not. The only thing Rishi gets to carry forward is what he learned.");
+ bossShell.hidden=false;
+ bossShell.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion:reduce)").matches?"auto":"smooth",block:"center"});
+ initBoss();
+ setLog("REMATCH "+bossState.rechallengeCount+" BEGINS. Fresh character. Stronger boss.");
+});
+
+document.addEventListener("visibilitychange",()=>{
+ if(document.hidden){
+  if(roadState.active)roadSave();
+  roadState.active=false;
+ }
+});

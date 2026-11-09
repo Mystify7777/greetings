@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#090d18">
-<meta name="description" content="Rishi's birthday RPG adventure: The Maze of Memories.">
-<title>Rishi // The Maze of Memories</title>
+<meta name="description" content="Rishi's birthday story: The Maze of Memories and The Long Road.">
+<title>Rishi // The Story</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -128,6 +128,12 @@
     </div>
     <div class="final-memory"><span>CHAPTER V // BIRTHDAY</span><strong>HAPPY BIRTHDAY, RISHI.</strong><small>22 years down. The 23rd chapter starts now. The best memories are still ahead.</small></div>
     <div class="run-summary" id="runSummary"></div>
+    <div class="boss-rechallenge" id="bossRechallenge" hidden>
+      <p class="eyebrow">THE BOSS IS NOT THE END</p>
+      <h3>CHALLENGE IT AGAIN.</h3>
+      <p>The arena resets. Rishi starts fresh. The boss does not. Every rematch is stronger than the last.</p>
+      <button id="rechallengeBoss" class="secondary" type="button">↻ RECHALLENGE THE BOSS</button>
+    </div>
     <section class="secret-reveal" id="secretReveal" hidden aria-labelledby="secretRevealTitle">
       <div class="eyebrow">THE ARCHIVE LEFT A LOCK BEHIND</div>
       <h3 id="secretRevealTitle">TWO ROUTES. TWO VERY DIFFERENT MEMORIES.</h3>
@@ -139,6 +145,45 @@
     </section>
   </section>
 </section>
+
+<section class="road-game" id="roadGame" hidden aria-labelledby="roadTitle">
+    <div class="road-intro">
+      <div class="eyebrow">CHAPTER VI // THE LONG ROAD</div>
+      <h2 id="roadTitle">THE ROAD<br><span>GETS LONGER.</span></h2>
+      <p>Every success moves the next finish line farther away. Opportunities appear beside obstacles. The score keeps climbing, but so does the distance you have to travel to earn the next checkpoint.</p>
+    </div>
+
+    <div class="road-checkpoint">
+      <div><span>CHECKPOINT</span><strong id="roadCheckpoint">START</strong></div>
+      <div><span>DISTANCE</span><strong id="roadDistance">0</strong></div>
+      <div><span>SCORE</span><strong id="roadScore">0</strong></div>
+      <div><span>BEST</span><strong id="roadBest">0</strong></div>
+    </div>
+
+    <div class="road-stage" id="roadStage" tabindex="0" role="application" aria-label="Rishi's traffic racer. Use left and right controls to steer. Avoid obstacles and collect opportunities.">
+      <canvas id="roadCanvas" width="760" height="430"></canvas>
+      <div class="road-overlay" id="roadOverlay">
+        <span id="roadOverlayKicker">THE ROAD AWAITS</span>
+        <strong id="roadOverlayTitle">KEEP MOVING.</strong>
+        <p id="roadOverlayText">Your checkpoint, score and progress are saved on this device.</p>
+        <button id="roadStart" class="primary" type="button">▶ START THE ROAD</button>
+      </div>
+    </div>
+
+    <div class="road-mobile-controls" aria-label="Traffic racer controls">
+      <button data-road-dir="left" aria-label="Steer left">◀</button>
+      <button data-road-dir="right" aria-label="Steer right">▶</button>
+    </div>
+
+    <div class="road-log" aria-live="polite">
+      <span>ROAD LOG</span><strong id="roadLog">The first checkpoint is close. The next one will not be.</strong>
+    </div>
+
+    <div class="road-story">
+      <span>THE RULE OF THE ROAD</span>
+      <p>Clear a checkpoint and the next one stretches farther away. Fail three times on the same stretch and you fall back to the previous checkpoint. Starting over is not failure. Repeating the same mistake without changing anything is.</p>
+    </div>
+  </section>
 
 <footer class="footer"><span>NO MICROTRANSACTIONS. ONLY MEMORIES.</span><span>BUILD 11.24</span></footer>
 </main>
