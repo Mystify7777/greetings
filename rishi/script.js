@@ -191,7 +191,7 @@ startButton.addEventListener('click',()=>{
  gameShell.hidden=false;state.started=true;missionState.textContent='ACTIVE';stageHint.textContent='FOCUS ACTIVE · WASD / ARROWS TO MOVE';
  gameShell.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth',block:'center'});
  setTimeout(()=>gameStage.focus(),matchMedia('(prefers-reduced-motion:reduce)').matches?0:180);
- setLog('The story begins. The first memory is close. The maze is not.');
+ setLog('CHAPTER III BEGINS. The next part cannot be read from a screen.');
  setStory('CHAPTER III','THE MAZE','Now you have to live the difficult chapter.','The next part cannot be read from a screen. Rishi has to walk it. Learn the guardians. Find the memories. Get lost. Try again.');
 });
 
@@ -202,8 +202,20 @@ function updatePlayer(dt){
  if(state.keys.has('arrowup')||state.keys.has('w'))dy--;
  if(state.keys.has('arrowdown')||state.keys.has('s'))dy++;
  if(dx||dy){const len=Math.hypot(dx,dy);const speed=115*state.mobility;moveEntity(state.player,dx/len*speed*dt,dy/len*speed*dt)}
- const tx=Math.floor(state.player.x/TILE),ty=Math.floor(state.player.y/TILE);
- relics.forEach((r,i)=>{if(!state.collected.has(i)&&Math.hypot(state.player.x-(r.x+.5)*TILE,state.player.y-(r.y+.5)*TILE)<15)collectRelic(i)});
+ let nearbyRelic=null;
+ relics.forEach((r,i)=>{
+  if(!state.collected.has(i)&&Math.hypot(state.player.x-(r.x+.5)*TILE,state.player.y-(r.y+.5)*TILE)<30)nearbyRelic=i;
+ });
+ if(nearbyRelic!==null){
+  state.pendingRelic=nearbyRelic;
+  const r=relics[nearbyRelic];
+  relicPromptType.textContent='MEMORY '+String(nearbyRelic+1).padStart(2,'0')+' // '+r.type;
+  relicPromptTitle.textContent=r.title;
+  relicPrompt.hidden=false;
+ }else{
+  state.pendingRelic=null;
+  relicPrompt.hidden=true;
+ }
  if(state.paused)return;
  mobs.forEach(m=>{if(Math.hypot(state.player.x-m.px,state.player.y-m.py)<20)resetPlayer('GUARDIAN CONTACT.')});
 }
