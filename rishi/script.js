@@ -48,7 +48,7 @@ const relics=[
 
 const state={
  started:false,paused:false,keys:new Set(),player:{x:1.5*TILE,y:1.5*TILE,r:10},hp:3,armour:0,bravery:0,mobility:1,memory:0,deaths:0,lastTime:0,modalReturnFocus:gameStage,
- collected:new Set(),gateNotice:new Set(),claimOrder:[],pendingRelic:null,bossUnlocked:false,bossDeaths:0,resumeUntil:0,pendingBossUnlock:false
+ collected:new Set(),gateNotice:new Set(),claimOrder:[],pendingRelic:null,pendingSecret:null,bossUnlocked:false,bossDeaths:0,resumeUntil:0,pendingBossUnlock:false
 };
 
 const mobDefs=[
@@ -133,8 +133,8 @@ function collectRelic(index){
  if(state.memory===7){
    missionState.textContent='CLEARED';missionText.textContent='Every memory recovered. The final arena is waiting.';
    const secret=secretRoutes.find(route=>route.sequence.every((value,i)=>state.claimOrder[i]===value));
-   if(secret)openSecretReward(secret);
-   setLog(secret?'SECRET MEMORY UNLOCKED. The archive kept one more thing hidden.':'ALL SEVEN MEMORIES RECOVERED. THE BIRTHDAY BOSS IS AWAKE.');
+   state.pendingSecret=secret||null;
+   setLog(secret?'SECRET ROUTE FOUND. Claim the memory to see what you unlocked.':'ALL SEVEN MEMORIES RECOVERED. THE BIRTHDAY BOSS IS AWAKE.');
  }else setLog('Memory '+state.memory+' recovered. New route unlocked.');
 }
 function openReward(index){
@@ -150,7 +150,15 @@ function openSecretReward(secret){
  setTimeout(()=>modalClose.focus(),0);
 }
 function closeReward(){
- state.keys.clear();modal.classList.remove('open');modal.setAttribute('aria-hidden','true');gameStage.inert=false;state.paused=true;state.resumeUntil=performance.now()+1400;state.pendingBossUnlock=state.memory===7&&!state.bossUnlocked;resumeOverlay.hidden=false;resumeCount.textContent='GET READY';setTimeout(()=>gameStage.focus(),0);
+ const secret=state.pendingSecret;
+ state.pendingSecret=null;
+ state.keys.clear();modal.classList.remove('open');modal.setAttribute('aria-hidden','true');gameStage.inert=false;
+ if(secret){
+   state.paused=true;
+   setTimeout(()=>openSecretReward(secret),260);
+   return;
+ }
+ state.paused=true;state.resumeUntil=performance.now()+1400;state.pendingBossUnlock=state.memory===7&&!state.bossUnlocked;resumeOverlay.hidden=false;resumeCount.textContent='GET READY';setTimeout(()=>gameStage.focus(),0);
 }
 function unlockBoss(){
  state.bossUnlocked=true;bossShell.hidden=false;setStory("CHAPTER IV","THE FIGHT","The final obstacle is not a memory. It is a test.","Twenty-two years do not become a story because everything went right. They become a story because every difficult chapter eventually has a next page.");bossShell.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth',block:'center'});bossStage.focus();initBoss();missionState.textContent='BOSS';setLog('FINAL RELIC RECOVERED. ENTER THE BIRTHDAY ARENA.');
