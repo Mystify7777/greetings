@@ -105,6 +105,14 @@
       <canvas id="bossCanvas" width="760" height="420"></canvas>
       <div class="boss-hint">WASD / ARROWS · SPACE = ATTACK</div>
     </div>
+    <div class="mobile-controls boss-mobile-controls" aria-label="Mobile boss controls">
+      <div class="mobile-dpad">
+        <button data-dir="up" aria-label="Move up">▲</button>
+        <div><button data-dir="left" aria-label="Move left">◀</button><button data-dir="down" aria-label="Move down">▼</button><button data-dir="right" aria-label="Move right">▶</button></div>
+      </div>
+      <button class="attack-button" data-action="attack" aria-label="Attack">ATTACK</button>
+      <p>HOLD A DIRECTION · TAP ATTACK</p>
+    </div>
     <div class="boss-status" aria-live="polite"><span id="bossMessage">The arena is waiting.</span><strong id="bossPlayerHp">HP ♥♥♥♥♥ · ARMOUR 0</strong></div>
   </section>
 
