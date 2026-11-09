@@ -358,3 +358,275 @@ requestAnimationFrame(bossFrame);
 document.addEventListener('visibilitychange',()=>{if(document.hidden){state.keys.clear();state.paused=true}else if(modal.getAttribute('aria-hidden')==='true'&&!state.resumeUntil){state.paused=false}});
 
 updateStats();
+
+const ROAD_SAVE_KEY = "rishi-road-progress-v1";
+const ROAD_UNLOCK_KEY = "rishi-road-unlocked-v1";
+const roadCheckpointDistances = [0,100,160,260,420,680,1100,1780,2880,4660,7540];
+const roadLaneX = [205,380,555];
+const roadState = {
+ active:false,
+ distance:0,
+ score:0,
+ best:0,
+ checkpoint:0,
+ checkpointScore:0,
+ checkpointAttempts:Array(roadCheckpointDistances.length).fill(0),
+ lane:1,
+ targetLane:1,
+ objects:[],
+ spawnTimer:0,
+ last:0,
+ crashCooldown:0,
+ seed:1
+};
+
+function roadSafeGet(key){
+ try{return localStorage.getItem(key)}catch{return null}
+}
+function roadSafeSet(key,value){
+ try{localStorage.setItem(key,value)}catch{}
+}
+function roadSave(){
+ roadSafeSet(ROAD_SAVE_KEY,JSON.stringify({
+  distance:roadState.distance,
+  score:roadState.score,
+  best:roadState.best,
+  checkpoint:roadState.checkpoint,
+  checkpointScore:roadState.checkpointScore,
+  checkpointAttempts:roadState.checkpointAttempts
+ }));
+}
+function roadLoad(){
+ const raw=roadSafeGet(ROAD_SAVE_KEY);
+ if(!raw)return false;
+ try{
+  const saved=JSON.parse(raw);
+  roadState.distance=Number(saved.distance)||0;
+  roadState.score=Number(saved.score)||0;
+  roadState.best=Number(saved.best)||roadState.score;
+  roadState.checkpoint=Math.max(0,Math.min(roadCheckpointDistances.length-1,Number(saved.checkpoint)||0));
+  roadState.checkpointScore=Number(saved.checkpointScore)||roadState.score;
+  roadState.checkpointAttempts=Array.isArray(saved.checkpointAttempts)?saved.checkpointAttempts.slice(0,roadCheckpointDistances.length):Array(roadCheckpointDistances.length).fill(0);
+  while(roadState.checkpointAttempts.length<roadCheckpointDistances.length)roadState.checkpointAttempts.push(0);
+  return true;
+ }catch{return false}
+}
+function roadUpdateHud(){
+ const cp=roadState.checkpoint===0?"START":"CHECKPOINT "+String(roadState.checkpoint).padStart(2,"0");
+ roadCheckpoint.textContent=cp;
+ roadDistance.textContent=Math.floor(roadState.distance).toLocaleString();
+ roadScore.textContent=Math.floor(roadState.score).toLocaleString();
+ roadBest.textContent=Math.floor(roadState.best).toLocaleString();
+}
+function roadSetOverlay(kicker,title,text,buttonText){
+ roadOverlayKicker.textContent=kicker;
+ roadOverlayTitle.textContent=title;
+ roadOverlayText.textContent=text;
+ roadStart.textContent=buttonText;
+ roadOverlay.hidden=false;
+}
+function roadUnlock(){
+ roadSafeSet(ROAD_UNLOCK_KEY,"1");
+ if(roadGame)roadGame.hidden=false;
+}
+function unlockRoadGame(){
+ roadUnlock();
+ roadSetOverlay("CHAPTER VI // THE LONG ROAD","THE NEXT SUCCESS IS FARTHER.","The road remembers where you stopped. The next checkpoint will demand more distance than the last.","▶ START THE ROAD");
+ roadGame.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion:reduce)").matches?"auto":"smooth",block:"center"});
+}
+function roadResetSegment(){
+ roadState.distance=roadCheckpointDistances[roadState.checkpoint];
+ roadState.score=roadState.checkpointScore;
+ roadState.lane=1;
+ roadState.targetLane=1;
+ roadState.objects=[];
+ roadState.spawnTimer=.35;
+ roadState.crashCooldown=1.2;
+}
+function roadStart(){
+ roadLoad();
+ roadState.active=true;
+ roadState.last=performance.now();
+ roadOverlay.hidden=true;
+ roadGame.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion:reduce)").matches?"auto":"smooth",block:"center"});
+ roadLog.textContent=roadState.checkpoint===0?"The first checkpoint is close. The next one will not be.":"Checkpoint "+roadState.checkpoint+" restored. The road ahead is yours again.";
+ roadStage.focus();
+}
+function roadAdvanceCheckpoint(){
+ const next=roadState.checkpoint+1;
+ if(next>=roadCheckpointDistances.length)return;
+ roadState.checkpoint=next;
+ roadState.checkpointScore=Math.floor(roadState.score);
+ roadState.checkpointAttempts[next]=0;
+ roadState.distance=roadCheckpointDistances[next];
+ roadSave();
+ roadLog.textContent="CHECKPOINT "+String(next).padStart(2,"0")+" CLEARED. The next stretch is longer.";
+}
+function roadCrash(){
+ if(roadState.crashCooldown>0)return;
+ roadState.best=Math.max(roadState.best,Math.floor(roadState.score));
+ const current=roadState.checkpoint;
+ roadState.checkpointAttempts[current]=(roadState.checkpointAttempts[current]||0)+1;
+ const attempts=roadState.checkpointAttempts[current];
+ roadState.active=false;
+ roadState.objects=[];
+ if(attempts>2&&current>0){
+  const fallback=current-1;
+  for(let i=fallback+1;i<roadState.checkpointAttempts.length;i++)roadState.checkpointAttempts[i]=0;
+  roadState.checkpoint=fallback;
+  roadState.checkpointScore=roadState.checkpoint===0?0:roadState.checkpointScore;
+  roadState.distance=roadCheckpointDistances[fallback];
+  roadState.score=roadState.checkpointScore;
+  roadLog.textContent="THREE FAILURES ON THE SAME STRETCH. You fell back to checkpoint "+String(fallback).padStart(2,"0")+". The road ahead has been reset.";
+ }else{
+  roadState.distance=roadCheckpointDistances[current];
+  roadState.score=roadState.checkpointScore;
+  roadLog.textContent="CRASH. Back to checkpoint "+(current===0?"START":String(current).padStart(2,"0"))+". Change something before the next attempt.";
+ }
+ roadSave();
+ roadUpdateHud();
+ roadSetOverlay("SETBACK","GET BACK ON THE ROAD.","Your checkpoint held. The road does not care how many times you fall, only what you change before the next run.","↻ TRY AGAIN");
+}
+function roadSpawn(){
+ const lane=Math.floor(Math.random()*3);
+ const opportunity=Math.random()<.27;
+ roadState.objects.push({
+  lane,
+  x:roadLaneX[lane],
+  y:-45,
+  type:opportunity?"opportunity":"obstacle",
+  speed:roadState.speed*(opportunity?.96:1),
+  pulse:Math.random()*Math.PI*2
+ });
+}
+function roadInput(dir){
+ if(!roadState.active)return;
+ roadState.targetLane=Math.max(0,Math.min(2,roadState.targetLane+dir));
+}
+function roadUpdate(dt){
+ if(!roadState.active)return;
+ roadState.crashCooldown=Math.max(0,roadState.crashCooldown-dt);
+ roadState.distance+=roadState.speed*dt*.32;
+ roadState.score+=roadState.speed*dt*.045;
+ const target=roadLaneX[roadState.targetLane];
+ roadState.lane+=(target-roadLaneX[Math.round(roadState.lane)]||target)*dt*7/Math.max(1,roadState.speed/250);
+ roadState.lane=Math.max(0,Math.min(2,roadState.lane));
+ const laneX=roadLaneX[roadState.targetLane];
+ const currentX=roadLaneX[0]+(roadLaneX[2]-roadLaneX[0])*(roadState.lane/2);
+ roadState.spawnTimer-=dt;
+ if(roadState.spawnTimer<=0){
+  roadSpawn();
+  roadState.spawnTimer=Math.max(.34,1.05-roadState.distance/9000);
+ }
+ roadState.objects.forEach(o=>{o.y+=o.speed*dt;o.pulse+=dt});
+ for(const o of roadState.objects){
+  const hit=Math.abs(o.x-currentX)<38&&Math.abs(o.y-350)<34;
+  if(hit){
+   if(o.type==="opportunity"){
+    o.y=999;
+    roadState.score+=150;
+    roadLog.textContent="OPPORTUNITY TAKEN. +150. Keep your eyes open.";
+   }else{
+    roadCrash();
+    return;
+   }
+  }
+ }
+ roadState.objects=roadState.objects.filter(o=>o.y<470);
+ while(roadState.checkpoint<roadCheckpointDistances.length-1&&roadState.distance>=roadCheckpointDistances[roadState.checkpoint+1]){
+  roadAdvanceCheckpoint();
+  roadState.checkpointAttempts[roadState.checkpoint]=0;
+ }
+ roadState.best=Math.max(roadState.best,Math.floor(roadState.score));
+ roadUpdateHud();
+ roadDraw();
+}
+function roadDraw(){
+ roadCtx.clearRect(0,0,roadCanvas.width,roadCanvas.height);
+ roadCtx.fillStyle="#061018";roadCtx.fillRect(0,0,roadCanvas.width,roadCanvas.height);
+ roadCtx.fillStyle="#101a24";roadCtx.fillRect(110,0,540,roadCanvas.height);
+ roadCtx.fillStyle="#26313b";roadCtx.fillRect(120,0,520,roadCanvas.height);
+ roadCtx.fillStyle="#0b121a";roadCtx.fillRect(140,0,480,roadCanvas.height);
+ roadCtx.strokeStyle="#596574";roadCtx.lineWidth=3;roadCtx.setLineDash([26,22]);
+ roadCtx.beginPath();roadCtx.moveTo(300,0);roadCtx.lineTo(300,roadCanvas.height);roadCtx.stroke();
+ roadCtx.beginPath();roadCtx.moveTo(460,0);roadCtx.lineTo(460,roadCanvas.height);roadCtx.stroke();
+ roadCtx.setLineDash([]);
+ roadCtx.strokeStyle="#70e6d6";roadCtx.lineWidth=2;roadCtx.strokeRect(120,0,520,roadCanvas.height);
+ const currentX=roadLaneX[0]+(roadLaneX[2]-roadLaneX[0])*(roadState.lane/2);
+ roadState.objects.forEach(o=>{
+  if(o.type==="opportunity"){
+   roadCtx.fillStyle="#70e6d6";roadCtx.beginPath();roadCtx.arc(o.x,o.y,14+Math.sin(o.pulse*4)*2,0,Math.PI*2);roadCtx.fill();
+   roadCtx.fillStyle="#06211e";roadCtx.font="bold 12px monospace";roadCtx.textAlign="center";roadCtx.fillText("+",o.x,o.y+4);
+  }else{
+   roadCtx.fillStyle="#ff647c";roadCtx.fillRect(o.x-18,o.y-25,36,50);
+   roadCtx.fillStyle="#300b19";roadCtx.fillRect(o.x-12,o.y-17,24,8);roadCtx.fillRect(o.x-12,o.y+9,24,8);
+  }
+ });
+ roadCtx.save();
+ roadCtx.translate(currentX,350);
+ roadCtx.fillStyle="#ffd866";roadCtx.fillRect(-18,-28,36,56);
+ roadCtx.fillStyle="#121a25";roadCtx.fillRect(-12,-20,24,12);roadCtx.fillRect(-12,8,24,12);
+ roadCtx.fillStyle="#70e6d6";roadCtx.fillRect(-22,-20,5,12);roadCtx.fillRect(17,-20,5,12);roadCtx.fillRect(-22,8,5,12);roadCtx.fillRect(17,8,5,12);
+ roadCtx.restore();
+ roadCtx.fillStyle="#71809e";roadCtx.font="10px monospace";roadCtx.textAlign="left";roadCtx.fillText("DISTANCE "+Math.floor(roadState.distance),14,20);
+ roadCtx.textAlign="right";roadCtx.fillText("NEXT "+(roadState.checkpoint<roadCheckpointDistances.length-1?roadCheckpointDistances[roadState.checkpoint+1]: "∞"),746,20);
+}
+function roadFrame(t){
+ const dt=Math.min(.035,(t-roadState.last)/1000||0);
+ roadState.last=t;
+ if(roadState.active&&!document.hidden)roadUpdate(dt);
+ requestAnimationFrame(roadFrame);
+}
+requestAnimationFrame(roadFrame);
+
+if(roadSafeGet(ROAD_UNLOCK_KEY)==="1"){
+ roadGame.hidden=false;
+ roadLoad();
+ roadUpdateHud();
+ roadSetOverlay("CHAPTER VI // CONTINUE","THE ROAD REMEMBERS.","Checkpoint "+(roadState.checkpoint===0?"START":String(roadState.checkpoint).padStart(2,"0"))+" is saved with a score of "+Math.floor(roadState.checkpointScore)+".","▶ CONTINUE THE ROAD");
+}else if(roadGame){
+ roadGame.hidden=true;
+}
+roadStart.addEventListener("click",roadStart);
+document.querySelectorAll("[data-road-dir]").forEach(button=>{
+ button.addEventListener("pointerdown",e=>{
+  e.preventDefault();
+  button.setPointerCapture?.(e.pointerId);
+  roadInput(button.dataset.roadDir==="left"?-1:1);
+  button.classList.add("pressed");
+ });
+ const release=e=>{e.preventDefault();button.classList.remove("pressed")};
+ button.addEventListener("pointerup",release);
+ button.addEventListener("pointercancel",release);
+ button.addEventListener("lostpointercapture",release);
+ button.addEventListener("contextmenu",e=>e.preventDefault());
+});
+roadStage.addEventListener("keydown",e=>{
+ const k=e.key.toLowerCase();
+ if(k==="arrowleft"||k==="a"){e.preventDefault();roadInput(-1)}
+ if(k==="arrowright"||k==="d"){e.preventDefault();roadInput(1)}
+});
+roadStage.addEventListener("click",()=>roadStage.focus());
+
+rechallengeBoss.addEventListener("click",()=>{
+ bossState.rechallengeCount++;
+ state.hp=5;
+ state.armour=0;
+ state.mobility=1;
+ state.bossDeaths=0;
+ bossRechallenge.hidden=true;
+ ending.hidden=true;
+ missionState.textContent="REMATCH";
+ setStory("CHAPTER IV","THE REMATCH","Same arena. New difficulty.","The character resets to the beginning. The obstacle does not. The only thing Rishi gets to carry forward is what he learned.");
+ bossShell.hidden=false;
+ bossShell.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion:reduce)").matches?"auto":"smooth",block:"center"});
+ initBoss();
+ setLog("REMATCH "+bossState.rechallengeCount+" BEGINS. Fresh character. Stronger boss.");
+});
+
+document.addEventListener("visibilitychange",()=>{
+ if(document.hidden){
+  if(roadState.active)roadSave();
+  roadState.active=false;
+ }
+});
