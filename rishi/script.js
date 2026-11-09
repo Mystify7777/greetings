@@ -5,7 +5,8 @@ const missionState=document.querySelector('#missionState'),missionText=document.
 const storyBeat=document.querySelector('#storyBeat'),storyBeatMarker=document.querySelector('#storyBeatMarker'),storyBeatKicker=document.querySelector('#storyBeatKicker'),storyBeatTitle=document.querySelector('#storyBeatTitle'),storyBeatText=document.querySelector('#storyBeatText');
 const hpStat=document.querySelector('#hpStat'),armourStat=document.querySelector('#armourStat'),braveryStat=document.querySelector('#braveryStat'),mobilityStat=document.querySelector('#mobilityStat'),memoryStat=document.querySelector('#memoryStat'),gameLog=document.querySelector('#gameLog');
 const modal=document.querySelector('#rewardModal'),modalClose=document.querySelector('#modalClose'),rewardKicker=document.querySelector('#rewardKicker'),rewardTitle=document.querySelector('#rewardTitle'),rewardBody=document.querySelector('#rewardBody');
-const bossShell=document.querySelector('#bossShell'),bossStage=document.querySelector('#bossStage'),bossBar=document.querySelector('#bossBar'),bossHpText=document.querySelector('#bossHpText'),bossMessage=document.querySelector('#bossMessage'),bossPlayerHp=document.querySelector('#bossPlayerHp');
+const relicPrompt=document.querySelector('#relicPrompt'),relicPromptType=document.querySelector('#relicPromptType'),relicPromptTitle=document.querySelector('#relicPromptTitle'),claimMemory=document.querySelector('#claimMemory');
+const chapter4Intro=document.querySelector('#chapter4Intro'),bossShell=document.querySelector('#bossShell'),bossStage=document.querySelector('#bossStage'),bossBar=document.querySelector('#bossBar'),bossHpText=document.querySelector('#bossHpText'),bossMessage=document.querySelector('#bossMessage'),bossPlayerHp=document.querySelector('#bossPlayerHp');
 const ending=document.querySelector('#ending'),runSummary=document.querySelector('#runSummary');
 
 const TILE=40,W=25,H=17;
@@ -47,7 +48,7 @@ const relics=[
 
 const state={
  started:false,paused:false,keys:new Set(),player:{x:1.5*TILE,y:1.5*TILE,r:10},hp:3,armour:0,bravery:0,mobility:1,memory:0,deaths:0,lastTime:0,modalReturnFocus:gameStage,
- collected:new Set(),gateNotice:new Set(),bossUnlocked:false,bossDeaths:0,resumeUntil:0,pendingBossUnlock:false
+ collected:new Set(),gateNotice:new Set(),claimOrder:[],pendingRelic:null,pendingSecret:null,bossUnlocked:false,bossDeaths:0,resumeUntil:0,pendingBossUnlock:false
 };
 
 const mobDefs=[
@@ -61,6 +62,11 @@ const mobColors=['#52b7ff','#ffad4d','#b77cff','#5fe39a','#ff647c'];
 const mobs=mobDefs.map((m,i)=>({...m,index:i,color:mobColors[i],px:m.x*TILE,py:m.y*TILE,target:0,dir:1,alert:0,pulse:0}));
 
 const rewards=Object.fromEntries(relics.map((r,i)=>[i,r]));
+// The Trick follows the maze's natural relic order. The Treat deliberately zig-zags across the map.
+const secretRoutes=[
+ {kind:'TRICK',sequence:[1,2,3,4,5,6,7],title:'THE EMBARRASSING ARCHIVE',text:'You found the wrong kind of treasure. Somewhere in Rishi\'s personal history is a video that absolutely should not have survived. The real clip goes here.',media:'VIDEO SLOT // EMBARRASSING & FUNNY'},
+ {kind:'TREAT',sequence:[1,4,7,2,6,3,5],title:'THE CHERISHED MEMORY',text:'You found the hidden route. This is the kind of memory that makes the whole maze worth walking: a real moment, kept because it mattered.',media:'MEMORY SLOT // CHERISHED & PERSONAL'}
+];
 
 function updateStats(){
  hpStat.textContent='♥'.repeat(Math.max(0,state.hp))+'♡'.repeat(3-Math.max(0,state.hp));
@@ -119,12 +125,17 @@ function resetPlayer(reason){
 }
 function collectRelic(index){
  if(state.collected.has(index))return;
- state.collected.add(index);state.memory++;state.bravery++;
+ state.collected.add(index);state.memory++;state.bravery++;state.claimOrder.push(index+1);
+ state.pendingRelic=null;relicPrompt.hidden=true;
  if(index===0||index===3||index===5)state.armour++;
  if(index===2)state.mobility=Math.min(2.5,state.mobility+.15);
  updateStats();updateStoryAfterProgress();openReward(index);
- if(state.memory===7){missionState.textContent='CLEARED';missionText.textContent='Every memory recovered. The final arena is waiting.';setLog('ALL SEVEN MEMORIES RECOVERED. THE BIRTHDAY BOSS IS AWAKE.');}
- else setLog('Memory '+state.memory+' recovered. New route unlocked.');
+ if(state.memory===7){
+   missionState.textContent='CLEARED';missionText.textContent='Every memory recovered. The final arena is waiting.';
+   const secret=secretRoutes.find(route=>route.sequence.every((value,i)=>state.claimOrder[i]===value));
+   state.pendingSecret=secret||null;
+   setLog(secret?'SECRET ROUTE FOUND. Claim the memory to see what you unlocked.':'ALL SEVEN MEMORIES RECOVERED. THE BIRTHDAY BOSS IS AWAKE.');
+ }else setLog('Memory '+state.memory+' recovered. New route unlocked.');
 }
 function openReward(index){
  state.keys.clear();state.paused=true;gameStage.inert=true;modal.classList.add('open');modal.setAttribute('aria-hidden','false');state.modalReturnFocus=gameStage;
@@ -132,11 +143,25 @@ function openReward(index){
  rewardBody.innerHTML='<div class="reward-media"><div><strong>'+r.type+' SLOT</strong><br>Replace this panel with the real birthday photo, video or message.</div></div><p>'+r.text+'</p><div class="reward-reward">'+r.reward+'</div>';
  setTimeout(()=>modalClose.focus(),0);
 }
+function openSecretReward(secret){
+ state.keys.clear();state.paused=true;gameStage.inert=true;modal.classList.add('open');modal.setAttribute('aria-hidden','false');state.modalReturnFocus=gameStage;
+ rewardKicker.textContent='SECRET MEMORY // '+secret.kind;rewardTitle.textContent='✦ '+secret.title;
+ rewardBody.innerHTML='<div class="reward-media secret-media"><div><strong>'+secret.media+'</strong><br>Replace this slot with the real birthday '+(secret.kind==='TRICK'?'video':'memory')+' when the content is ready.</div></div><p>'+secret.text+'</p><div class="reward-reward">SECRET ROUTE COMPLETE. You found something the main story does not reveal.</div>';
+ setTimeout(()=>modalClose.focus(),0);
+}
 function closeReward(){
- state.keys.clear();modal.classList.remove('open');modal.setAttribute('aria-hidden','true');gameStage.inert=false;state.paused=true;state.resumeUntil=performance.now()+1400;state.pendingBossUnlock=state.memory===7&&!state.bossUnlocked;resumeOverlay.hidden=false;resumeCount.textContent='GET READY';setTimeout(()=>gameStage.focus(),0);
+ const secret=state.pendingSecret;
+ state.pendingSecret=null;
+ state.keys.clear();modal.classList.remove('open');modal.setAttribute('aria-hidden','true');gameStage.inert=false;
+ if(secret){
+   state.paused=true;
+   setTimeout(()=>openSecretReward(secret),260);
+   return;
+ }
+ state.paused=true;state.resumeUntil=performance.now()+1400;state.pendingBossUnlock=state.memory===7&&!state.bossUnlocked;resumeOverlay.hidden=false;resumeCount.textContent='GET READY';setTimeout(()=>gameStage.focus(),0);
 }
 function unlockBoss(){
- state.bossUnlocked=true;bossShell.hidden=false;setStory("CHAPTER IV","THE FIGHT","The final obstacle is not a memory. It is a test.","Twenty-two years do not become a story because everything went right. They become a story because every difficult chapter eventually has a next page.");bossShell.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth',block:'center'});bossStage.focus();initBoss();missionState.textContent='BOSS';setLog('FINAL RELIC RECOVERED. ENTER THE BIRTHDAY ARENA.');
+ state.bossUnlocked=true;chapter4Intro.hidden=false;bossShell.hidden=false;setStory("CHAPTER IV","THE FIGHT","The final obstacle is not a memory. It is a test.","Twenty-two years do not become a story because everything went right. They become a story because every difficult chapter eventually has a next page.");chapter4Intro.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth',block:'center'});bossStage.focus();initBoss();missionState.textContent='BOSS';setLog('FINAL RELIC RECOVERED. ENTER THE BIRTHDAY ARENA.');
 }
 function trapModalFocus(e){
  if(!modal.classList.contains('open'))return;
@@ -154,11 +179,13 @@ modal.querySelector('[data-close-modal]').addEventListener('click',closeReward);
 
 function handleKeyDown(e){
  const k=e.key.toLowerCase();
+ if((k==='e'||k==='enter')&&state.pendingRelic!==null&&!state.paused){e.preventDefault();collectRelic(state.pendingRelic);return}
  if(['arrowup','arrowdown','arrowleft','arrowright','w','a','s','d',' '].includes(k)||e.code==='Space'){e.preventDefault();state.keys.add(k);if(k===' '||e.code==='Space')bossState.attackQueued=true}
 }
 function handleKeyUp(e){state.keys.delete(e.key.toLowerCase())}
 gameStage.addEventListener('keydown',handleKeyDown);bossStage.addEventListener('keydown',handleKeyDown);
 document.addEventListener('keyup',handleKeyUp);
+claimMemory.addEventListener('click',()=>{if(state.pendingRelic!==null&&!state.paused)collectRelic(state.pendingRelic)});
 gameStage.addEventListener('click',()=>gameStage.focus());bossStage.addEventListener('click',()=>bossStage.focus());
 
 document.querySelectorAll('[data-dir]').forEach(btn=>{
@@ -172,7 +199,7 @@ startButton.addEventListener('click',()=>{
  gameShell.hidden=false;state.started=true;missionState.textContent='ACTIVE';stageHint.textContent='FOCUS ACTIVE · WASD / ARROWS TO MOVE';
  gameShell.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth',block:'center'});
  setTimeout(()=>gameStage.focus(),matchMedia('(prefers-reduced-motion:reduce)').matches?0:180);
- setLog('The story begins. The first memory is close. The maze is not.');
+ setLog('CHAPTER III BEGINS. The next part cannot be read from a screen.');
  setStory('CHAPTER III','THE MAZE','Now you have to live the difficult chapter.','The next part cannot be read from a screen. Rishi has to walk it. Learn the guardians. Find the memories. Get lost. Try again.');
 });
 
@@ -183,8 +210,20 @@ function updatePlayer(dt){
  if(state.keys.has('arrowup')||state.keys.has('w'))dy--;
  if(state.keys.has('arrowdown')||state.keys.has('s'))dy++;
  if(dx||dy){const len=Math.hypot(dx,dy);const speed=115*state.mobility;moveEntity(state.player,dx/len*speed*dt,dy/len*speed*dt)}
- const tx=Math.floor(state.player.x/TILE),ty=Math.floor(state.player.y/TILE);
- relics.forEach((r,i)=>{if(!state.collected.has(i)&&Math.hypot(state.player.x-(r.x+.5)*TILE,state.player.y-(r.y+.5)*TILE)<15)collectRelic(i)});
+ let nearbyRelic=null;
+ relics.forEach((r,i)=>{
+  if(!state.collected.has(i)&&Math.hypot(state.player.x-(r.x+.5)*TILE,state.player.y-(r.y+.5)*TILE)<30)nearbyRelic=i;
+ });
+ if(nearbyRelic!==null){
+  state.pendingRelic=nearbyRelic;
+  const r=relics[nearbyRelic];
+  relicPromptType.textContent='MEMORY '+String(nearbyRelic+1).padStart(2,'0')+' // '+r.type;
+  relicPromptTitle.textContent=r.title;
+  relicPrompt.hidden=false;
+ }else{
+  state.pendingRelic=null;
+  relicPrompt.hidden=true;
+ }
  if(state.paused)return;
  mobs.forEach(m=>{if(Math.hypot(state.player.x-m.px,state.player.y-m.py)<20)resetPlayer('GUARDIAN CONTACT.')});
 }
@@ -211,7 +250,13 @@ function drawMaze(){
    ctx.strokeStyle=wall?'#263856':'#101a2c';ctx.strokeRect(x*TILE+.5,y*TILE+.5,TILE-1,TILE-1);
    const g=gateAt(x,y);if(g&&!isGateOpen(g)){ctx.fillStyle='#2a1730';ctx.fillRect(x*TILE+4,y*TILE+4,TILE-8,TILE-8);ctx.strokeStyle='#ff78ad';ctx.lineWidth=2;ctx.strokeRect(x*TILE+6,y*TILE+6,TILE-12,TILE-12);ctx.lineWidth=1;ctx.fillStyle='#ff78ad';ctx.font='bold 9px monospace';ctx.textAlign='center';ctx.fillText(g.need+'',x*TILE+20,y*TILE+24)}
  }
- relics.forEach((r,i)=>{if(state.collected.has(i))return;const cx=(r.x+.5)*TILE,cy=(r.y+.5)*TILE,pulse=Math.sin(performance.now()/280+i)*2;ctx.beginPath();ctx.arc(cx,cy,10+pulse,0,Math.PI*2);ctx.fillStyle='#ffd866';ctx.fill();ctx.fillStyle='#3b2b0b';ctx.font='bold 10px monospace';ctx.textAlign='center';ctx.fillText(String(i+1),cx,cy+3)});
+ relics.forEach((r,i)=>{
+  if(state.collected.has(i))return;
+  const cx=(r.x+.5)*TILE,cy=(r.y+.5)*TILE,pulse=Math.sin(performance.now()/280+i)*2,near=state.pendingRelic===i;
+  ctx.beginPath();ctx.arc(cx,cy,near?15+pulse:10+pulse,0,Math.PI*2);ctx.fillStyle=near?'#fff0a3':'#ffd866';ctx.fill();
+  if(near){ctx.strokeStyle='#fff0a3';ctx.lineWidth=2;ctx.beginPath();ctx.arc(cx,cy,19+pulse,0,Math.PI*2);ctx.stroke();ctx.lineWidth=1}
+  ctx.fillStyle='#3b2b0b';ctx.font='bold 10px monospace';ctx.textAlign='center';ctx.fillText(String(i+1),cx,cy+3);
+});
  mobs.forEach(m=>{const bob=Math.sin(m.pulse*5+m.index)*2,cx=m.px,cy=m.py+bob;ctx.beginPath();ctx.arc(cx,cy,14+(m.alert*2),0,Math.PI*2);ctx.fillStyle=m.alert>.2?m.color:m.color;ctx.globalAlpha=m.alert>.2?1:.82;ctx.fill();ctx.globalAlpha=1;ctx.fillStyle='#310d1e';ctx.font='bold 13px monospace';ctx.textAlign='center';ctx.fillText('!',cx,cy+5);if(m.alert>.2){ctx.strokeStyle=m.color+'88';ctx.beginPath();ctx.arc(cx,cy,21+Math.sin(m.pulse*8)*3,0,Math.PI*2);ctx.stroke()}});
  const p=state.player;ctx.beginPath();ctx.arc(p.x,p.y,12,0,Math.PI*2);ctx.fillStyle='#70e6d6';ctx.fill();ctx.fillStyle='#06211e';ctx.font='bold 10px monospace';ctx.textAlign='center';ctx.fillText('R',p.x,p.y+4);
 }

@@ -17,7 +17,7 @@
 </header>
 
 <section class="intro screen" id="intro">
-  <div class="eyebrow">RISHI // BORN 2003 // 22 YEARS IN</div>
+  <div class="eyebrow">CHAPTER I // THE BEGINNING · RISHI // BORN 2003 // 22 YEARS IN</div>
   <h1>THE STORY OF<br><span>RISHI.</span></h1>
   <p class="intro-copy">Every life looks simple from the outside. Rishi's is a collection of ordinary days, hard lessons, ridiculous victories, quiet memories, and the people who stayed. This birthday, you do not just read the story. You walk through it.</p>
   <button id="startAdventure" class="primary">▶ ENTER THE STORY</button>
@@ -26,17 +26,17 @@
 
 <section class="story-prologue screen" aria-labelledby="storyTitle">
   <div class="story-copy">
-    <div class="eyebrow">A STORY IN FIVE CHAPTERS</div>
-    <h2 id="storyTitle">THE BOY WHO KEPT<br><span>GETTING BACK UP.</span></h2>
-    <p>Rishi's story is not a straight line. It is a map made from detours. Some doors opened because he was ready. Some opened because he refused to stop knocking. Some were never meant to be easy.</p>
+    <div class="eyebrow">CHAPTER II // THE YEARS</div>
+    <h2 id="storyTitle">THE YEARS THAT<br><span>MADE THE STORY.</span></h2>
+    <p>Before the maze, there were years. People, games, ordinary days, difficult ones, stupid jokes, quiet wins, and lessons that only made sense later. This is the chapter where the memories begin to matter.</p>
     <p class="story-age"><strong>2003</strong><span>THE BEGINNING</span><strong>2026</strong><span>THE STORY SO FAR</span><strong>23</strong><span>THE NEXT CHAPTER</span></p>
   </div>
   <div class="story-chapters">
-    <article><span>01</span><strong>THE BEGINNING</strong><small>Before the memories became stories.</small></article>
-    <article><span>02</span><strong>THE YEARS</strong><small>People, games, ordinary days, difficult ones.</small></article>
-    <article><span>03</span><strong>THE MAZE</strong><small>You will have to live this chapter.</small></article>
-    <article><span>04</span><strong>THE FIGHT</strong><small>Failure stops being an ending.</small></article>
-    <article><span>05</span><strong>THE NEXT CHAPTER</strong><small>23 is not a finish line.</small></article>
+    <article class="chapter-card"><span>01</span><strong>THE BEGINNING</strong><small>2003. The story starts.</small></article>
+    <article class="chapter-card active"><span>02</span><strong>THE YEARS</strong><small>People, games, ordinary days, difficult ones.</small></article>
+    <article class="chapter-card"><span>03</span><strong>THE MAZE</strong><small>You will have to live this chapter.</small></article>
+    <article class="chapter-card"><span>04</span><strong>THE FIGHT</strong><small>Failure stops being an ending.</small></article>
+    <article class="chapter-card"><span>05</span><strong>THE NEXT CHAPTER</strong><small>23 is not a finish line.</small></article>
   </div>
 </section>
 
@@ -71,6 +71,11 @@
       <canvas id="mazeCanvas" width="1000" height="680"></canvas>
       <div class="stage-hint" id="stageHint">FOCUS LOCKED · CLICK OR PRESS A KEY TO PLAY</div>
       <div class="resume-overlay" id="resumeOverlay" hidden aria-live="assertive"><span>RESUMING ADVENTURE</span><strong id="resumeCount">GET READY</strong></div>
+      <div class="relic-prompt" id="relicPrompt" hidden>
+        <span id="relicPromptType">MEMORY NEARBY</span>
+        <strong id="relicPromptTitle">Memory</strong>
+        <button id="claimMemory" class="claim-button" type="button">CLAIM MEMORY <kbd>E</kbd></button>
+      </div>
     </div>
   </div>
 
@@ -82,6 +87,13 @@
   <div class="game-log" aria-live="polite">
     <span>QUEST LOG</span><strong id="gameLog">Find the first memory.</strong>
   </div>
+
+  <section class="chapter-intro chapter-four" id="chapter4Intro" hidden aria-labelledby="chapter4Title">
+    <div class="eyebrow">CHAPTER IV // THE FIGHT</div>
+    <h2 id="chapter4Title">THE PART WHERE<br><span>GETTING BACK UP MATTERS.</span></h2>
+    <p>The memories are safe. That does not mean the story gets easier. Every chapter has a point where knowledge stops being enough and you have to act on it.</p>
+    <div class="chapter-rule"><span>THE FINAL OBSTACLE</span><strong>RISHI VS. THE BIRTHDAY BOSS</strong></div>
+  </section>
 
   <section class="boss-shell" id="bossShell" hidden>
     <div class="boss-heading">
@@ -98,7 +110,7 @@
 
   <section class="ending screen" id="ending" hidden>
     <div class="eyebrow">CHAPTER V // THE NEXT CHAPTER</div>
-    <h2>HAPPY BIRTHDAY,<br><span>RISHI.</span></h2>
+    <h2>THE STORY<br><span>KEEPS GOING.</span></h2>
     <p id="endingText">You learned the routes, opened every memory, got knocked down, got faster, and kept going. That is the point of the story: not that the road was easy, but that you kept moving through it.</p>
     <div class="ending-story">
       <span>2003 → 2026</span>
@@ -106,7 +118,7 @@
       <strong>THE 23RD CHAPTER STARTS NOW.</strong>
       <small>There are still places you have not been, people you have not met, things you have not built, and stories you have not told. This one does not end at the boss fight.</small>
     </div>
-    <div class="final-memory"><span>FINAL MEMORY SLOT</span><strong>THE BEST ONE GOES HERE.</strong><small>Add the real photo, video or message when the birthday content is ready.</small></div>
+    <div class="final-memory"><span>CHAPTER V // BIRTHDAY</span><strong>HAPPY BIRTHDAY, RISHI.</strong><small>22 years down. The 23rd chapter starts now. The best memories are still ahead.</small></div>
     <div class="run-summary" id="runSummary"></div>
   </section>
 </section>
