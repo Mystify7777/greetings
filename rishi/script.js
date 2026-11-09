@@ -6,7 +6,7 @@ const storyBeat=document.querySelector('#storyBeat'),storyBeatMarker=document.qu
 const hpStat=document.querySelector('#hpStat'),armourStat=document.querySelector('#armourStat'),braveryStat=document.querySelector('#braveryStat'),mobilityStat=document.querySelector('#mobilityStat'),memoryStat=document.querySelector('#memoryStat'),gameLog=document.querySelector('#gameLog');
 const modal=document.querySelector('#rewardModal'),modalClose=document.querySelector('#modalClose'),rewardKicker=document.querySelector('#rewardKicker'),rewardTitle=document.querySelector('#rewardTitle'),rewardBody=document.querySelector('#rewardBody');
 const relicPrompt=document.querySelector('#relicPrompt'),relicPromptType=document.querySelector('#relicPromptType'),relicPromptTitle=document.querySelector('#relicPromptTitle'),claimMemory=document.querySelector('#claimMemory');
-const bossShell=document.querySelector('#bossShell'),bossStage=document.querySelector('#bossStage'),bossBar=document.querySelector('#bossBar'),bossHpText=document.querySelector('#bossHpText'),bossMessage=document.querySelector('#bossMessage'),bossPlayerHp=document.querySelector('#bossPlayerHp');
+const chapter4Intro=document.querySelector('#chapter4Intro'),bossShell=document.querySelector('#bossShell'),bossStage=document.querySelector('#bossStage'),bossBar=document.querySelector('#bossBar'),bossHpText=document.querySelector('#bossHpText'),bossMessage=document.querySelector('#bossMessage'),bossPlayerHp=document.querySelector('#bossPlayerHp');
 const ending=document.querySelector('#ending'),runSummary=document.querySelector('#runSummary');
 
 const TILE=40,W=25,H=17;
@@ -161,7 +161,7 @@ function closeReward(){
  state.paused=true;state.resumeUntil=performance.now()+1400;state.pendingBossUnlock=state.memory===7&&!state.bossUnlocked;resumeOverlay.hidden=false;resumeCount.textContent='GET READY';setTimeout(()=>gameStage.focus(),0);
 }
 function unlockBoss(){
- state.bossUnlocked=true;bossShell.hidden=false;setStory("CHAPTER IV","THE FIGHT","The final obstacle is not a memory. It is a test.","Twenty-two years do not become a story because everything went right. They become a story because every difficult chapter eventually has a next page.");bossShell.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth',block:'center'});bossStage.focus();initBoss();missionState.textContent='BOSS';setLog('FINAL RELIC RECOVERED. ENTER THE BIRTHDAY ARENA.');
+ state.bossUnlocked=true;chapter4Intro.hidden=false;bossShell.hidden=false;setStory("CHAPTER IV","THE FIGHT","The final obstacle is not a memory. It is a test.","Twenty-two years do not become a story because everything went right. They become a story because every difficult chapter eventually has a next page.");chapter4Intro.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth',block:'center'});bossStage.focus();initBoss();missionState.textContent='BOSS';setLog('FINAL RELIC RECOVERED. ENTER THE BIRTHDAY ARENA.');
 }
 function trapModalFocus(e){
  if(!modal.classList.contains('open'))return;
