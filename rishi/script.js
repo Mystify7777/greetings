@@ -2,7 +2,7 @@ const canvas=document.querySelector('#mazeCanvas'),ctx=canvas.getContext('2d');
 const bossCanvas=document.querySelector('#bossCanvas'),bctx=bossCanvas.getContext('2d');
 const startButton=document.querySelector('#startAdventure'),gameShell=document.querySelector('#gameShell'),gameStage=document.querySelector('#gameStage');
 const missionState=document.querySelector('#missionState'),missionText=document.querySelector('#missionText'),stageHint=document.querySelector('#stageHint');
-const storyBeatMarker=document.querySelector('#storyBeatMarker'),storyBeatKicker=document.querySelector('#storyBeatKicker'),storyBeatTitle=document.querySelector('#storyBeatTitle'),storyBeatText=document.querySelector('#storyBeatText');
+const storyBeat=document.querySelector('#storyBeat'),storyBeatMarker=document.querySelector('#storyBeatMarker'),storyBeatKicker=document.querySelector('#storyBeatKicker'),storyBeatTitle=document.querySelector('#storyBeatTitle'),storyBeatText=document.querySelector('#storyBeatText');
 const hpStat=document.querySelector('#hpStat'),armourStat=document.querySelector('#armourStat'),braveryStat=document.querySelector('#braveryStat'),mobilityStat=document.querySelector('#mobilityStat'),memoryStat=document.querySelector('#memoryStat'),gameLog=document.querySelector('#gameLog');
 const modal=document.querySelector('#rewardModal'),modalClose=document.querySelector('#modalClose'),rewardKicker=document.querySelector('#rewardKicker'),rewardTitle=document.querySelector('#rewardTitle'),rewardBody=document.querySelector('#rewardBody');
 const bossShell=document.querySelector('#bossShell'),bossStage=document.querySelector('#bossStage'),bossBar=document.querySelector('#bossBar'),bossHpText=document.querySelector('#bossHpText'),bossMessage=document.querySelector('#bossMessage'),bossPlayerHp=document.querySelector('#bossPlayerHp');
@@ -76,13 +76,13 @@ function setStory(marker,kicker,title,text){
 }
 function updateStoryAfterProgress(){
  if(state.memory===0)return;
- if(state.memory===1)setStory('CHAPTER II','THE FIRST MEMORY','The past is never as far away as it looks.','The first memory is recovered. One ordinary piece of Rishi's life is enough to remind us that a big story is built from small days.');
- else if(state.memory===2)setStory('CHAPTER II','THE PEOPLE & DAYS','Two memories. Two reasons to keep going.','Not every important moment looks important while it is happening. Some become precious only after time has passed.');
- else if(state.memory===3)setStory('CHAPTER II','THE YEARS','Halfway through the archive.','The maze is getting harder. So is life. Rishi does not get through it by avoiding every obstacle. He gets through it by learning what each one teaches.');
- else if(state.memory===4)setStory('CHAPTER III','THE TURNING POINT','Four memories recovered. The route ahead changes.','At some point, growing up stops being about becoming someone else. It becomes about carrying what you have learned without letting it weigh you down.');
- else if(state.memory===5)setStory('CHAPTER III','THE HARD PART','The last two memories are behind harder doors.','There are chapters nobody volunteers for. Setbacks, mistakes, bad days, missed chances. They still become part of the person who keeps moving.');
- else if(state.memory===6)setStory('CHAPTER IV','THE EDGE OF THE STORY','One memory remains. The easy part is over.','The final door does not open because Rishi is fearless. It opens because he has learned that fear is allowed to come along for the ride.');
- else if(state.memory===7)setStory('CHAPTER IV','THE FIGHT','The memories are safe. Now the story asks a harder question.','What happens when remembering is not enough? The last obstacle is not another memory. It is the part of every story where you have to get back up and fight for the ending.');
+ if(state.memory===1)setStory("CHAPTER II","THE FIRST MEMORY","The past is never as far away as it looks.","The first memory is recovered. One ordinary piece of Rishi's life is enough to remind us that a big story is built from small days.");
+ else if(state.memory===2)setStory("CHAPTER II","THE PEOPLE & DAYS","Two memories. Two reasons to keep going.","Not every important moment looks important while it is happening. Some become precious only after time has passed.");
+ else if(state.memory===3)setStory("CHAPTER II","THE YEARS","Halfway through the archive.","The maze is getting harder. So is life. Rishi does not get through it by avoiding every obstacle. He gets through it by learning what each one teaches.");
+ else if(state.memory===4)setStory("CHAPTER III","THE TURNING POINT","Four memories recovered. The route ahead changes.","At some point, growing up stops being about becoming someone else. It becomes about carrying what you have learned without letting it weigh you down.");
+ else if(state.memory===5)setStory("CHAPTER III","THE HARD PART","The last two memories are behind harder doors.","There are chapters nobody volunteers for. Setbacks, mistakes, bad days, missed chances. They still become part of the person who keeps moving.");
+ else if(state.memory===6)setStory("CHAPTER IV","THE EDGE OF THE STORY","One memory remains. The easy part is over.","The final door does not open because Rishi is fearless. It opens because he has learned that fear is allowed to come along for the ride.");
+ else if(state.memory===7)setStory("CHAPTER IV","THE FIGHT","The memories are safe. Now the story asks a harder question.","What happens when remembering is not enough? The last obstacle is not another memory. It is the part of every story where you have to get back up and fight for the ending.");
 }
 function isGateOpen(g){return state.memory>=g.need}
 function gateAt(x,y){return gates.find(g=>g.x===x&&g.y===y)}
@@ -115,7 +115,7 @@ function resetPlayer(reason){
  state.hp=3;state.player.x=1.5*TILE;state.player.y=1.5*TILE;
  updateStats();setLog(reason+' You learned something. Next attempt starts faster.');
  missionText.textContent=state.deaths%2?'The maze won that round. It does not keep the win.':'Caught. Good. Now you know where the danger is.';
- setStory('CHAPTER III','THE SETBACK','Rishi falls. The story does not.','Every failed run changes the next one. A little more bravery. A little more speed. A little more knowledge. The point was never to avoid falling.');
+ setStory("CHAPTER III","THE SETBACK","Rishi falls. The story does not.","Every failed run changes the next one. A little more bravery. A little more speed. A little more knowledge. The point was never to avoid falling.");
 }
 function collectRelic(index){
  if(state.collected.has(index))return;
@@ -136,7 +136,7 @@ function closeReward(){
  state.keys.clear();modal.classList.remove('open');modal.setAttribute('aria-hidden','true');gameStage.inert=false;state.paused=true;state.resumeUntil=performance.now()+1400;state.pendingBossUnlock=state.memory===7&&!state.bossUnlocked;resumeOverlay.hidden=false;resumeCount.textContent='GET READY';setTimeout(()=>gameStage.focus(),0);
 }
 function unlockBoss(){
- state.bossUnlocked=true;bossShell.hidden=false;setStory('CHAPTER IV','THE FIGHT','The final obstacle is not a memory. It is a test.','Twenty-two years do not become a story because everything went right. They become a story because every difficult chapter eventually has a next page.');bossShell.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth',block:'center'});bossStage.focus();initBoss();missionState.textContent='BOSS';setLog('FINAL RELIC RECOVERED. ENTER THE BIRTHDAY ARENA.');
+ state.bossUnlocked=true;bossShell.hidden=false;setStory("CHAPTER IV","THE FIGHT","The final obstacle is not a memory. It is a test.","Twenty-two years do not become a story because everything went right. They become a story because every difficult chapter eventually has a next page.");bossShell.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth',block:'center'});bossStage.focus();initBoss();missionState.textContent='BOSS';setLog('FINAL RELIC RECOVERED. ENTER THE BIRTHDAY ARENA.');
 }
 function trapModalFocus(e){
  if(!modal.classList.contains('open'))return;
@@ -260,8 +260,8 @@ function drawBoss(){
  bctx.fillStyle='#71809e';bctx.font='10px monospace';bctx.textAlign='left';bctx.fillText('PHASE '+b.phase,14,20);
 }
 function updateBossHud(){bossBar.style.width=Math.max(0,bossState.boss.hp/bossState.boss.maxHp*100)+'%';bossHpText.textContent=Math.max(0,bossState.boss.hp)+' / '+bossState.boss.maxHp}
-function bossDefeat(){bossState.active=false;state.bossDeaths++;state.bravery++;state.mobility=Math.min(2.5,state.mobility+.15);updateStats();bossMessage.textContent=['DOWN, NOT OUT. You learned the attack timing.','THE BOSS WON THAT ROUND. Now you know what to dodge.','DEFEATED. Good. Knowledge acquired.','ONE MORE ROUND. The opening is there.'][state.bossDeaths%4];setStory('CHAPTER IV','THE SETBACK','The boss wins this round. Rishi is still here.','This is the part the story needed. A setback is not a verdict. Every attempt teaches a little more, and the next attempt starts with everything you learned.');setTimeout(()=>initBoss(),500)}
-function winBoss(){bossState.active=false;bossMessage.textContent='BOSS DEFEATED. QUEST COMPLETE.';setStory('CHAPTER V','THE NEXT CHAPTER','The fight is over. Rishi's story is not.','The maze, the memories and the boss were only a metaphor for one thing: the road ahead will contain hard chapters too. Keep moving through them.');ending.hidden=false;runSummary.textContent='MEMORIES 7/7 · BRAVERY '+state.bravery+' · MOBILITY '+state.mobility.toFixed(1)+'× · MAZE DEATHS '+state.deaths+' · BOSS ATTEMPTS '+(state.bossDeaths+1);ending.scrollIntoView({behavior:'smooth',block:'center'});}
+function bossDefeat(){bossState.active=false;state.bossDeaths++;state.bravery++;state.mobility=Math.min(2.5,state.mobility+.15);updateStats();bossMessage.textContent=['DOWN, NOT OUT. You learned the attack timing.','THE BOSS WON THAT ROUND. Now you know what to dodge.','DEFEATED. Good. Knowledge acquired.','ONE MORE ROUND. The opening is there.'][state.bossDeaths%4];setStory("CHAPTER IV","THE SETBACK","The boss wins this round. Rishi is still here.","This is the part the story needed. A setback is not a verdict. Every attempt teaches a little more, and the next attempt starts with everything you learned.");setTimeout(()=>initBoss(),500)}
+function winBoss(){bossState.active=false;bossMessage.textContent='BOSS DEFEATED. QUEST COMPLETE.';setStory("CHAPTER V","THE NEXT CHAPTER","The fight is over. Rishi's story is not.","The maze, the memories and the boss were only a metaphor for one thing: the road ahead will contain hard chapters too. Keep moving through them.");ending.hidden=false;runSummary.textContent='MEMORIES 7/7 · BRAVERY '+state.bravery+' · MOBILITY '+state.mobility.toFixed(1)+'× · MAZE DEATHS '+state.deaths+' · BOSS ATTEMPTS '+(state.bossDeaths+1);ending.scrollIntoView({behavior:'smooth',block:'center'});}
 function bossFrame(t){const dt=Math.min(.035,(t-bossState.last)/1000||0);bossState.last=t;if(state.started&&!state.paused&&bossState.active)updateBoss(dt);requestAnimationFrame(bossFrame)}
 requestAnimationFrame(bossFrame);
 
