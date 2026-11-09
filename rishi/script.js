@@ -477,7 +477,7 @@ function roadCrash(){
  roadState.objects=[];
  if(attempts>2&&current>0){
   const fallback=current-1;
-  for(let i=fallback+1;i<roadState.checkpointAttempts.length;i++)roadState.checkpointAttempts[i]=0;
+  for(let i=fallback+1;i<roadState.checkpointAttempts.length;i++){roadState.checkpointAttempts[i]=0;roadState.checkpointScores[i]=0;}
   roadState.checkpoint=fallback;
   roadState.checkpointScore=roadState.checkpointScores[fallback]||0;
   roadState.distance=roadCheckpointDistances[fallback];
