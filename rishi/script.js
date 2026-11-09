@@ -105,19 +105,22 @@ function setSoundEnabled(enabled){
 chapterSoundToggles.forEach(toggle=>toggle.addEventListener('click',()=>setSoundEnabled(!audioState.enabled)));
 setSoundEnabled(audioState.enabled);
 
+function getFullscreenElement(){
+ return document.fullscreenElement||document.webkitFullscreenElement||null;
+}
 function toggleFullscreen(target){
  const element=document.querySelector('#'+target);
  if(!element)return;
- if(document.fullscreenElement===element){
-  document.exitFullscreen?.();
+ if(getFullscreenElement()===element){
+  const exit=document.exitFullscreen||document.webkitExitFullscreen;
+  if(exit)Promise.resolve(exit.call(document)).catch(()=>{});
   return;
  }
- if(element.requestFullscreen){
-  element.requestFullscreen({navigationUI:'hide'}).catch(()=>{});
- }
+ const request=element.requestFullscreen||element.webkitRequestFullscreen;
+ if(request)Promise.resolve(request.call(element)).catch(()=>{});
 }
 function syncFullscreenControls(){
- const active=document.fullscreenElement;
+ const active=getFullscreenElement();
  fullscreenButtons.forEach(button=>{
   const isActive=active&&active.id===button.dataset.fullscreenTarget;
   button.textContent=isActive?'EXIT FULLSCREEN':'FULLSCREEN';
@@ -126,6 +129,7 @@ function syncFullscreenControls(){
 }
 fullscreenButtons.forEach(button=>button.addEventListener('click',()=>toggleFullscreen(button.dataset.fullscreenTarget)));
 document.addEventListener('fullscreenchange',syncFullscreenControls);
+document.addEventListener('webkitfullscreenchange',syncFullscreenControls);
 syncFullscreenControls();
 
 const TILE=40,W=25,H=17;
