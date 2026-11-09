@@ -345,9 +345,12 @@ function updateBoss(dt){
  });
  bossState.shots.forEach(s=>{if(Math.hypot(s.x-bossState.player.x,s.y-bossState.player.y)<bossState.player.r+5&&performance.now()>=bossState.player.invulnerableUntil){s.x=-99;bossState.player.invulnerableUntil=performance.now()+650;if(bossState.player.armour>0){bossState.player.armour--;bossMessage.textContent='ARMOUR BROKE. The hit did not reach Rishi.'}else{bossState.player.hp--;bossMessage.textContent='HIT. HP -1. Read the pattern, then move.'}state.hp=bossState.player.hp;state.armour=bossState.player.armour;updateStats();updateBossHud();if(bossState.player.hp<=0)bossDefeat()}});
  bossState.playerShots.forEach(s=>{if(Math.hypot(s.x-b.x,s.y-b.y)<b.r+5){s.x=9999;b.hp--;bossMessage.textContent=b.phase===1?'Good hit. The pattern is opening.':b.phase===2?'The boss is changing phases. Keep moving.':'Final phase. Do not stop.';
- if(Math.random()<0.2){
-  const roll=Math.random();
-  const type=roll<0.45?"hp":roll<0.75?"armour":"mobility";
+ if(b.hp>0&&Math.random()<0.2){
+  const available=[];
+  if(bossState.player.hp<5)available.push("hp");
+  available.push("armour");
+  if(state.mobility<2.5)available.push("mobility");
+  const type=available[Math.floor(Math.random()*available.length)];
   bossState.buffs.push({x:b.x,y:b.y,r:13,type,pulse:Math.random()*Math.PI*2,expiresAt:performance.now()+4200,active:true});
   bossMessage.textContent="AN OPPORTUNITY APPEARED. Reach it before it fades.";
  }
