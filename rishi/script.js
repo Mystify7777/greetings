@@ -408,6 +408,8 @@ function roadLoad(){
   roadState.best=Number(saved.best)||roadState.score;
   roadState.checkpoint=Math.max(0,Math.min(roadCheckpointDistances.length-1,Number(saved.checkpoint)||0));
   roadState.checkpointScore=Number(saved.checkpointScore)||roadState.score;
+  roadState.checkpointScores=Array.isArray(saved.checkpointScores)?saved.checkpointScores.slice(0,roadCheckpointDistances.length):Array(roadCheckpointDistances.length).fill(0);
+  while(roadState.checkpointScores.length<roadCheckpointDistances.length)roadState.checkpointScores.push(0);
   roadState.checkpointAttempts=Array.isArray(saved.checkpointAttempts)?saved.checkpointAttempts.slice(0,roadCheckpointDistances.length):Array(roadCheckpointDistances.length).fill(0);
   while(roadState.checkpointAttempts.length<roadCheckpointDistances.length)roadState.checkpointAttempts.push(0);
   return true;
