@@ -465,7 +465,7 @@ function roadAdvanceCheckpoint(){
  roadState.checkpointAttempts[next]=0;
  roadState.distance=roadCheckpointDistances[next];
  roadSave();
- roadLog.textContent="CHECKPOINT "+String(next).padStart(2,"0")+" CLEARED. The next stretch is longer.";
+ roadLog.textContent="CHECKPOINT "+String(next).padStart(2,"0")+" CLEARED AT "+roadState.checkpointScore+" POINTS. The next stretch is longer.";
 }
 function roadCrash(){
  if(roadState.crashCooldown>0)return;
