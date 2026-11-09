@@ -7,13 +7,14 @@
 <meta name="description" content="Rishi's birthday story: The Maze of Memories and The Long Road.">
 <title>Rishi // The Story</title>
 <link rel="stylesheet" href="style.css">
+<script src="vendor/howler.min.js"></script>
 </head>
 <body>
 <div class="scanlines" aria-hidden="true"></div>
 <main class="shell">
 <header class="hud">
   <a href="../" class="back">← BIRTHDAY WORLDS</a>
-  <div class="status"><span class="online"></span> ADVENTURE ONLINE</div>
+  <div class="status"><span class="online"></span> ADVENTURE ONLINE <button id="soundToggle" class="sound-toggle" type="button" aria-pressed="true">SOUND ON</button></div>
 </header>
 
 <section class="intro screen" id="intro">
@@ -200,5 +201,6 @@
   
 
 <script src="script.js"></script>
+<script>if("serviceWorker" in navigator){navigator.serviceWorker.register("./sw.js").catch(()=>{});}</script>
 </body>
 </html>
