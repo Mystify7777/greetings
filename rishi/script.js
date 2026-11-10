@@ -203,6 +203,55 @@ function setStory(marker,kicker,title,text){
  storyBeatMarker.textContent=marker;storyBeatKicker.textContent=kicker;storyBeatTitle.textContent=title;storyBeatText.textContent=text;
  storyBeat.classList.remove('story-pulse');void storyBeat.offsetWidth;storyBeat.classList.add('story-pulse');
 }
+
+
+const narrativeRails={
+ maze:document.querySelector('[data-narrative-rail="maze"]'),
+ boss:document.querySelector('[data-narrative-rail="boss"]'),
+ road:document.querySelector('[data-narrative-rail="road"]')
+};
+const narrativeSeen=new Set();
+let narrativeLastShownAt=0;
+const NARRATIVE_EVENTS={
+ 'maze.start':['THE MAZE','Now you have to live this chapter.','The route is unfamiliar on purpose. Keep moving until the memories start making sense.'],
+ 'maze.memory.1':['FIRST MEMORY','The past is closer than it looks.','One ordinary piece of Rishi’s life is enough to start the archive moving.'],
+ 'maze.memory.2':['TWO MEMORIES','Small moments become important later.','Not every day feels like part of a story while you are living it.'],
+ 'maze.memory.3':['HALFWAY','The maze is getting harder.','So is growing up. The answer is not avoiding every obstacle, but learning its pattern.'],
+ 'maze.memory.4':['TURNING POINT','Carry the lesson, not the weight.','At some point, growing up becomes less about changing who you are and more about knowing what to keep.'],
+ 'maze.memory.5':['THE HARD PART','Some chapters are difficult by definition.','Setbacks, mistakes and missed chances still become part of the person who keeps moving.'],
+ 'maze.memory.6':['ONE LEFT','The easy part is over.','Fear can come along for the ride. It does not get to choose the destination.'],
+ 'maze.memory.7':['MEMORIES SAFE','Now the story asks a harder question.','Remembering is not enough. The next chapter is about what Rishi does when the obstacle fights back.'],
+ 'maze.death.first':['SETBACK','Rishi falls. The story does not.','The first failed attempt gives you information the successful one could not.'],
+ 'maze.death.repeat':['TRY AGAIN','Progress is not always forward.','A harder route is still a route. Change the approach and keep moving.'],
+ 'boss.start':['THE FIGHT','Getting stronger does not make the obstacle smaller.','It changes what you are capable of doing when the obstacle arrives.'],
+ 'boss.phase.2':['THE PATTERN CHANGES','The fight is asking for more.','When the pattern changes, panic is optional. Adaptation is the skill.'],
+ 'boss.phase.3':['FINAL PHASE','The hardest part is usually the last part.','Keep moving. The finish is closer than the screen makes it feel.'],
+ 'boss.opportunity':['AN OPPORTUNITY','Good moments do not always wait.','The opening is temporary. Notice it, move toward it, take it.'],
+ 'boss.buff.collect':['OPPORTUNITY TAKEN','A little help at the right moment matters.','The hard chapter did not become easy. Rishi just found another reason to keep going.'],
+ 'boss.setback':['THE BOSS WINS THIS ROUND','A setback is not a verdict.','Every attempt leaves something behind: timing, knowledge, patience. Carry that into the next one.'],
+ 'boss.victory':['CHAPTER CLEARED','You did not beat the obstacle by avoiding it.','You learned its rhythm, took the hits, found the openings and kept going. That is the story.'],
+ 'road.start':['THE LONG ROAD','The road gets longer from here.','Success does not remove the next challenge. It gives you a farther place to reach.'],
+ 'road.crash.first':['FIRST CRASH','Not every bad turn means you took the wrong road.','The important part is what changes before you try the stretch again.'],
+ 'road.crash.repeat':['ANOTHER CRASH','Some lessons need to be learned twice.','The checkpoint is still there. So is the chance to approach it differently.'],
+ 'road.checkpoint':['CHECKPOINT','You made it farther than before.','A checkpoint is proof that yesterday’s distance is no longer the limit.'],
+ 'road.fallback':['FALLING BACK','Progress is not always forward.','Sometimes the road sends you back so you can rebuild the part you rushed through.'],
+ 'road.opportunity':['OPPORTUNITY TAKEN','Good things rarely announce themselves twice.','You noticed the opening. That matters as much as the points.'],
+ 'road.restart':['A NEW RUN','A new beginning is still progress.','The score reset. The experience did not.'],
+ 'road.best':['NEW PERSONAL BEST','You just went farther than you ever have.','Keep the number. Then keep going.']
+};
+function emitNarrative(id,force=false){
+ const railKey=id.split('.')[0],rail=narrativeRails[railKey],event=NARRATIVE_EVENTS[id];
+ if(!rail||!event||(!force&&narrativeSeen.has(id)))return;
+ const now=performance.now();
+ if(!force&&now-narrativeLastShownAt<1600)return;
+ narrativeSeen.add(id);narrativeLastShownAt=now;
+ const [kicker,title,text]=event;
+ rail.querySelector('span').textContent=kicker;
+ rail.querySelector('strong').textContent=title;
+ rail.querySelector('p').textContent=text;
+ rail.classList.remove('narrative-pulse');void rail.offsetWidth;rail.classList.add('narrative-pulse');
+}
+
 function updateStoryAfterProgress(){
  if(state.memory===0)return;
  if(state.memory===1)setStory("CHAPTER II","THE FIRST MEMORY","The past is never as far away as it looks.","The first memory is recovered. One ordinary piece of Rishi's life is enough to remind us that a big story is built from small days.");
@@ -255,6 +304,7 @@ function resetPlayer(reason){
  updateStats();setLog(reason+' You ran out of HP. The next attempt starts with a full recovery.');
  missionText.textContent=state.deaths%2?'The maze won that round. It does not keep the win.':'Caught. Good. Now you know where the danger is.';
  setStory("CHAPTER III","THE SETBACK","Rishi falls. The story does not.","Every failed run changes the next one. A little more bravery. A little more speed. A little more knowledge. The point was never to avoid falling.");
+ emitNarrative(state.deaths===1?'maze.death.first':'maze.death.repeat');
 }
 function collectRelic(index){
  if(state.collected.has(index))return;
@@ -262,6 +312,7 @@ function collectRelic(index){
  state.collected.add(index);state.memory++;state.bravery++;state.claimOrder.push(index+1);
  if(gates.some(g=>g.need===state.memory))playCue('gate');
  state.pendingRelic=null;relicPrompt.hidden=true;
+ emitNarrative('maze.memory.'+state.memory);
  if(index===0||index===3||index===5)state.armour++;
  if(index===1||index===4||index===5)state.hp=Math.min(5,state.hp+1);
  if(index===2)state.mobility=Math.min(2.5,state.mobility+.15);
@@ -373,6 +424,7 @@ startButton.addEventListener('click',()=>{
  setTimeout(()=>gameStage.focus(),matchMedia('(prefers-reduced-motion:reduce)').matches?0:180);
  setLog('CHAPTER III BEGINS. The next part cannot be read from a screen.');
  setStory('CHAPTER III','THE MAZE','Now you have to live the difficult chapter.','The next part cannot be read from a screen. Rishi has to walk it. Learn the guardians. Find the memories. Get lost. Try again.');
+ emitNarrative('maze.start',true);
 });
 
 function updatePlayer(dt){
@@ -443,7 +495,7 @@ function frame(t){
 requestAnimationFrame(frame);
 
 const bossState={active:false,startingHp:5,startingArmour:0,rechallengeCount:0,player:{x:100,y:210,r:11,hp:5,armour:0,invulnerableUntil:0},boss:{x:620,y:210,r:25,hp:50,maxHp:50,phase:1,shotTimer:0,moveTimer:0,dir:1,vx:0,vy:0},shots:[],playerShots:[],attackQueued:false,last:0,buffs:[]};
-function initBoss(playIntroCue=true){if(playIntroCue)playCue('bossStart',.9);bossState.active=true;bossState.startingHp=Math.max(1,state.hp);bossState.startingArmour=state.armour;const level=bossState.rechallengeCount;const maxHp=50+level*25;bossState.player={x:100,y:210,r:11,hp:bossState.startingHp,armour:bossState.startingArmour,invulnerableUntil:0};bossState.boss={x:620,y:210,r:25,hp:maxHp,maxHp,phase:1,shotTimer:0,moveTimer:0,dir:1,vx:0,vy:0};bossState.shots=[];bossState.playerShots=[];bossState.buffs=[];bossState.last=performance.now();bossMessage.textContent=level===0?"The boss is waiting. Find the rhythm. Your maze health and armour carried forward.":"REMATCH "+level+". Rishi starts fresh. The boss does not.";updateBossHud();}
+function initBoss(playIntroCue=true){if(playIntroCue){playCue('bossStart',.9);emitNarrative('boss.start',true)}bossState.active=true;bossState.startingHp=Math.max(1,state.hp);bossState.startingArmour=state.armour;const level=bossState.rechallengeCount;const maxHp=50+level*25;bossState.player={x:100,y:210,r:11,hp:bossState.startingHp,armour:bossState.startingArmour,invulnerableUntil:0};bossState.boss={x:620,y:210,r:25,hp:maxHp,maxHp,phase:1,shotTimer:0,moveTimer:0,dir:1,vx:0,vy:0};bossState.shots=[];bossState.playerShots=[];bossState.buffs=[];bossState.last=performance.now();bossMessage.textContent=level===0?"The boss is waiting. Find the rhythm. Your maze health and armour carried forward.":"REMATCH "+level+". Rishi starts fresh. The boss does not.";updateBossHud();}
 function bossMove(dt){
  let dx=0,dy=0;if(state.keys.has('arrowleft')||state.keys.has('a'))dx--;if(state.keys.has('arrowright')||state.keys.has('d'))dx++;if(state.keys.has('arrowup')||state.keys.has('w'))dy--;if(state.keys.has('arrowdown')||state.keys.has('s'))dy++;
  if(dx||dy){const l=Math.hypot(dx,dy);bossState.player.x=Math.max(15,Math.min(745,bossState.player.x+dx/l*170*state.mobility*dt));bossState.player.y=Math.max(15,Math.min(405,bossState.player.y+dy/l*170*state.mobility*dt))}
@@ -452,7 +504,7 @@ function bossMove(dt){
 function updateBoss(dt){
  if(!bossState.active)return;
  bossMove(dt);const b=bossState.boss;
- const phaseTwo=Math.round(b.maxHp*.64),phaseThree=Math.round(b.maxHp*.32);const previousPhase=b.phase;b.phase=b.hp<=phaseThree?3:b.hp<=phaseTwo?2:1;if(b.phase!==previousPhase){playCue('phase',.85);}b.moveTimer+=dt;b.shotTimer+=dt;
+ const phaseTwo=Math.round(b.maxHp*.64),phaseThree=Math.round(b.maxHp*.32);const previousPhase=b.phase;b.phase=b.hp<=phaseThree?3:b.hp<=phaseTwo?2:1;if(b.phase!==previousPhase){playCue('phase',.85);if(b.phase===2)emitNarrative('boss.phase.2');if(b.phase===3)emitNarrative('boss.phase.3');}b.moveTimer+=dt;b.shotTimer+=dt;
  const buff=1+bossState.rechallengeCount*.12;const dx=bossState.player.x-b.x,dy=bossState.player.y-b.y,d=Math.hypot(dx,dy)||1,aggression=(b.phase===3?1:b.phase===2?.72:.42)*buff,desiredSpeed=(b.phase===3?92:b.phase===2?68:48)*buff,orbit=Math.sin(b.moveTimer*2.2)*(b.phase===3?55:35),tx=bossState.player.x+(-dy/d)*orbit,ty=bossState.player.y+(dx/d)*orbit;
  b.vx+=(tx-b.x)/Math.max(1,d)*desiredSpeed*aggression*dt*3;b.vy+=(ty-b.y)/Math.max(1,d)*desiredSpeed*aggression*dt*3;const v=Math.hypot(b.vx,b.vy)||1;if(v>desiredSpeed){b.vx=b.vx/v*desiredSpeed;b.vy=b.vy/v*desiredSpeed}b.x=Math.max(35,Math.min(725,b.x+b.vx*dt));b.y=Math.max(35,Math.min(385,b.y+b.vy*dt));
  if(b.shotTimer>(b.phase===3?.38:b.phase===2?.55:.78)){b.shotTimer=0;const a=Math.atan2(bossState.player.y-b.y,bossState.player.x-b.x),speed=(b.phase===3?305:b.phase===2?260:225)*buff;bossState.shots.push({x:b.x,y:b.y,vx:Math.cos(a)*speed,vy:Math.sin(a)*speed});if(b.phase>=2){const spread=b.phase===3?.22:.14;[-spread,spread].forEach(offset=>bossState.shots.push({x:b.x,y:b.y,vx:Math.cos(a+offset)*speed,vy:Math.sin(a+offset)*speed}))}if(b.phase===3){for(let i=0;i<4;i++){const aa=(Math.PI/2)*i+b.moveTimer*.25;bossState.shots.push({x:b.x,y:b.y,vx:Math.cos(aa)*185,vy:Math.sin(aa)*185})}}}
@@ -465,7 +517,7 @@ function updateBoss(dt){
  bossState.buffs.forEach(buff=>{
   buff.pulse+=dt;
   if(Math.hypot(buff.x-bossState.player.x,buff.y-bossState.player.y)<bossState.player.r+buff.r){
-   buff.active=false;playCue('buffCollect');
+   buff.active=false;playCue('buffCollect');emitNarrative('boss.buff.collect');
    if(buff.type==="hp"){bossState.player.hp=Math.min(5,bossState.player.hp+1);bossMessage.textContent="A GOOD MOMENT. HP +1."}
    if(buff.type==="armour"){bossState.player.armour++;bossMessage.textContent="A LITTLE EXTRA COVER. ARMOUR +1."}
    if(buff.type==="mobility"){state.mobility=Math.min(2.5,state.mobility+.2);bossMessage.textContent="A BETTER STEP. MOBILITY +0.2×."}
@@ -481,7 +533,7 @@ function updateBoss(dt){
   if(state.mobility<2.5)available.push("mobility");
   const type=available[Math.floor(Math.random()*available.length)];
   bossState.buffs.push({x:b.x,y:b.y,r:13,type,pulse:Math.random()*Math.PI*2,expiresAt:performance.now()+4200,active:true});playCue('buffSpawn',.8);
-  bossMessage.textContent="AN OPPORTUNITY APPEARED. Reach it before it fades.";
+  bossMessage.textContent="AN OPPORTUNITY APPEARED. Reach it before it fades.";emitNarrative('boss.opportunity');
  }
  updateBossHud();if(b.hp<=0)winBoss()}});
  drawBoss();
@@ -512,8 +564,10 @@ function drawBoss(){
  bctx.fillStyle='#71809e';bctx.font='10px monospace';bctx.textAlign='left';bctx.fillText('PHASE '+b.phase,14,20);
 }
 function updateBossHud(){bossBar.style.width=Math.max(0,bossState.boss.hp/bossState.boss.maxHp*100)+'%';bossHpText.textContent=Math.max(0,bossState.boss.hp)+' / '+bossState.boss.maxHp;bossPlayerHp.textContent='HP '+('♥'.repeat(Math.max(0,bossState.player.hp))+'♡'.repeat(Math.max(0,5-bossState.player.hp)))+' · ARMOUR '+bossState.player.armour}
-function bossDefeat(){bossState.active=false;playCue('setback',.8);state.hp=bossState.startingHp;state.armour=bossState.startingArmour;state.bossDeaths++;state.bravery++;state.mobility=Math.min(2.5,state.mobility+.15);updateStats();bossMessage.textContent=['DOWN, NOT OUT. You learned the attack timing.','THE BOSS WON THAT ROUND. Now you know what to dodge.','DEFEATED. Good. Knowledge acquired.','ONE MORE ROUND. The opening is there.'][state.bossDeaths%4];setStory("CHAPTER IV","THE SETBACK","The boss wins this round. Rishi is still here.","This is the part the story needed. A setback is not a verdict. Every attempt teaches a little more, and the next attempt starts with everything you learned.");setTimeout(()=>initBoss(false),500)}
-function winBoss(){bossState.active=false;playCue('victory');bossMessage.textContent="BOSS DEFEATED. QUEST COMPLETE.";setStory("CHAPTER V","THE NEXT CHAPTER","The fight is over. Rishi's story is not.","The maze, the memories and the boss were only a metaphor for one thing: the road ahead will contain hard chapters too. Keep moving through them.");ending.hidden=false;bossRechallenge.hidden=false;secretReveal.hidden=state.collected.size>0&&secretRoutes.some(route=>route.sequence.every((value,i)=>state.claimOrder[i]===value));runSummary.textContent="MEMORIES 7/7 · FINAL HP "+state.hp+" · FINAL ARMOUR "+state.armour+" · BRAVERY "+state.bravery+" · MOBILITY "+state.mobility.toFixed(1)+"× · MAZE DEATHS "+state.deaths+" · BOSS ATTEMPTS "+(state.bossDeaths+1)+" · REMATCHES "+bossState.rechallengeCount;unlockRoadGame();ending.scrollIntoView({behavior:"smooth",block:"center"});}
+function bossDefeat(){bossState.active=false;playCue('setback',.8);state.hp=bossState.startingHp;state.armour=bossState.startingArmour;state.bossDeaths++;state.bravery++;state.mobility=Math.min(2.5,state.mobility+.15);updateStats();bossMessage.textContent=['DOWN, NOT OUT. You learned the attack timing.','THE BOSS WON THAT ROUND. Now you know what to dodge.','DEFEATED. Good. Knowledge acquired.','ONE MORE ROUND. The opening is there.'][state.bossDeaths%4];setStory("CHAPTER IV","THE SETBACK","The boss wins this round. Rishi is still here.","This is the part the story needed. A setback is not a verdict. Every attempt teaches a little more, and the next attempt starts with everything you learned.");
+ emitNarrative('boss.setback');setTimeout(()=>initBoss(false),500)}
+function winBoss(){bossState.active=false;playCue('victory');bossMessage.textContent="BOSS DEFEATED. QUEST COMPLETE.";setStory("CHAPTER V","THE NEXT CHAPTER","The fight is over. Rishi's story is not.","The maze, the memories and the boss were only a metaphor for one thing: the road ahead will contain hard chapters too. Keep moving through them.");
+ emitNarrative('boss.victory',true);ending.hidden=false;bossRechallenge.hidden=false;secretReveal.hidden=state.collected.size>0&&secretRoutes.some(route=>route.sequence.every((value,i)=>state.claimOrder[i]===value));runSummary.textContent="MEMORIES 7/7 · FINAL HP "+state.hp+" · FINAL ARMOUR "+state.armour+" · BRAVERY "+state.bravery+" · MOBILITY "+state.mobility.toFixed(1)+"× · MAZE DEATHS "+state.deaths+" · BOSS ATTEMPTS "+(state.bossDeaths+1)+" · REMATCHES "+bossState.rechallengeCount;unlockRoadGame();ending.scrollIntoView({behavior:"smooth",block:"center"});}
 function bossFrame(t){const dt=Math.min(.035,(t-bossState.last)/1000||0);bossState.last=t;if(state.started&&!state.paused&&bossState.active)updateBoss(dt);requestAnimationFrame(bossFrame)}
 requestAnimationFrame(bossFrame);
 
@@ -610,7 +664,7 @@ function roadResetSegment(){
  roadState.crashCooldown=1.2;
 }
 function roadStart(){
- playCue('roadStart',.9);
+ playCue('roadStart',.9);emitNarrative('road.start',true);
  roadLoad();
  roadState.active=true;
  roadState.last=performance.now();
@@ -630,6 +684,7 @@ function roadAdvanceCheckpoint(){
  roadState.distance=roadCheckpointDistances[next];
  roadSave();
  roadLog.textContent="CHECKPOINT "+String(next).padStart(2,"0")+" CLEARED AT "+roadState.checkpointScore+" POINTS. The next stretch is longer.";
+ emitNarrative('road.checkpoint',true);
 }
 function roadCrash(){
  if(roadState.crashCooldown>0)return;
@@ -648,10 +703,12 @@ function roadCrash(){
   roadState.distance=roadCheckpointDistances[fallback];
   roadState.score=roadState.checkpointScore;
   roadLog.textContent="THREE FAILURES ON THE SAME STRETCH. You fell back to checkpoint "+String(fallback).padStart(2,"0")+". The road ahead has been reset.";
+ emitNarrative('road.fallback',true);
  }else{
   roadState.distance=roadCheckpointDistances[current];
   roadState.score=roadState.checkpointScore;
   roadLog.textContent="CRASH. Back to checkpoint "+(current===0?"START":String(current).padStart(2,"0"))+". Change something before the next attempt.";
+ emitNarrative(attempts===1?'road.crash.first':'road.crash.repeat');
  }
  roadSave();
  roadUpdateHud();
@@ -696,6 +753,7 @@ function roadUpdate(dt){
     o.y=999;playCue('opportunity',.8);
     roadState.score+=150;
     roadLog.textContent="OPPORTUNITY TAKEN. +150. Keep your eyes open.";
+    emitNarrative('road.opportunity');
    }else{
     roadCrash();
     return;
@@ -765,6 +823,7 @@ function roadRestart(){
  roadSave();
  roadUpdateHud();
  playCue('roadStart',.75);
+ emitNarrative('road.restart',true);
  roadSetOverlay("FRESH START","THE ROAD STARTS OVER.","Checkpoint and current score cleared. Your best score stays on the board.","▶ START THE ROAD");
  roadLog.textContent="New run ready. Every checkpoint is yours to earn again.";
  roadGame.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion:reduce)").matches?"auto":"smooth",block:"center"});

@@ -44,3 +44,7 @@
  .road-overlay-actions{flex-direction:column;width:100%}
  .road-overlay-actions .primary,.road-overlay-actions .secondary{width:min(300px,100%);margin-top:8px}
 }
+
+
+.game-play-row{width:min(1020px,100%);margin:0 auto;display:grid;grid-template-columns:minmax(0,760px) minmax(190px,240px);gap:14px;align-items:start}.game-play-row .game-stage-wrap{min-width:0}.narrative-rail{border:1px solid #2c3b5a;background:#0a111f;padding:16px 15px;min-height:148px;position:sticky;top:16px;overflow:hidden}.narrative-rail:before{content:"";display:block;width:22px;height:2px;background:var(--gold);margin-bottom:13px}.narrative-rail span{display:block;color:var(--cyan);font-size:.46rem;letter-spacing:.14em}.narrative-rail strong{display:block;color:var(--gold);font-size:.72rem;line-height:1.25;margin-top:8px;letter-spacing:-.02em}.narrative-rail p{margin:10px 0 0;color:var(--muted);font-size:.58rem;line-height:1.8}.narrative-pulse{animation:narrativePulse .42s ease}@keyframes narrativePulse{0%{opacity:.45;transform:translateY(6px)}100%{opacity:1;transform:none}}.boss-play-row,.road-play-row{width:100%}.boss-shell{width:min(1020px,100%)}.road-game .game-play-row{width:min(1020px,100%)}
+@media(max-width:900px){.game-play-row{grid-template-columns:1fr}.narrative-rail{position:relative;top:auto;min-height:0;padding:13px 15px}.narrative-rail strong{font-size:.66rem}.narrative-rail p{margin-top:7px}.game-play-row .game-stage-wrap,.game-play-row .boss-stage,.game-play-row .road-stage{width:100%;max-width:760px;margin:auto}.boss-shell{width:100%}}
