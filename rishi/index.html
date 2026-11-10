@@ -14,7 +14,7 @@
 <main class="shell">
 <header class="hud">
   <a href="../" class="back">← BIRTHDAY WORLDS</a>
-  <div class="status"><span class="online"></span> ADVENTURE ONLINE <button id="soundToggle" class="sound-toggle" type="button" aria-pressed="true">SOUND ON</button></div>
+  <div class="status"><span class="online"></span> ADVENTURE ONLINE</div>
 </header>
 
 <section class="intro screen" id="intro">
@@ -56,7 +56,7 @@
       <p class="eyebrow">CHAPTER III // THE MAZE</p>
       <p id="missionText">Seven memories are scattered through the maze. Every one you recover changes what Rishi carries into the next part of the story.</p>
     </div>
-    <div class="mission-state" id="missionState">READY</div>
+    <div class="chapter-controls"><div class="mission-state" id="missionState">READY</div><button class="sound-toggle chapter-sound-toggle" type="button" data-sound-toggle aria-pressed="true">SOUND ON</button><button class="fullscreen-toggle" type="button" data-fullscreen-target="gameStage">FULLSCREEN</button></div>
   </div>
 
   <div class="stats" aria-label="Adventure stats">
@@ -99,7 +99,7 @@
   <section class="boss-shell" id="bossShell" hidden>
     <div class="boss-heading">
       <div><p class="eyebrow">MISSION 02 // THE BIRTHDAY BOSS</p><h2>THE LAST OBSTACLE.</h2></div>
-      <div class="boss-hp"><span>BOSS</span><div><i id="bossBar"></i></div><strong id="bossHpText">50 / 50</strong></div>
+      <div class="boss-hp"><span>BOSS</span><div><i id="bossBar"></i></div><strong id="bossHpText">50 / 50</strong></div><div class="chapter-controls"><button class="sound-toggle chapter-sound-toggle" type="button" data-sound-toggle aria-pressed="true">SOUND ON</button><button class="fullscreen-toggle" type="button" data-fullscreen-target="bossStage">FULLSCREEN</button></div>
     </div>
     <p class="boss-copy">Move, dodge, and attack. The pattern changes when the boss gets angry. Getting knocked down makes you faster.</p>
     <div class="boss-stage" id="bossStage" tabindex="0" role="application" aria-label="Birthday boss arena. Use WASD or arrow keys to move and Space to attack.">
@@ -151,7 +151,7 @@
     <div class="road-intro">
       <div class="eyebrow">CHAPTER VI // THE LONG ROAD</div>
       <h2 id="roadTitle">THE ROAD<br><span>GETS LONGER.</span></h2>
-      <p>Every success moves the next finish line farther away. Opportunities appear beside obstacles. The score keeps climbing, but so does the distance you have to travel to earn the next checkpoint.</p>
+      <p>Every success moves the next finish line farther away. Opportunities appear beside obstacles. The score keeps climbing, but so does the distance you have to travel to earn the next checkpoint.</p><div class="chapter-controls"><button class="sound-toggle chapter-sound-toggle" type="button" data-sound-toggle aria-pressed="true">SOUND ON</button><button class="fullscreen-toggle" type="button" data-fullscreen-target="roadStage">FULLSCREEN</button></div>
     </div>
 
     <div class="road-checkpoint">
@@ -167,7 +167,7 @@
         <span id="roadOverlayKicker">THE ROAD AWAITS</span>
         <strong id="roadOverlayTitle">KEEP MOVING.</strong>
         <p id="roadOverlayText">Your checkpoint, score and progress are saved on this device.</p>
-        <button id="roadStart" class="primary" type="button">▶ START THE ROAD</button>
+        <div class="road-overlay-actions"><button id="roadStart" class="primary" type="button">▶ START THE ROAD</button><button id="roadRestart" class="secondary" type="button">↻ RESTART RUN</button></div>
       </div>
     </div>
 

@@ -10,7 +10,8 @@ const chapter4Intro=document.querySelector('#chapter4Intro'),bossShell=document.
 const ending=document.querySelector('#ending'),runSummary=document.querySelector('#runSummary'),secretReveal=document.querySelector('#secretReveal'),bossRechallenge=document.querySelector('#bossRechallenge'),rechallengeBoss=document.querySelector('#rechallengeBoss'),roadGame=document.querySelector('#roadGame'),roadCanvas=document.querySelector('#roadCanvas'),roadCtx=roadCanvas?.getContext('2d'),roadOverlay=document.querySelector('#roadOverlay'),roadOverlayKicker=document.querySelector('#roadOverlayKicker'),roadOverlayTitle=document.querySelector('#roadOverlayTitle'),roadOverlayText=document.querySelector('#roadOverlayText'),roadStartButton=document.querySelector('#roadStart'),roadCheckpoint=document.querySelector('#roadCheckpoint'),roadDistance=document.querySelector('#roadDistance'),roadScore=document.querySelector('#roadScore'),roadBest=document.querySelector('#roadBest'),roadLog=document.querySelector('#roadLog');
 
 
-const soundToggle=document.querySelector('#soundToggle');
+const chapterSoundToggles=[...document.querySelectorAll('[data-sound-toggle]')];
+const fullscreenButtons=[...document.querySelectorAll('[data-fullscreen-target]')];
 const audioState={
  enabled:(()=>{try{return localStorage.getItem('rishi-sound-enabled')!=='0'}catch{return true}})(),
  stepTimer:0,
@@ -96,10 +97,40 @@ function setSoundEnabled(enabled){
  audioState.enabled=enabled;
  try{localStorage.setItem('rishi-sound-enabled',enabled?'1':'0')}catch{}
  if(gameAudio&&!enabled)gameAudio.stop();
- soundToggle.textContent=enabled?'SOUND ON':'SOUND OFF';
- soundToggle.setAttribute('aria-pressed',String(enabled));
+ chapterSoundToggles.forEach(toggle=>{
+  toggle.textContent=enabled?'SOUND ON':'SOUND OFF';
+  toggle.setAttribute('aria-pressed',String(enabled));
+ });
 }
-if(soundToggle){soundToggle.addEventListener('click',()=>setSoundEnabled(!audioState.enabled));setSoundEnabled(audioState.enabled)}
+chapterSoundToggles.forEach(toggle=>toggle.addEventListener('click',()=>setSoundEnabled(!audioState.enabled)));
+setSoundEnabled(audioState.enabled);
+
+function getFullscreenElement(){
+ return document.fullscreenElement||document.webkitFullscreenElement||null;
+}
+function toggleFullscreen(target){
+ const element=document.querySelector('#'+target);
+ if(!element)return;
+ if(getFullscreenElement()===element){
+  const exit=document.exitFullscreen||document.webkitExitFullscreen;
+  if(exit)Promise.resolve(exit.call(document)).catch(()=>{});
+  return;
+ }
+ const request=element.requestFullscreen||element.webkitRequestFullscreen;
+ if(request)Promise.resolve(request.call(element)).catch(()=>{});
+}
+function syncFullscreenControls(){
+ const active=getFullscreenElement();
+ fullscreenButtons.forEach(button=>{
+  const isActive=active&&active.id===button.dataset.fullscreenTarget;
+  button.textContent=isActive?'EXIT FULLSCREEN':'FULLSCREEN';
+  button.setAttribute('aria-pressed',String(Boolean(isActive)));
+ });
+}
+fullscreenButtons.forEach(button=>button.addEventListener('click',()=>toggleFullscreen(button.dataset.fullscreenTarget)));
+document.addEventListener('fullscreenchange',syncFullscreenControls);
+document.addEventListener('webkitfullscreenchange',syncFullscreenControls);
+syncFullscreenControls();
 
 const TILE=40,W=25,H=17;
 const MAP=[
@@ -624,7 +655,7 @@ function roadCrash(){
  }
  roadSave();
  roadUpdateHud();
- playCue('setback',.75);roadSetOverlay("SETBACK","GET BACK ON THE ROAD.","Your checkpoint held. The road does not care how many times you fall, only what you change before the next run.","↻ TRY AGAIN");
+ playCue('setback',.75);roadSetOverlay("SETBACK","GET BACK ON THE ROAD.","Your checkpoint held. The road does not care how many times you fall, only what you change before the next run.","▶ KEEP GOING");
 }
 function roadSpawn(){
  const lane=Math.floor(Math.random()*3);
@@ -718,15 +749,37 @@ function roadFrame(t){
 }
 requestAnimationFrame(roadFrame);
 
+function roadRestart(){
+ roadState.active=false;
+ roadState.distance=0;
+ roadState.score=0;
+ roadState.checkpoint=0;
+ roadState.checkpointScore=0;
+ roadState.checkpointScores=Array(roadCheckpointDistances.length).fill(0);
+ roadState.checkpointAttempts=Array(roadCheckpointDistances.length).fill(0);
+ roadState.lane=1;
+ roadState.targetLane=1;
+ roadState.objects=[];
+ roadState.spawnTimer=.35;
+ roadState.crashCooldown=1.2;
+ roadSave();
+ roadUpdateHud();
+ playCue('roadStart',.75);
+ roadSetOverlay("FRESH START","THE ROAD STARTS OVER.","Checkpoint and current score cleared. Your best score stays on the board.","▶ START THE ROAD");
+ roadLog.textContent="New run ready. Every checkpoint is yours to earn again.";
+ roadGame.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion:reduce)").matches?"auto":"smooth",block:"center"});
+}
+
 if(roadSafeGet(ROAD_UNLOCK_KEY)==="1"){
  roadGame.hidden=false;
  roadLoad();
  roadUpdateHud();
- roadSetOverlay("CHAPTER VI // CONTINUE","THE ROAD REMEMBERS.","Checkpoint "+(roadState.checkpoint===0?"START":String(roadState.checkpoint).padStart(2,"0"))+" is saved with a score of "+Math.floor(roadState.checkpointScore)+".","▶ CONTINUE THE ROAD");
+ roadSetOverlay("CHAPTER VI // KEEP GOING","THE ROAD REMEMBERS.","Checkpoint "+(roadState.checkpoint===0?"START":String(roadState.checkpoint).padStart(2,"0"))+" is saved with a score of "+Math.floor(roadState.checkpointScore)+".","▶ KEEP GOING");
 }else if(roadGame){
  roadGame.hidden=true;
 }
 roadStartButton.addEventListener("click",roadStart);
+document.querySelector('#roadRestart').addEventListener("click",roadRestart);
 document.querySelectorAll("[data-road-dir]").forEach(button=>{
  button.addEventListener("pointerdown",e=>{
   e.preventDefault();
