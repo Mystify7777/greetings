@@ -67,17 +67,24 @@
     <div><span>MEMORIES</span><strong id="memoryStat">0 / 7</strong></div>
   </div>
 
-  <div class="game-stage-wrap">
-    <div class="game-stage" id="gameStage" tabindex="0" role="application" aria-label="Rishi's memory maze. Use WASD or arrow keys to move. Avoid pink guardians and collect gold memories.">
-      <canvas id="mazeCanvas" width="1000" height="680"></canvas>
-      <div class="stage-hint" id="stageHint">FOCUS LOCKED · CLICK OR PRESS A KEY TO PLAY</div>
-      <div class="resume-overlay" id="resumeOverlay" hidden aria-live="assertive"><span>RESUMING ADVENTURE</span><strong id="resumeCount">GET READY</strong></div>
-      <div class="relic-prompt" id="relicPrompt" hidden>
-        <span id="relicPromptType">MEMORY NEARBY</span>
-        <strong id="relicPromptTitle">Memory</strong>
-        <button id="claimMemory" class="claim-button" type="button">CLAIM MEMORY <kbd>E</kbd></button>
+  <div class="game-play-row">
+    <div class="game-stage-wrap">
+      <div class="game-stage" id="gameStage" tabindex="0" role="application" aria-label="Rishi's memory maze. Use WASD or arrow keys to move. Avoid pink guardians and collect gold memories.">
+        <canvas id="mazeCanvas" width="1000" height="680"></canvas>
+        <div class="stage-hint" id="stageHint">FOCUS LOCKED · CLICK OR PRESS A KEY TO PLAY</div>
+        <div class="resume-overlay" id="resumeOverlay" hidden aria-live="assertive"><span>RESUMING ADVENTURE</span><strong id="resumeCount">GET READY</strong></div>
+        <div class="relic-prompt" id="relicPrompt" hidden>
+          <span id="relicPromptType">MEMORY NEARBY</span>
+          <strong id="relicPromptTitle">Memory</strong>
+          <button id="claimMemory" class="claim-button" type="button">CLAIM MEMORY <kbd>E</kbd></button>
+        </div>
       </div>
     </div>
+    <aside class="narrative-rail" data-narrative-rail="maze" aria-live="polite">
+      <span>RISHI'S STORY</span>
+      <strong>KEEP GOING.</strong>
+      <p>The maze is only the chapter. What matters is what the obstacles make you remember.</p>
+    </aside>
   </div>
 
   <div class="mobile-controls" aria-label="Mobile movement controls">
@@ -102,9 +109,16 @@
       <div class="boss-hp"><span>BOSS</span><div><i id="bossBar"></i></div><strong id="bossHpText">50 / 50</strong></div><div class="chapter-controls"><button class="sound-toggle chapter-sound-toggle" type="button" data-sound-toggle aria-pressed="true">SOUND ON</button><button class="fullscreen-toggle" type="button" data-fullscreen-target="bossStage">FULLSCREEN</button></div>
     </div>
     <p class="boss-copy">Move, dodge, and attack. The pattern changes when the boss gets angry. Getting knocked down makes you faster.</p>
-    <div class="boss-stage" id="bossStage" tabindex="0" role="application" aria-label="Birthday boss arena. Use WASD or arrow keys to move and Space to attack.">
-      <canvas id="bossCanvas" width="760" height="420"></canvas>
-      <div class="boss-hint">WASD / ARROWS · SPACE = ATTACK</div>
+    <div class="game-play-row boss-play-row">
+      <div class="boss-stage" id="bossStage" tabindex="0" role="application" aria-label="Birthday boss arena. Use WASD or arrow keys to move and Space to attack.">
+        <canvas id="bossCanvas" width="760" height="420"></canvas>
+        <div class="boss-hint">WASD / ARROWS · SPACE = ATTACK</div>
+      </div>
+      <aside class="narrative-rail" data-narrative-rail="boss" aria-live="polite">
+        <span>THE FIGHT</span>
+        <strong>GET BACK UP.</strong>
+        <p>The obstacle gets harder. Rishi does not have to become someone else to face it.</p>
+      </aside>
     </div>
     <div class="mobile-controls boss-mobile-controls" aria-label="Mobile boss controls">
       <div class="mobile-dpad">
@@ -161,14 +175,21 @@
       <div><span>BEST</span><strong id="roadBest">0</strong></div>
     </div>
 
-    <div class="road-stage" id="roadStage" tabindex="0" role="application" aria-label="Rishi's traffic racer. Use left and right controls to steer. Avoid obstacles and collect opportunities.">
-      <canvas id="roadCanvas" width="760" height="430"></canvas>
-      <div class="road-overlay" id="roadOverlay">
+    <div class="game-play-row road-play-row">
+      <div class="road-stage" id="roadStage" tabindex="0" role="application" aria-label="Rishi's traffic racer. Use left and right controls to steer. Avoid obstacles and collect opportunities.">
+        <canvas id="roadCanvas" width="760" height="430"></canvas>
+        <div class="road-overlay" id="roadOverlay">
         <span id="roadOverlayKicker">THE ROAD AWAITS</span>
         <strong id="roadOverlayTitle">KEEP MOVING.</strong>
         <p id="roadOverlayText">Your checkpoint, score and progress are saved on this device.</p>
-        <div class="road-overlay-actions"><button id="roadStart" class="primary" type="button">▶ START THE ROAD</button><button id="roadRestart" class="secondary" type="button">↻ RESTART RUN</button></div>
+          <div class="road-overlay-actions"><button id="roadStart" class="primary" type="button">▶ START THE ROAD</button><button id="roadRestart" class="secondary" type="button">↻ RESTART RUN</button></div>
+        </div>
       </div>
+      <aside class="narrative-rail" data-narrative-rail="road" aria-live="polite">
+        <span>THE LONG ROAD</span>
+        <strong>KEEP GOING.</strong>
+        <p>The finish line moves. That does not make the journey meaningless.</p>
+      </aside>
     </div>
 
     <div class="road-mobile-controls" aria-label="Traffic racer controls">
