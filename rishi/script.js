@@ -251,7 +251,8 @@ function emitNarrative(id,force=false){
  rail.querySelector('p').textContent=text;
  rail.classList.remove('narrative-pulse');void rail.offsetWidth;rail.classList.add('narrative-pulse');
 }
-\nfunction updateStoryAfterProgress(){
+
+function updateStoryAfterProgress(){
  if(state.memory===0)return;
  if(state.memory===1)setStory("CHAPTER II","THE FIRST MEMORY","The past is never as far away as it looks.","The first memory is recovered. One ordinary piece of Rishi's life is enough to remind us that a big story is built from small days.");
  else if(state.memory===2)setStory("CHAPTER II","THE PEOPLE & DAYS","Two memories. Two reasons to keep going.","Not every important moment looks important while it is happening. Some become precious only after time has passed.");
