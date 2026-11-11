@@ -42,6 +42,16 @@
 </section>
 
 <section class="game-shell" id="gameShell" hidden>
+<div class="modal" id="rewardModal" aria-hidden="true">
+  <div class="modal-backdrop" data-close-modal></div>
+  <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="rewardTitle" aria-describedby="rewardBody">
+    <button class="modal-close" id="modalClose" type="button" aria-label="Close memory">×</button>
+    <div class="eyebrow" id="rewardKicker">MEMORY RECOVERED</div>
+    <h2 id="rewardTitle">Memory</h2>
+    <div id="rewardBody"></div>
+  </section>
+</div>
+
   <div class="story-beat" id="storyBeat">
     <div class="story-beat-marker" id="storyBeatMarker">CHAPTER I</div>
     <div>
@@ -56,7 +66,7 @@
       <p class="eyebrow">CHAPTER III // THE MAZE</p>
       <p id="missionText">Seven memories are scattered through the maze. Every one you recover changes what Rishi carries into the next part of the story.</p>
     </div>
-    <div class="chapter-controls"><div class="mission-state" id="missionState">READY</div><button class="sound-toggle chapter-sound-toggle" type="button" data-sound-toggle aria-pressed="true">SOUND ON</button><button class="fullscreen-toggle" type="button" data-fullscreen-target="gameStage">FULLSCREEN</button></div>
+    <div class="chapter-controls"><div class="mission-state" id="missionState">READY</div><button class="sound-toggle chapter-sound-toggle" type="button" data-sound-toggle aria-pressed="true">SOUND ON</button><button class="fullscreen-toggle" type="button" data-fullscreen-target="gameShell">FULLSCREEN</button></div>
   </div>
 
   <div class="stats" aria-label="Adventure stats">
@@ -106,7 +116,7 @@
   <section class="boss-shell" id="bossShell" hidden>
     <div class="boss-heading">
       <div><p class="eyebrow">MISSION 02 // THE BIRTHDAY BOSS</p><h2>THE LAST OBSTACLE.</h2></div>
-      <div class="boss-hp"><span>BOSS</span><div><i id="bossBar"></i></div><strong id="bossHpText">50 / 50</strong></div><div class="chapter-controls"><button class="sound-toggle chapter-sound-toggle" type="button" data-sound-toggle aria-pressed="true">SOUND ON</button><button class="fullscreen-toggle" type="button" data-fullscreen-target="bossStage">FULLSCREEN</button></div>
+      <div class="boss-hp"><span>BOSS</span><div><i id="bossBar"></i></div><strong id="bossHpText">50 / 50</strong></div><div class="chapter-controls"><button class="sound-toggle chapter-sound-toggle" type="button" data-sound-toggle aria-pressed="true">SOUND ON</button><button class="fullscreen-toggle" type="button" data-fullscreen-target="bossShell">FULLSCREEN</button></div>
     </div>
     <p class="boss-copy">Move. Dodge. Attack. The pattern changes when the boss gets angry, because apparently the universe needed one more difficult opponent. Getting knocked down makes you faster. Thoda unfair, but we'll take it. At least the respawn is free.</p>
     <div class="game-play-row boss-play-row">
@@ -165,7 +175,7 @@
     <div class="road-intro">
       <div class="eyebrow">CHAPTER VI // THE LONG ROAD</div>
       <h2 id="roadTitle">THE ROAD<br><span>GETS LONGER.</span></h2>
-      <p>Every success moves the next finish line farther away. Opportunities appear beside obstacles. The score keeps climbing, but so does the distance you have to travel to earn the next checkpoint.</p><div class="chapter-controls"><button class="sound-toggle chapter-sound-toggle" type="button" data-sound-toggle aria-pressed="true">SOUND ON</button><button class="fullscreen-toggle" type="button" data-fullscreen-target="roadStage">FULLSCREEN</button></div>
+      <p>Every success moves the next finish line farther away. Opportunities appear beside obstacles. The score keeps climbing, but so does the distance you have to travel to earn the next checkpoint.</p><div class="chapter-controls"><button class="sound-toggle chapter-sound-toggle" type="button" data-sound-toggle aria-pressed="true">SOUND ON</button><button class="fullscreen-toggle" type="button" data-fullscreen-target="roadGame">FULLSCREEN</button></div>
     </div>
 
     <div class="road-checkpoint">
@@ -210,15 +220,6 @@
 <footer class="footer"><span>NO MICROTRANSACTIONS. ONLY MEMORIES. ZERO PAY-TO-WIN.</span><span>BUILD 11.24</span></footer>
 </main>
 
-<div class="modal" id="rewardModal" aria-hidden="true">
-  <div class="modal-backdrop" data-close-modal></div>
-  <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="rewardTitle" aria-describedby="rewardBody">
-    <button class="modal-close" id="modalClose" type="button" aria-label="Close memory">×</button>
-    <div class="eyebrow" id="rewardKicker">MEMORY RECOVERED</div>
-    <h2 id="rewardTitle">Memory</h2>
-    <div id="rewardBody"></div>
-  </section>
-</div>
   
 
 <script src="script.js"></script>

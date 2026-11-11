@@ -48,3 +48,21 @@
 
 .game-play-row{width:min(1020px,100%);margin:0 auto;display:grid;grid-template-columns:minmax(0,760px) minmax(190px,240px);gap:14px;align-items:start}.game-play-row .game-stage-wrap{min-width:0}.narrative-rail{border:1px solid #2c3b5a;background:#0a111f;padding:16px 15px;min-height:148px;position:sticky;top:16px;overflow:hidden}.narrative-rail:before{content:"";display:block;width:22px;height:2px;background:var(--gold);margin-bottom:13px}.narrative-rail span{display:block;color:var(--cyan);font-size:.46rem;letter-spacing:.14em}.narrative-rail strong{display:block;color:var(--gold);font-size:.72rem;line-height:1.25;margin-top:8px;letter-spacing:-.02em}.narrative-rail p{margin:10px 0 0;color:var(--muted);font-size:.58rem;line-height:1.8}.narrative-pulse{animation:narrativePulse .42s ease}@keyframes narrativePulse{0%{opacity:.45;transform:translateY(6px)}100%{opacity:1;transform:none}}.boss-play-row,.road-play-row{width:100%}.boss-shell{width:min(1020px,100%)}.road-game .game-play-row{width:min(1020px,100%)}
 @media(max-width:900px){.game-play-row{grid-template-columns:1fr}.narrative-rail{position:relative;top:auto;min-height:0;padding:13px 15px}.narrative-rail strong{font-size:.66rem}.narrative-rail p{margin-top:7px}.game-play-row .game-stage-wrap,.game-play-row .boss-stage,.game-play-row .road-stage{width:100%;max-width:760px;margin:auto}.boss-shell{width:100%}}
+
+/* Fullscreen owns the whole game experience so narrative rails and reward modals
+   remain in the fullscreen rendering tree instead of being clipped out. */
+.game-shell:fullscreen,
+.boss-shell:fullscreen,
+.road-game:fullscreen{width:100vw;height:100vh;max-width:none;margin:0;padding:24px;box-sizing:border-box;overflow:auto;background:#050912}
+.game-shell:fullscreen{display:block}
+.game-shell:fullscreen .game-play-row{width:min(1180px,100%);margin:0 auto}
+.game-shell:fullscreen .game-stage{width:min(760px,100%)}
+.game-shell:fullscreen .narrative-rail{position:sticky;top:16px}
+.game-shell:fullscreen .game-log{width:min(760px,100%)}
+.boss-shell:fullscreen{display:flex;flex-direction:column;justify-content:flex-start}
+.boss-shell:fullscreen .boss-play-row{width:min(1020px,100%);margin:0 auto}
+.boss-shell:fullscreen .boss-stage{width:100%}
+.road-game:fullscreen{display:flex;flex-direction:column;align-items:center;justify-content:flex-start}
+.road-game:fullscreen .game-play-row{width:min(1020px,100%)}
+.road-game:fullscreen .road-stage{width:100%}
+.game-shell:fullscreen .modal{position:fixed}
