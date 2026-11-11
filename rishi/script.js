@@ -163,9 +163,9 @@ const relics=[
  {x:7,y:3,title:'First Memory',type:'PHOTO',icon:'✦',text:'The first little piece of the birthday archive. This slot is waiting for a real photo.',reward:'Recovered memory: +1 armour.'},
  {x:5,y:7,title:'A Hidden Note',type:'MESSAGE',icon:'✉',text:'Something small, personal and probably embarrassing in exactly the right way.',reward:'Recovered memory: +1 bravery and +1 HP (up to 5).'},
  {x:7,y:9,title:'The Moving Memory',type:'VIDEO',icon:'▶',text:'A moving memory belongs here. Later this becomes a real video reveal.',reward:'Recovered memory: +1 mobility.'},
- {x:13,y:3,title:'Player Memory',type:'GAME',icon:'◆',text:'A memory from the years of games, chaos and questionable victory celebrations.',reward:'Recovered memory: +1 armour.'},
- {x:16,y:3,title:'The Ordinary Day',type:'MEMORY',icon:'◇',text:'The ordinary moments are usually the ones that become the good stories.',reward:'Recovered memory: +1 bravery and +1 HP (up to 5).'},
- {x:10,y:13,title:'Birthday Letter',type:'LETTER',icon:'✎',text:'The proper birthday message goes here. For now, the chest stays sealed around a placeholder. The real birthday message belongs here when the archive gets its final memories.',reward:'Recovered memory: +1 armour, +1 bravery and +1 HP (up to 5).'},
+ {x:13,y:3,title:'Player Memory',type:'GAME',icon:'◆',text:'A memory from the years of games, volleyball, anime, games, chaos and questionable victory celebrations.',reward:'Recovered memory: +1 armour.'},
+ {x:16,y:3,title:'The Ordinary Day',type:'MEMORY',icon:'◇',text:'The ordinary moments are usually the ones that become the good stories. College days, games, random conversations, and the people who somehow became part of the routine.',reward:'Recovered memory: +1 bravery and +1 HP (up to 5).'},
+ {x:10,y:13,title:'Birthday Letter',type:'LETTER',icon:'✎',text:'The proper birthday message goes here. For now, the chest stays sealed around a placeholder. The real birthday message belongs here when the archive gets its final memories. Pushpa probably has evidence that should not be archived without supervision.',reward:'Recovered memory: +1 armour, +1 bravery and +1 HP (up to 5).'},
  {x:22,y:15,title:'The Final Relic',type:'LEGEND',icon:'★',text:'The strongest memory is saved for last. Recovering it opens the final arena.',reward:'Final relic recovered: the Birthday Boss is awake.'}
 ];
 
@@ -187,8 +187,8 @@ const mobs=mobDefs.map((m,i)=>({...m,index:i,color:mobColors[i],px:m.x*TILE,py:m
 const rewards=Object.fromEntries(relics.map((r,i)=>[i,r]));
 // The Trick follows the maze's natural relic order. The Treat deliberately zig-zags across the map.
 const secretRoutes=[
- {kind:'TRICK',sequence:[1,2,3,4,5,6,7],title:'THE EMBARRASSING ARCHIVE',text:'You found the wrong kind of treasure. Somewhere in Rishi\'s personal history is a video that absolutely should not have survived. The real clip goes here.',media:'VIDEO SLOT // EMBARRASSING & FUNNY'},
- {kind:'TREAT',sequence:[1,4,7,2,6,3,5],title:'THE CHERISHED MEMORY',text:'You found the hidden route. This is the kind of memory that makes the whole maze worth walking: a real moment, kept because it mattered. Some memories are not flashy. They are just yours.',media:'MEMORY SLOT // CHERISHED & PERSONAL'}
+ {kind:'TRICK',sequence:[1,2,3,4,5,6,7],title:'THE EMBARRASSING ARCHIVE',text:'You found the wrong kind of treasure. Somewhere in Rishi\'s personal history is a video that absolutely should not have survived. If Pushpa is involved, there may be more than one. The real clip goes here.',media:'VIDEO SLOT // EMBARRASSING & FUNNY'},
+ {kind:'TREAT',sequence:[1,4,7,2,6,3,5],title:'THE CHERISHED MEMORY',text:'You found the hidden route. This is the kind of memory that makes the whole maze worth walking: a real moment, kept because it mattered. Some memories are not flashy. They are just yours. The kind you remember because the people in them mattered.',media:'MEMORY SLOT // CHERISHED & PERSONAL'}
 ];
 
 function updateStats(){
