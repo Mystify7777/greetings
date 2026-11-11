@@ -163,9 +163,9 @@ const relics=[
  {x:7,y:3,title:'First Memory',type:'PHOTO',icon:'✦',text:'The first little piece of the birthday archive. This slot is waiting for a real photo.',reward:'Recovered memory: +1 armour.'},
  {x:5,y:7,title:'A Hidden Note',type:'MESSAGE',icon:'✉',text:'Something small, personal and probably embarrassing in exactly the right way.',reward:'Recovered memory: +1 bravery and +1 HP (up to 5).'},
  {x:7,y:9,title:'The Moving Memory',type:'VIDEO',icon:'▶',text:'A moving memory belongs here. Later this becomes a real video reveal.',reward:'Recovered memory: +1 mobility.'},
- {x:13,y:3,title:'Player Memory',type:'GAME',icon:'◆',text:'A memory from the years of games, chaos and questionable victory celebrations.',reward:'Recovered memory: +1 armour.'},
- {x:16,y:3,title:'The Ordinary Day',type:'MEMORY',icon:'◇',text:'The ordinary moments are usually the ones that become the good stories.',reward:'Recovered memory: +1 bravery and +1 HP (up to 5).'},
- {x:10,y:13,title:'Birthday Letter',type:'LETTER',icon:'✎',text:'The proper birthday message goes here. For now, the chest is deliberately sealed around a placeholder.',reward:'Recovered memory: +1 armour, +1 bravery and +1 HP (up to 5).'},
+ {x:13,y:3,title:'Player Memory',type:'GAME',icon:'◆',text:'A memory from the years of games, volleyball, anime, games, chaos and questionable victory celebrations.',reward:'Recovered memory: +1 armour.'},
+ {x:16,y:3,title:'The Ordinary Day',type:'MEMORY',icon:'◇',text:'The ordinary moments are usually the ones that become the good stories. College days, games, random conversations, and the people who somehow became part of the routine.',reward:'Recovered memory: +1 bravery and +1 HP (up to 5).'},
+ {x:10,y:13,title:'Birthday Letter',type:'LETTER',icon:'✎',text:'The proper birthday message goes here. For now, the chest stays sealed around a placeholder. The real birthday message belongs here when the archive gets its final memories. Pushpa probably has evidence that should not be archived without supervision.',reward:'Recovered memory: +1 armour, +1 bravery and +1 HP (up to 5).'},
  {x:22,y:15,title:'The Final Relic',type:'LEGEND',icon:'★',text:'The strongest memory is saved for last. Recovering it opens the final arena.',reward:'Final relic recovered: the Birthday Boss is awake.'}
 ];
 
@@ -187,8 +187,8 @@ const mobs=mobDefs.map((m,i)=>({...m,index:i,color:mobColors[i],px:m.x*TILE,py:m
 const rewards=Object.fromEntries(relics.map((r,i)=>[i,r]));
 // The Trick follows the maze's natural relic order. The Treat deliberately zig-zags across the map.
 const secretRoutes=[
- {kind:'TRICK',sequence:[1,2,3,4,5,6,7],title:'THE EMBARRASSING ARCHIVE',text:'You found the wrong kind of treasure. Somewhere in Rishi\'s personal history is a video that absolutely should not have survived. The real clip goes here.',media:'VIDEO SLOT // EMBARRASSING & FUNNY'},
- {kind:'TREAT',sequence:[1,4,7,2,6,3,5],title:'THE CHERISHED MEMORY',text:'You found the hidden route. This is the kind of memory that makes the whole maze worth walking: a real moment, kept because it mattered.',media:'MEMORY SLOT // CHERISHED & PERSONAL'}
+ {kind:'TRICK',sequence:[1,2,3,4,5,6,7],title:'THE EMBARRASSING ARCHIVE',text:'You found the wrong kind of treasure. Somewhere in Rishi\'s personal history is a video that absolutely should not have survived. If Pushpa is involved, there may be more than one. The real clip goes here.',media:'VIDEO SLOT // EMBARRASSING & FUNNY'},
+ {kind:'TREAT',sequence:[1,4,7,2,6,3,5],title:'THE CHERISHED MEMORY',text:'You found the hidden route. This is the kind of memory that makes the whole maze worth walking: a real moment, kept because it mattered. Some memories are not flashy. They are just yours. The kind you remember because the people in them mattered.',media:'MEMORY SLOT // CHERISHED & PERSONAL'}
 ];
 
 function updateStats(){
@@ -518,14 +518,14 @@ function updateBoss(dt){
   buff.pulse+=dt;
   if(Math.hypot(buff.x-bossState.player.x,buff.y-bossState.player.y)<bossState.player.r+buff.r){
    buff.active=false;playCue('buffCollect');emitNarrative('boss.buff.collect');
-   if(buff.type==="hp"){bossState.player.hp=Math.min(5,bossState.player.hp+1);bossMessage.textContent="A GOOD MOMENT. HP +1."}
-   if(buff.type==="armour"){bossState.player.armour++;bossMessage.textContent="A LITTLE EXTRA COVER. ARMOUR +1."}
-   if(buff.type==="mobility"){state.mobility=Math.min(2.5,state.mobility+.2);bossMessage.textContent="A BETTER STEP. MOBILITY +0.2×."}
+   if(buff.type==="hp"){bossState.player.hp=Math.min(5,bossState.player.hp+1);bossMessage.textContent="A GOOD MOMENT. HP +1. Kabhi-kabhi game bhi favour karta hai."}
+   if(buff.type==="armour"){bossState.player.armour++;bossMessage.textContent="A LITTLE EXTRA COVER. ARMOUR +1. Protection mil gayi, ab overconfidence mat karna."}
+   if(buff.type==="mobility"){state.mobility=Math.min(2.5,state.mobility+.2);bossMessage.textContent="A BETTER STEP. MOBILITY +0.2×. Thoda faster, thoda smarter."}
    state.hp=bossState.player.hp;state.armour=bossState.player.armour;updateStats();updateBossHud();
   }
  });
  bossState.shots.forEach(s=>{if(Math.hypot(s.x-bossState.player.x,s.y-bossState.player.y)<bossState.player.r+5&&performance.now()>=bossState.player.invulnerableUntil){s.x=-99;bossState.player.invulnerableUntil=performance.now()+650;if(bossState.player.armour>0){bossState.player.armour--;bossMessage.textContent='ARMOUR BROKE. The hit did not reach Rishi.'}else{bossState.player.hp--;bossMessage.textContent='HIT. HP -1. Read the pattern, then move.'}state.hp=bossState.player.hp;state.armour=bossState.player.armour;updateStats();updateBossHud();if(bossState.player.hp<=0)bossDefeat()}});
- bossState.playerShots.forEach(s=>{if(Math.hypot(s.x-b.x,s.y-b.y)<b.r+5){s.x=9999;b.hp--;playCue('bossHit',.85);bossMessage.textContent=b.phase===1?'Good hit. The pattern is opening.':b.phase===2?'The boss is changing phases. Keep moving.':'Final phase. Do not stop.';
+ bossState.playerShots.forEach(s=>{if(Math.hypot(s.x-b.x,s.y-b.y)<b.r+5){s.x=9999;b.hp--;playCue('bossHit',.85);bossMessage.textContent=b.phase===1?'Good hit. Pattern samajh aa raha hai.':b.phase===2?'Boss phase change. Keep moving.':'Final phase. Ab rukna mana hai.';
  if(b.hp>0&&Math.random()<0.2){
   const available=[];
   if(bossState.player.hp<5)available.push("hp");
@@ -533,7 +533,7 @@ function updateBoss(dt){
   if(state.mobility<2.5)available.push("mobility");
   const type=available[Math.floor(Math.random()*available.length)];
   bossState.buffs.push({x:b.x,y:b.y,r:13,type,pulse:Math.random()*Math.PI*2,expiresAt:performance.now()+4200,active:true});playCue('buffSpawn',.8);
-  bossMessage.textContent="AN OPPORTUNITY APPEARED. Reach it before it fades.";emitNarrative('boss.opportunity');
+  bossMessage.textContent="AN OPPORTUNITY APPEARED. Chance saamne hai. Miss mat karna.";emitNarrative('boss.opportunity');
  }
  updateBossHud();if(b.hp<=0)winBoss()}});
  drawBoss();
@@ -564,9 +564,9 @@ function drawBoss(){
  bctx.fillStyle='#71809e';bctx.font='10px monospace';bctx.textAlign='left';bctx.fillText('PHASE '+b.phase,14,20);
 }
 function updateBossHud(){bossBar.style.width=Math.max(0,bossState.boss.hp/bossState.boss.maxHp*100)+'%';bossHpText.textContent=Math.max(0,bossState.boss.hp)+' / '+bossState.boss.maxHp;bossPlayerHp.textContent='HP '+('♥'.repeat(Math.max(0,bossState.player.hp))+'♡'.repeat(Math.max(0,5-bossState.player.hp)))+' · ARMOUR '+bossState.player.armour}
-function bossDefeat(){bossState.active=false;playCue('setback',.8);state.hp=bossState.startingHp;state.armour=bossState.startingArmour;state.bossDeaths++;state.bravery++;state.mobility=Math.min(2.5,state.mobility+.15);updateStats();bossMessage.textContent=['DOWN, NOT OUT. You learned the attack timing.','THE BOSS WON THAT ROUND. Now you know what to dodge.','DEFEATED. Good. Knowledge acquired.','ONE MORE ROUND. The opening is there.'][state.bossDeaths%4];setStory("CHAPTER IV","THE SETBACK","The boss wins this round. Rishi is still here.","This is the part the story needed. A setback is not a verdict. Every attempt teaches a little more, and the next attempt starts with everything you learned.");
+function bossDefeat(){bossState.active=false;playCue('setback',.8);state.hp=bossState.startingHp;state.armour=bossState.startingArmour;state.bossDeaths++;state.bravery++;state.mobility=Math.min(2.5,state.mobility+.15);updateStats();bossMessage.textContent=['DOWN, NOT OUT. You learned the attack timing.','THE BOSS WON THAT ROUND. Now you know what to dodge.','DEFEATED. Good. Knowledge acquired.','ONE MORE ROUND. The opening is there.'][state.bossDeaths%4];setStory("CHAPTER IV","THE SETBACK","The boss wins this round. Rishi is still here. Round lost. Story over nahi hui.","This is the part the story needed. A setback is not a verdict. Har attempt kuch sikhata hai, aur next run zero se nahi, experience se start hota hai.");
  emitNarrative('boss.setback');setTimeout(()=>initBoss(false),500)}
-function winBoss(){bossState.active=false;playCue('victory');bossMessage.textContent="BOSS DEFEATED. QUEST COMPLETE.";setStory("CHAPTER V","THE NEXT CHAPTER","The fight is over. Rishi's story is not.","The maze, the memories and the boss were only a metaphor for one thing: the road ahead will contain hard chapters too. Keep moving through them.");
+function winBoss(){bossState.active=false;playCue('victory');bossMessage.textContent="BOSS DEFEATED. QUEST COMPLETE. Next chapter unlocked.";setStory("CHAPTER V","THE NEXT CHAPTER","The fight is over. Rishi's story is not.","The maze, the memories and the boss were only a metaphor for one thing: the road ahead will contain hard chapters too. Life ka difficulty setting kabhi permanently easy nahi hota. Keep moving through it anyway.");
  emitNarrative('boss.victory',true);ending.hidden=false;bossRechallenge.hidden=false;secretReveal.hidden=state.collected.size>0&&secretRoutes.some(route=>route.sequence.every((value,i)=>state.claimOrder[i]===value));runSummary.textContent="MEMORIES 7/7 · FINAL HP "+state.hp+" · FINAL ARMOUR "+state.armour+" · BRAVERY "+state.bravery+" · MOBILITY "+state.mobility.toFixed(1)+"× · MAZE DEATHS "+state.deaths+" · BOSS ATTEMPTS "+(state.bossDeaths+1)+" · REMATCHES "+bossState.rechallengeCount;unlockRoadGame();ending.scrollIntoView({behavior:"smooth",block:"center"});}
 function bossFrame(t){const dt=Math.min(.035,(t-bossState.last)/1000||0);bossState.last=t;if(state.started&&!state.paused&&bossState.active)updateBoss(dt);requestAnimationFrame(bossFrame)}
 requestAnimationFrame(bossFrame);
@@ -651,7 +651,7 @@ function roadUnlock(){
 }
 function unlockRoadGame(){
  roadUnlock();
- roadSetOverlay("CHAPTER VI // THE LONG ROAD","THE NEXT SUCCESS IS FARTHER.","The road remembers where you stopped. The next checkpoint will demand more distance than the last.","▶ START THE ROAD");
+ roadSetOverlay("CHAPTER VI // THE LONG ROAD","THE NEXT SUCCESS IS FARTHER.","The road remembers where you stopped. The next checkpoint will demand more distance than the last. Easy mode was never promised.","▶ START THE ROAD");
  roadGame.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion:reduce)").matches?"auto":"smooth",block:"center"});
 }
 function roadResetSegment(){
@@ -670,7 +670,7 @@ function roadStart(){
  roadState.last=performance.now();
  roadOverlay.hidden=true;
  roadGame.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion:reduce)").matches?"auto":"smooth",block:"center"});
- roadLog.textContent=roadState.checkpoint===0?"The first checkpoint is close. The next one will not be.":"Checkpoint "+roadState.checkpoint+" restored. The road ahead is yours again.";
+ roadLog.textContent=roadState.checkpoint===0?"The first checkpoint is close. The next one will not be. First win easy thi. Ab asli road shuru.":"Checkpoint "+roadState.checkpoint+" restored. The road ahead is yours again.";
  roadStage.focus();
 }
 function roadAdvanceCheckpoint(){
@@ -712,7 +712,7 @@ function roadCrash(){
  }
  roadSave();
  roadUpdateHud();
- playCue('setback',.75);roadSetOverlay("SETBACK","GET BACK ON THE ROAD.","Your checkpoint held. The road does not care how many times you fall, only what you change before the next run.","▶ KEEP GOING");
+ playCue('setback',.75);roadSetOverlay("SETBACK","GET BACK ON THE ROAD.","Your checkpoint held. The road does not care how many times you fall, only what you change before the next run. Girna allowed hai. Same mistake ko subscription banana allowed nahi.","▶ KEEP GOING");
 }
 function roadSpawn(){
  const lane=Math.floor(Math.random()*3);
@@ -868,7 +868,7 @@ rechallengeBoss.addEventListener("click",()=>{
  bossRechallenge.hidden=true;
  ending.hidden=true;
  missionState.textContent="REMATCH";
- setStory("CHAPTER IV","THE REMATCH","Same arena. New difficulty.","The character resets to the beginning. The obstacle does not. The only thing Rishi gets to carry forward is what he learned.");
+ setStory("CHAPTER IV","THE REMATCH","Same arena. New difficulty. Character reset. Lessons retained.","The character resets to the beginning. The obstacle does not. The only thing Rishi gets to carry forward is what he learned. Baaki sab fresh run.");
  bossShell.hidden=false;
  bossShell.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion:reduce)").matches?"auto":"smooth",block:"center"});
  initBoss();
