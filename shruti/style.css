@@ -203,7 +203,9 @@ footer{padding:24px 0 30px;color:#a08e98;font-size:.72rem;display:flex;justify-c
 .small-thing span{font-size:.58rem;letter-spacing:.14em;color:#b08a96}
 .small-thing strong{font-size:.92rem;letter-spacing:.04em}
 .small-thing small{font:italic .78rem/1.6 Georgia,serif;color:var(--muted);max-width:220px}
+.small-detail{display:block;max-height:0;overflow:hidden;opacity:0;color:var(--plum);font-size:.7rem;line-height:1.6;margin-top:0;transition:max-height .25s ease,opacity .2s ease,margin-top .2s ease}
 .small-thing.active small{color:var(--plum)}
+.small-thing.active .small-detail{max-height:80px;opacity:1;margin-top:10px}
 .promise-status{display:flex;gap:12px;flex-wrap:wrap;margin:0 0 20px}
 .promise-status span{
   display:inline-block;
