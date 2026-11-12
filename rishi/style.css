@@ -66,3 +66,65 @@
 .road-game:fullscreen .game-play-row{width:min(1020px,100%)}
 .road-game:fullscreen .road-stage{width:100%}
 .game-shell:fullscreen .modal{position:fixed}
+
+.player-history{
+  width:min(760px,100%);
+  margin:28px auto 0;
+  border:1px solid #2c3b5a;
+  background:#0a111f;
+  padding:24px;
+  text-align:left;
+}
+.player-history h3{
+  margin:8px 0 18px;
+  font-size:1.05rem;
+  letter-spacing:-.03em;
+}
+.history-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:8px;
+}
+.history-grid div{
+  border:1px solid #25324c;
+  background:#080f1b;
+  padding:13px;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+.history-grid span{
+  color:var(--cyan);
+  font-size:.46rem;
+  letter-spacing:.12em;
+}
+.history-grid strong{
+  color:var(--gold);
+  font-size:1rem;
+}
+.history-grid small{
+  color:#667592;
+  font-size:.5rem;
+  line-height:1.5;
+}
+.history-line{
+  margin:18px 0 0!important;
+  max-width:none!important;
+  color:#8491aa!important;
+  font-size:.62rem!important;
+  line-height:1.8!important;
+}
+.road-personal-note{
+  color:#8491aa!important;
+  font-size:.58rem!important;
+  font-style:italic;
+  border-top:1px solid #25324c;
+  padding-top:11px;
+  margin-top:11px!important;
+}
+@media(max-width:760px){
+  .history-grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:480px){
+  .history-grid{grid-template-columns:1fr}
+}
