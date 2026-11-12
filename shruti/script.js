@@ -42,6 +42,7 @@ document.querySelectorAll('[data-character]').forEach(card => {
 });
 
 document.querySelectorAll('[data-memory]').forEach(card => {
+  card.setAttribute('aria-expanded', 'false');
   card.addEventListener('click', () => {
     card.classList.toggle('expanded');
     card.setAttribute('aria-expanded', card.classList.contains('expanded'));
@@ -49,6 +50,7 @@ document.querySelectorAll('[data-memory]').forEach(card => {
 });
 
 document.querySelectorAll('[data-evidence]').forEach(card => {
+  card.setAttribute('aria-expanded', 'false');
   card.addEventListener('click', () => {
     card.classList.toggle('expanded');
     card.setAttribute('aria-expanded', card.classList.contains('expanded'));
@@ -56,8 +58,10 @@ document.querySelectorAll('[data-evidence]').forEach(card => {
 });
 
 document.querySelectorAll('.small-thing').forEach(card => {
+  card.setAttribute('aria-expanded', 'false');
   card.addEventListener('click', () => {
     card.classList.toggle('active');
+    card.setAttribute('aria-expanded', card.classList.contains('active'));
   });
 });
 
