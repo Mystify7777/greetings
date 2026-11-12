@@ -567,7 +567,17 @@ function updateBossHud(){bossBar.style.width=Math.max(0,bossState.boss.hp/bossSt
 function bossDefeat(){bossState.active=false;playCue('setback',.8);state.hp=bossState.startingHp;state.armour=bossState.startingArmour;state.bossDeaths++;state.bravery++;state.mobility=Math.min(2.5,state.mobility+.15);updateStats();bossMessage.textContent=['DOWN, NOT OUT. You learned the attack timing.','THE BOSS WON THAT ROUND. Now you know what to dodge.','DEFEATED. Good. Knowledge acquired.','ONE MORE ROUND. The opening is there.'][state.bossDeaths%4];setStory("CHAPTER IV","THE SETBACK","The boss wins this round. Rishi is still here. Round lost. Story over nahi hui.","This is the part the story needed. A setback is not a verdict. Har attempt kuch sikhata hai, aur next run zero se nahi, experience se start hota hai.");
  emitNarrative('boss.setback');setTimeout(()=>initBoss(false),500)}
 function winBoss(){bossState.active=false;playCue('victory');bossMessage.textContent="BOSS DEFEATED. QUEST COMPLETE. Next chapter unlocked.";setStory("CHAPTER V","THE NEXT CHAPTER","The fight is over. Rishi's story is not.","The maze, the memories and the boss were only a metaphor for one thing: the road ahead will contain hard chapters too. Life ka difficulty setting kabhi permanently easy nahi hota. Keep moving through it anyway.");
- emitNarrative('boss.victory',true);ending.hidden=false;bossRechallenge.hidden=false;secretReveal.hidden=state.collected.size>0&&secretRoutes.some(route=>route.sequence.every((value,i)=>state.claimOrder[i]===value));runSummary.textContent="MEMORIES 7/7 · FINAL HP "+state.hp+" · FINAL ARMOUR "+state.armour+" · BRAVERY "+state.bravery+" · MOBILITY "+state.mobility.toFixed(1)+"× · MAZE DEATHS "+state.deaths+" · BOSS ATTEMPTS "+(state.bossDeaths+1)+" · REMATCHES "+bossState.rechallengeCount;unlockRoadGame();ending.scrollIntoView({behavior:"smooth",block:"center"});}
+ emitNarrative('boss.victory',true);ending.hidden=false;bossRechallenge.hidden=false;secretReveal.hidden=state.collected.size>0&&secretRoutes.some(route=>route.sequence.every((value,i)=>state.claimOrder[i]===value));runSummary.textContent="MEMORIES 7/7 · FINAL HP "+state.hp+" · FINAL ARMOUR "+state.armour+" · BRAVERY "+state.bravery+" · MOBILITY "+state.mobility.toFixed(1)+"× · MAZE DEATHS "+state.deaths+" · BOSS ATTEMPTS "+(state.bossDeaths+1)+" · REMATCHES "+bossState.rechallengeCount;
+ document.querySelector('#historyMemories').textContent=state.memory+' / 7';
+ document.querySelector('#historyBravery').textContent=String(state.bravery);
+ document.querySelector('#historyMobility').textContent=state.mobility.toFixed(1)+'×';
+ document.querySelector('#historyDeaths').textContent=String(state.deaths);
+ const historyLine=state.deaths===0
+   ? 'You made it through without falling once. Clean run. Suspiciously competent.'
+   : state.deaths===1
+     ? 'You fell once, learned the route, and kept going. That is enough evidence.'
+     : 'You fell '+state.deaths+' times. The archive kept the attempts because the point was never perfection.';
+ document.querySelector('#historyLine').textContent=historyLine;unlockRoadGame();ending.scrollIntoView({behavior:"smooth",block:"center"});}
 function bossFrame(t){const dt=Math.min(.035,(t-bossState.last)/1000||0);bossState.last=t;if(state.started&&!state.paused&&bossState.active)updateBoss(dt);requestAnimationFrame(bossFrame)}
 requestAnimationFrame(bossFrame);
 
@@ -684,6 +694,16 @@ function roadAdvanceCheckpoint(){
  roadState.distance=roadCheckpointDistances[next];
  roadSave();
  roadLog.textContent="CHECKPOINT "+String(next).padStart(2,"0")+" CLEARED AT "+roadState.checkpointScore+" POINTS. The next stretch is longer.";
+ const personalNote=document.querySelector('#roadPersonalNote');
+ if(personalNote){
+   const notes=[
+     'First checkpoint. The road is still introducing itself.',
+     'You are farther than the version of you who started this run.',
+     'The finish line moved. You moved with it.',
+     'At this point, the distance is almost beside the point.'
+   ];
+   personalNote.textContent=notes[Math.min(roadState.checkpoint-1,notes.length-1)];
+ }
  emitNarrative('road.checkpoint',true);
 }
 function roadCrash(){
