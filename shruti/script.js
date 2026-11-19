@@ -28,9 +28,9 @@ closeArchive?.addEventListener('click', () => {
 });
 
 const characterNotes = {
-  gilahri: 'Pyaar Gilahri mode: soft, sentimental, aur thodi si cute. ♡',
-  naraz: 'Naraz Pari mode: “kuch nahi hua” bolke 47 alag reasons se naraz.',
-  sookhi: 'Sookhi Pari mode: teasing allowed. Complaints department permanently closed.'
+  gilahri: 'Pyaar Gilahri: jab mood soft ho aur thodi si extra pyaari banne ka mann kare. ♡',
+  naraz: 'Naraz Pari: “kuch nahi hua” bolne ke baad bhi sab samajh aa jaata hai.',
+  sookhi: 'Sookhi Pari: thodi teasing, thoda attitude, aur phir sab normal.'
 };
 
 document.querySelectorAll('[data-character]').forEach(card => {
