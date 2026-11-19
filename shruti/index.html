@@ -109,12 +109,20 @@
     <div class="case-stamp">CLASSIFIED<br>VERY DRAMATIC</div>
   </div>
   <div class="evidence-grid">
-    <button class="evidence evidence-large" data-evidence="a" type="button">
+    <article class="evidence evidence-large evidence-video" data-evidence="a">
       <span class="evidence-tag">EXHIBIT A</span>
-      <p>“Kuch nahi hua.”</p>
-      <small>Fact check: kuch toh hua tha.</small>
-      <span class="evidence-detail">Translation: kuch hua tha. Bas maanna nahi hai.</span>
-    </button>
+      <div class="evidence-video-frame">
+        <video controls playsinline preload="metadata" aria-label="Kuch nahi hua video">
+          <source src="../apps/shruti/assets/kuchh%20nhi%20hua.mp4" type="video/mp4">
+          Your browser does not support HTML video.
+        </video>
+      </div>
+      <div class="evidence-copy">
+        <p>“Kuch nahi hua.”</p>
+        <small>Fact check: kuch toh hua tha.</small>
+        <span class="evidence-detail">Translation: kuch hua tha. Bas maanna nahi hai.</span>
+      </div>
+    </article>
     <button class="evidence" data-evidence="b" type="button">
       <span class="evidence-tag">EXHIBIT B</span>
       <p>Selective interaction mode: ON.</p>
