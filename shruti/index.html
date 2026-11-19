@@ -109,12 +109,20 @@
     <div class="case-stamp">CLASSIFIED<br>VERY DRAMATIC</div>
   </div>
   <div class="evidence-grid">
-    <button class="evidence evidence-large" data-evidence="a" type="button">
+    <article class="evidence evidence-large evidence-video" data-evidence="a">
       <span class="evidence-tag">EXHIBIT A</span>
-      <p>“Kuch nahi hua.”</p>
-      <small>Fact check: kuch toh hua tha.</small>
-      <span class="evidence-detail">Translation: kuch hua tha. Bas maanna nahi hai.</span>
-    </button>
+      <div class="evidence-video-frame">
+        <video controls playsinline preload="metadata" aria-label="Kuch nahi hua video">
+          <source src="../apps/shruti/assets/kuchh%20nhi%20hua.mp4" type="video/mp4">
+          Your browser does not support HTML video.
+        </video>
+      </div>
+      <div class="evidence-copy">
+        <p>“Kuch nahi hua.”</p>
+        <small>Fact check: kuch toh hua tha.</small>
+        <span class="evidence-detail">Translation: kuch hua tha. Bas maanna nahi hai.</span>
+      </div>
+    </article>
     <button class="evidence" data-evidence="b" type="button">
       <span class="evidence-tag">EXHIBIT B</span>
       <p>Selective interaction mode: ON.</p>
@@ -144,18 +152,21 @@
   </div>
   <div class="name-cards">
     <button class="name-card" data-character="gilahri" type="button">
+      <img class="character-art" src="../apps/shruti/assets/pyaar-gilahri.webp" alt="Pyaar Gilahri illustration" loading="lazy">
       <span class="name-symbol">♡</span>
       <span class="name">Pyaar Gilahri</span>
       <span class="name-desc">Jab sab theek ho.<br>Sabse pyara version.</span>
       <span class="character-detail"><strong>Mood</strong> soft · sentimental<br><strong>Known for</strong> pyaari si bakwaas<br><strong>Weakness</strong> compliments</span>
     </button>
     <button class="name-card" data-character="naraz" type="button">
+      <img class="character-art" src="../apps/shruti/assets/naraz-pari.webp" alt="Naraz Pari illustration" loading="lazy">
       <span class="name-symbol">☾</span>
       <span class="name">Naraz Pari</span>
       <span class="name-desc">Jab duniya ki saari<br>galtiyan tumhari ho.</span>
       <span class="character-detail"><strong>Mood</strong> thoda questionable<br><strong>Known for</strong> “kuch nahi hua”<br><strong>Weakness</strong> abhi investigation mein</span>
     </button>
     <button class="name-card" data-character="sookhi" type="button">
+      <img class="character-art" src="../apps/shruti/assets/sookhi-pari.webp" alt="Sookhi Pari illustration" loading="lazy">
       <span class="name-symbol">✿</span>
       <span class="name">Sookhi Pari</span>
       <span class="name-desc">Teasing ke liye.<br>Obviously.</span>
