@@ -65,6 +65,7 @@ em{font-family:Georgia,serif;font-weight:400;color:var(--pink)}
 .names{background:#fffafc}.names-intro{display:flex;justify-content:space-between;align-items:end;margin-bottom:35px}
 .name-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:15px}
 .name-card{border:1px solid var(--line);background:#fff;padding:30px;text-align:left;min-height:220px;cursor:pointer;color:var(--ink);font:inherit;transition:transform .18s,box-shadow .18s}
+.character-art{display:block;width:100%;height:150px;object-fit:cover;margin:-8px 0 24px;border:1px solid #ead9dc;filter:saturate(.92);background:#fff4f6}.name-card .character-art{transition:transform .25s ease,filter .25s ease}.name-card:hover .character-art,.name-card.active .character-art{transform:scale(1.015);filter:saturate(1)}
 .name-card:hover,.name-card.active{transform:translateY(-5px);box-shadow:0 18px 35px #7a435110}
 .name-card.active{border-color:#d58ca0;background:#fff2f5}
 .name-symbol{font-size:1.8rem;color:var(--pink);display:block;margin-bottom:35px}
