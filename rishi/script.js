@@ -747,6 +747,18 @@ function roadLoad(){
   return true;
  }catch{return false}
 }
+const roadMessageHistory=[];
+const ROAD_MESSAGE_LIMIT=8;
+function roadLogMessage(message){
+ roadMessageHistory.unshift({message,time:Date.now()});
+ if(roadMessageHistory.length>ROAD_MESSAGE_LIMIT)roadMessageHistory.pop();
+ const history=document.querySelector('#roadLogHistory');
+ const count=document.querySelector('#roadLogCount');
+ if(history){
+   history.innerHTML=roadMessageHistory.map((entry,index)=>'<p class="road-log-entry'+(index===0?' is-latest':'')+'">'+entry.message+'</p>').join('');
+ }
+ if(count)count.textContent=roadMessageHistory.length+' MESSAGE'+(roadMessageHistory.length===1?'':'S');
+}
 function roadUpdateHud(){
  const cp=roadState.checkpoint===0?"START":"CHECKPOINT "+String(roadState.checkpoint).padStart(2,"0");
  roadCheckpoint.textContent=cp;
@@ -786,7 +798,9 @@ function roadStart(){
  roadState.last=performance.now();
  roadOverlay.hidden=true;
  roadGame.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion:reduce)").matches?"auto":"smooth",block:"center"});
- roadLog.textContent=roadState.checkpoint===0?"The first checkpoint is close. The next one will not be. First win easy thi. Ab asli road shuru.":"Checkpoint "+roadState.checkpoint+" restored. The road ahead is yours again.";
+ const startMessage=roadState.checkpoint===0?"The first checkpoint is close. The next one will not be. First win easy thi. Ab asli road shuru.":"Checkpoint "+roadState.checkpoint+" restored. The road ahead is yours again.";
+ roadLog.textContent=startMessage;
+ roadLogMessage(startMessage);
  roadStage.focus();
 }
 function roadAdvanceCheckpoint(){
@@ -799,17 +813,19 @@ function roadAdvanceCheckpoint(){
  roadState.checkpointAttempts[next]=0;
  roadState.distance=roadCheckpointDistances[next];
  roadSave();
- roadLog.textContent="CHECKPOINT "+String(next).padStart(2,"0")+" CLEARED AT "+roadState.checkpointScore+" POINTS. The next stretch is longer.";
- const personalNote=document.querySelector('#roadPersonalNote');
- if(personalNote){
-   const notes=[
-     'First checkpoint. The road is still introducing itself.',
-     'You are farther than the version of you who started this run.',
-     'The finish line moved. You moved with it.',
-     'At this point, the distance is almost beside the point.'
-   ];
-   personalNote.textContent=notes[Math.min(roadState.checkpoint-1,notes.length-1)];
- }
+ const checkpointMessages=[
+ 'Checkpoint cleared. You are farther than the version of you who started this run.',
+ 'Checkpoint cleared. The road got longer, but you got better at reading it.',
+ 'You made it this far. Keep going. The next stretch is yours to figure out.',
+ 'Another checkpoint down. Progress does not need to look dramatic to count.',
+ 'The finish line moved again. You moved with it.',
+ 'You are still moving. That is the important part.'
+];
+const message=checkpointMessages[(roadState.checkpoint-1)%checkpointMessages.length];
+roadLog.textContent=message;
+roadLogMessage('CHECKPOINT '+String(next).padStart(2,'0')+' CLEARED AT '+roadState.checkpointScore+' POINTS. '+message);
+const personalNote=document.querySelector('#roadPersonalNote');
+if(personalNote)personalNote.textContent=message;
  emitNarrative('road.checkpoint',true);
 }
 function roadCrash(){
@@ -828,13 +844,25 @@ function roadCrash(){
   roadState.checkpointScore=roadState.checkpointScores[fallback]||0;
   roadState.distance=roadCheckpointDistances[fallback];
   roadState.score=roadState.checkpointScore;
-  roadLog.textContent="THREE FAILURES ON THE SAME STRETCH. You fell back to checkpoint "+String(fallback).padStart(2,"0")+". The road ahead has been reset.";
- emitNarrative('road.fallback',true);
+  const fallbackMessage='Three failures on the same stretch. You fell back to checkpoint '+String(fallback).padStart(2,'0')+', but the checkpoint is still yours. Change the approach and go again.';
+roadLog.textContent=fallbackMessage;
+roadLogMessage(fallbackMessage);
+emitNarrative('road.fallback',true);
  }else{
   roadState.distance=roadCheckpointDistances[current];
   roadState.score=roadState.checkpointScore;
-  roadLog.textContent="CRASH. Back to checkpoint "+(current===0?"START":String(current).padStart(2,"0"))+". Change something before the next attempt.";
- emitNarrative(attempts===1?'road.crash.first':'road.crash.repeat');
+  const crashMessages=[
+ 'You crashed. Reset, change your line, and try again. You already know more than you did before.',
+ 'Bad turn. Not a bad run. Change one thing and take another shot.',
+ 'The road got you this time. It does not get to decide the next attempt.',
+ 'You fell back a little. That is not the same as going nowhere.',
+ 'Try the stretch differently. Progress is allowed to look messy.',
+ 'The checkpoint is still yours. Learn the pattern and go again.'
+];
+const crashMessage=crashMessages[(attempts-1)%crashMessages.length];
+roadLog.textContent=crashMessage;
+roadLogMessage('CRASH · '+crashMessage);
+emitNarrative(attempts===1?'road.crash.first':'road.crash.repeat');
  }
  roadSave();
  roadUpdateHud();
@@ -879,6 +907,7 @@ function roadUpdate(dt){
     o.y=999;playCue('opportunity',.8);
     roadState.score+=150;
     roadLog.textContent="OPPORTUNITY TAKEN. +150. Keep your eyes open.";
+    roadLogMessage('OPPORTUNITY TAKEN · +150. Keep your eyes open.');
     emitNarrative('road.opportunity');
    }else{
     roadCrash();
@@ -952,6 +981,8 @@ function roadRestart(){
  emitNarrative('road.restart',true);
  roadSetOverlay("FRESH START","THE ROAD STARTS OVER.","Checkpoint and current score cleared. Your best score stays on the board.","▶ START THE ROAD");
  roadLog.textContent="New run ready. Every checkpoint is yours to earn again.";
+ roadMessageHistory.length=0;
+ roadLogMessage("New run ready. Every checkpoint is yours to earn again.");
  roadGame.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion:reduce)").matches?"auto":"smooth",block:"center"});
 }
 
