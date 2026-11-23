@@ -128,3 +128,29 @@
 @media(max-width:480px){
   .history-grid{grid-template-columns:1fr}
 }
+
+
+/* Chapter VII: the whole story */
+.chapter-summary{position:relative;min-height:100vh;padding:110px 0 130px;overflow:hidden;background:#090d18;color:#eef4ff}
+.chapter-summary::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 70% 40%,#243d5b55 0,transparent 42%),linear-gradient(120deg,#090d18 0%,#0c1220 55%,#111a29 100%);pointer-events:none}
+.chapter-summary-inner{position:relative;z-index:2;width:min(100% - 48px,1100px);margin:auto}
+.chapter-summary .eyebrow{color:#70e6d6}
+.chapter-summary-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(360px,.9fr);gap:70px;align-items:center;min-height:700px}
+.chapter-summary-copy{position:relative;z-index:3;max-width:650px}
+.chapter-summary-kicker{font-size:.65rem;letter-spacing:.16em;color:#ffd866;font-weight:800;margin:0 0 20px}
+.chapter-summary h2{font-size:clamp(4.5rem,10vw,8.5rem);line-height:.78;letter-spacing:-.09em;margin:0 0 35px;color:#f3f7ff}
+.chapter-summary h2 span{color:#70e6d6}
+.typed-message{min-height:310px;max-width:620px;font-family:Georgia,serif;font-size:1.02rem;line-height:1.9;color:#d6deec;white-space:pre-line}
+.typed-message::after{content:"";display:inline-block;width:2px;height:1em;background:#70e6d6;margin-left:4px;vertical-align:-.12em;animation:chapterCaret .8s steps(1) infinite}
+.typed-message.done::after{animation:none;opacity:.35}
+.typed-message-fallback{font-family:Georgia,serif;font-size:1.02rem;line-height:1.9;color:#d6deec;max-width:620px}
+.chapter-summary-visuals{position:relative;width:min(100%,520px);aspect-ratio:4/5;justify-self:end;border:1px solid #70e6d633;overflow:hidden;background:#101827;box-shadow:0 30px 80px #00000055}
+.chapter-summary-image{position:absolute;inset:0;opacity:0;transition:opacity 1.2s ease}
+.chapter-summary-image.is-active{opacity:1}
+.chapter-summary-image img{width:100%;height:100%;display:block;object-fit:cover;filter:saturate(.82) contrast(.98)}
+.chapter-summary-image-scrim{position:absolute;inset:0;background:linear-gradient(90deg,#090d18bb 0%,transparent 42%,#090d1840 100%),linear-gradient(0deg,#090d18aa 0%,transparent 45%,#090d1833 100%);pointer-events:none}
+.chapter-summary-end{border-top:1px solid #70e6d633;margin-top:35px;padding-top:25px;display:flex;justify-content:space-between;gap:25px;align-items:baseline;color:#9da9ba;font-size:.72rem;letter-spacing:.06em}
+.chapter-summary-end strong{color:#ffd866;font-size:.75rem;letter-spacing:.14em}
+@keyframes chapterCaret{50%{opacity:0}}
+@media(max-width:800px){.chapter-summary{padding:85px 0 100px}.chapter-summary-inner{width:min(100% - 30px,1100px)}.chapter-summary-layout{grid-template-columns:1fr;gap:40px;min-height:0}.chapter-summary-copy{max-width:none}.chapter-summary h2{font-size:clamp(4rem,18vw,7rem)}.typed-message{min-height:0;font-size:.96rem;line-height:1.85}.chapter-summary-visuals{width:100%;max-width:430px;justify-self:center;aspect-ratio:4/5;order:-1}.chapter-summary-end{display:block}.chapter-summary-end span{display:block;margin-top:12px;line-height:1.6}}
+@media(prefers-reduced-motion:reduce){.chapter-summary-image{transition:none}.typed-message::after{animation:none}}
