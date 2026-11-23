@@ -154,3 +154,9 @@
 @keyframes chapterCaret{50%{opacity:0}}
 @media(max-width:800px){.chapter-summary{padding:85px 0 100px}.chapter-summary-inner{width:min(100% - 30px,1100px)}.chapter-summary-layout{grid-template-columns:1fr;gap:40px;min-height:0}.chapter-summary-copy{max-width:none}.chapter-summary h2{font-size:clamp(4rem,18vw,7rem)}.typed-message{min-height:0;font-size:.96rem;line-height:1.85}.chapter-summary-visuals{width:100%;max-width:430px;justify-self:center;aspect-ratio:4/5;order:-1}.chapter-summary-end{display:block}.chapter-summary-end span{display:block;margin-top:12px;line-height:1.6}}
 @media(prefers-reduced-motion:reduce){.chapter-summary-image{transition:none}.typed-message::after{animation:none}}
+
+.reward-media img,.reward-media video{display:block;width:100%;height:100%;max-width:100%;object-fit:contain}
+.reward-media video{background:#050912}
+.reward-media{overflow:hidden}
+.reward-message{border:1px solid #2c3b5a;background:#080f1b;padding:20px 22px;color:#d6deec;font-family:Georgia,serif;font-size:.78rem;line-height:1.85;white-space:pre-line;margin:20px 0}
+.reward-relic{border-style:solid;border-color:#ffd866;background:radial-gradient(circle at center,#201d11 0%,#09101d 68%)}
