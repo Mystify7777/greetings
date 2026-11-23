@@ -160,13 +160,13 @@ const gates=[
 ];
 
 const relics=[
- {x:7,y:3,title:'First Memory',type:'PHOTO',icon:'✦',text:'The first little piece of the birthday archive. A real photo from the story, finally recovered.',reward:'Recovered memory: +1 armour.'},
- {x:5,y:7,title:'A Hidden Note',type:'MESSAGE',icon:'✉',text:'Something small, personal and probably embarrassing in exactly the right way.',reward:'Recovered memory: +1 bravery and +1 HP (up to 5).'},
- {x:7,y:9,title:'The Moving Memory',type:'VIDEO',icon:'▶',text:'A moving memory from the archive. Some moments make more sense when they move.',reward:'Recovered memory: +1 mobility.'},
- {x:13,y:3,title:'Player Memory',type:'GAME',icon:'◆',text:'A memory from the years of games, volleyball, anime, chaos and questionable victory celebrations.',reward:'Recovered memory: +1 armour.'},
- {x:16,y:3,title:'The Ordinary Day',type:'MEMORY',icon:'◇',text:'The ordinary moments are usually the ones that become the good stories. College days, games, random conversations, and the people who somehow became part of the routine.',reward:'Recovered memory: +1 bravery and +1 HP (up to 5).'},
+ {x:7,y:3,title:'Family Comes First',type:'PHOTO',icon:'✦',text:'The first little piece of the birthday archive. A real photo from the story, finally recovered.',reward:'Recovered memory: +1 armour.'},
+ {x:5,y:7,title:'Yet Again',type:'MESSAGE',icon:'✉',text:'Something small, personal and probably embarrassing in exactly the right way.',reward:'Recovered memory: +1 bravery and +1 HP (up to 5).'},
+ {x:7,y:9,title:'A Trip Worth Remembering',type:'VIDEO',icon:'▶',text:'A moving memory from the archive. Some moments make more sense when they move.',reward:'Recovered memory: +1 mobility.'},
+ {x:13,y:3,title:'The Boy Who Became a Man',type:'GAME',icon:'◆',text:'A memory from the years of games, volleyball, anime, chaos and questionable victory celebrations.',reward:'Recovered memory: +1 armour.'},
+ {x:16,y:3,title:'Something Cherishing',type:'MEMORY',icon:'◇',text:'The ordinary moments are usually the ones that become the good stories. College days, games, random conversations, and the people who somehow became part of the routine.',reward:'Recovered memory: +1 bravery and +1 HP (up to 5).'},
  {x:10,y:13,title:'Birthday Letter',type:'LETTER',icon:'✎',text:'The proper birthday message is waiting inside. Read it when you have recovered this letter. Pushpa probably has evidence that should not be archived without supervision.',reward:'Recovered memory: +1 armour, +1 bravery and +1 HP (up to 5).'},
- {x:22,y:15,title:'The Final Relic',type:'LEGEND',icon:'★',text:'The strongest memory is saved for last. Recovering it opens the final arena.',reward:'Final relic recovered: the Birthday Boss is awake.'}
+ {x:22,y:15,title:'Happy Birthday',type:'LEGEND',icon:'★',text:'The strongest memory is saved for last. Recovering it opens the final arena.',reward:'Final relic recovered: the Birthday Boss is awake.'}
 ];
 
 const state={
@@ -470,12 +470,7 @@ const preventGameContextMenu=e=>e.preventDefault();
 
 startButton.addEventListener('click',()=>{
  playCue('confirm');
- gameShell.hidden=false;state.started=true;missionState.textContent='ACTIVE';stageHint.textContent='FOCUS ACTIVE · WASD / ARROWS TO MOVE';
- gameShell.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth',block:'center'});
- setTimeout(()=>gameStage.focus(),matchMedia('(prefers-reduced-motion:reduce)').matches?0:180);
- setLog('CHAPTER III BEGINS. The next part cannot be read from a screen.');
- setStory('CHAPTER III','THE MAZE','Now you have to live the difficult chapter.','The next part cannot be read from a screen. Rishi has to walk it. Learn the guardians. Find the memories. Get lost. Try again.');
- emitNarrative('maze.start',true);
+ document.querySelector('.story-prologue')?.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth',block:'center'});
 });
 
 function updatePlayer(dt){
@@ -628,10 +623,26 @@ function winBoss(){bossState.active=false;playCue('victory');bossMessage.textCon
    : state.deaths===1
      ? 'You fell once, learned the route, and kept going. That is enough evidence.'
      : 'You fell '+state.deaths+' times. The archive kept the attempts because the point was never perfection.';
- document.querySelector('#historyLine').textContent=historyLine;unlockRoadGame();ending.scrollIntoView({behavior:"smooth",block:"center"});}
+ document.querySelector('#historyLine').textContent=historyLine;
+ unlockRoadGame();
+ const chapter7=document.querySelector('#chapterSummary');
+ const chapter7Unlock=document.querySelector('#chapter7Unlock');
+ if(chapter7)chapter7.hidden=false;
+ if(chapter7Unlock)chapter7Unlock.hidden=false;
+ ending.scrollIntoView({behavior:"smooth",block:"center"});
+}
 function bossFrame(t){const dt=Math.min(.035,(t-bossState.last)/1000||0);bossState.last=t;if(state.started&&!state.paused&&bossState.active)updateBoss(dt);requestAnimationFrame(bossFrame)}
 requestAnimationFrame(bossFrame);
 
+document.querySelector('#beginMaze')?.addEventListener('click',()=>{
+ playCue('confirm');
+ gameShell.hidden=false;state.started=true;missionState.textContent='ACTIVE';stageHint.textContent='FOCUS ACTIVE · WASD / ARROWS TO MOVE';
+ gameShell.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth',block:'center'});
+ setTimeout(()=>gameStage.focus(),matchMedia('(prefers-reduced-motion:reduce)').matches?0:180);
+ setLog('CHAPTER III BEGINS. The next part cannot be read from a screen.');
+ setStory('CHAPTER III','THE MAZE','Now you have to live the difficult chapter.','The next part cannot be read from a screen. Rishi has to walk it. Learn the guardians. Find the memories. Get lost. Try again.');
+ emitNarrative('maze.start',true);
+});
 document.addEventListener('visibilitychange',()=>{if(document.hidden){state.keys.clear();state.paused=true}else if(modal.getAttribute('aria-hidden')==='true'&&!state.resumeUntil){state.paused=false}});
 
 updateStats();
@@ -974,3 +985,11 @@ function startChapterSummary(){
  if(chapterSummaryImages.length>1&&!reducedMotion){let active=0;setInterval(()=>{chapterSummaryImages[active].classList.remove('is-active');active=(active+1)%chapterSummaryImages.length;chapterSummaryImages[active].classList.add('is-active');},4200);}
 }
 if(chapterSummary&&'IntersectionObserver' in window){const chapterSummaryObserver=new IntersectionObserver(entries=>{if(entries.some(entry=>entry.isIntersecting)){startChapterSummary();chapterSummaryObserver.disconnect();}},{threshold:.25});chapterSummaryObserver.observe(chapterSummary);}else startChapterSummary();
+
+document.querySelector('#continueChapter7')?.addEventListener('click',()=>{
+ playCue('confirm');
+ const chapter7=document.querySelector('#chapterSummary');
+ if(!chapter7)return;
+ chapter7.hidden=false;
+ chapter7.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth',block:'start'});
+});
