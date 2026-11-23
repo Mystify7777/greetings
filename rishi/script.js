@@ -630,7 +630,7 @@ function winBoss(){bossState.active=false;playCue('victory');bossMessage.textCon
      ? 'You fell once, learned the route, and kept going. That is enough evidence.'
      : 'You fell '+state.deaths+' times. The archive kept the attempts because the point was never perfection.';
  document.querySelector('#historyLine').textContent=historyLine;
- if(mazeReturnPanel)mazeReturnPanel.hidden=state.memory>=7;
+ if(mazeReturnPanel)mazeReturnPanel.hidden=!state.mazeSkipped || state.memory>=7;
  unlockRoadGame();
  const chapter7=document.querySelector('#chapterSummary');
  const chapter7Unlock=document.querySelector('#chapter7Unlock');
@@ -665,7 +665,8 @@ skipMaze?.addEventListener('click',()=>{
   missionText.textContent='Maze and boss skipped. The unfinished memories remain in the archive.';
   setStory("CHAPTER V","THE NEXT CHAPTER","The maze can wait. The story cannot.","You skipped the maze and the boss after two setbacks. Several memories are still buried in the archive. You can return later to recover them all. For now, the story moves forward.");
   setLog('MAZE + BOSS SKIPPED. MEMORY ARCHIVE INCOMPLETE. RETURN LATER TO RECOVER THE REST.');
-  ending.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth',block:'center'});
+  if(mazeReturnPanel)mazeReturnPanel.hidden=false;
+ending.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth',block:'center'});
 });
 
 returnToMaze?.addEventListener('click',()=>{
