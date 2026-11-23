@@ -160,12 +160,12 @@ const gates=[
 ];
 
 const relics=[
- {x:7,y:3,title:'First Memory',type:'PHOTO',icon:'✦',text:'The first little piece of the birthday archive. This slot is waiting for a real photo.',reward:'Recovered memory: +1 armour.'},
+ {x:7,y:3,title:'First Memory',type:'PHOTO',icon:'✦',text:'The first little piece of the birthday archive. A real photo from the story, finally recovered.',reward:'Recovered memory: +1 armour.'},
  {x:5,y:7,title:'A Hidden Note',type:'MESSAGE',icon:'✉',text:'Something small, personal and probably embarrassing in exactly the right way.',reward:'Recovered memory: +1 bravery and +1 HP (up to 5).'},
- {x:7,y:9,title:'The Moving Memory',type:'VIDEO',icon:'▶',text:'A moving memory belongs here. Later this becomes a real video reveal.',reward:'Recovered memory: +1 mobility.'},
+ {x:7,y:9,title:'The Moving Memory',type:'VIDEO',icon:'▶',text:'A moving memory from the archive. Some moments make more sense when they move.',reward:'Recovered memory: +1 mobility.'},
  {x:13,y:3,title:'Player Memory',type:'GAME',icon:'◆',text:'A memory from the years of games, volleyball, anime, chaos and questionable victory celebrations.',reward:'Recovered memory: +1 armour.'},
  {x:16,y:3,title:'The Ordinary Day',type:'MEMORY',icon:'◇',text:'The ordinary moments are usually the ones that become the good stories. College days, games, random conversations, and the people who somehow became part of the routine.',reward:'Recovered memory: +1 bravery and +1 HP (up to 5).'},
- {x:10,y:13,title:'Birthday Letter',type:'LETTER',icon:'✎',text:'The proper birthday message goes here. For now, the chest stays sealed around a placeholder. The real birthday message belongs here when the archive gets its final memories. Pushpa probably has evidence that should not be archived without supervision.',reward:'Recovered memory: +1 armour, +1 bravery and +1 HP (up to 5).'},
+ {x:10,y:13,title:'Birthday Letter',type:'LETTER',icon:'✎',text:'The proper birthday message is waiting inside. Read it when you have recovered this letter. Pushpa probably has evidence that should not be archived without supervision.',reward:'Recovered memory: +1 armour, +1 bravery and +1 HP (up to 5).'},
  {x:22,y:15,title:'The Final Relic',type:'LEGEND',icon:'★',text:'The strongest memory is saved for last. Recovering it opens the final arena.',reward:'Final relic recovered: the Birthday Boss is awake.'}
 ];
 
