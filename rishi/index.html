@@ -249,8 +249,11 @@
       <button data-road-dir="right" aria-label="Steer right">▶</button>
     </div>
 
-    <div class="road-log" aria-live="polite">
-      <span>ROAD LOG</span><strong id="roadLog">The first checkpoint is close. The next one will not be.</strong>
+    <div class="road-log" aria-live="polite" aria-label="Road message history">
+      <div class="road-log-header"><span>ROAD LOG</span><small id="roadLogCount">1 MESSAGE</small></div>
+      <div class="road-log-history" id="roadLogHistory">
+        <p class="road-log-entry is-latest">The first checkpoint is close. The next one will not be.</p>
+      </div>
     </div>
 
     <div class="chapter-next-wrap" id="chapter7Unlock" hidden><button id="continueChapter7" class="primary" type="button">▶ CONTINUE TO CHAPTER VII</button></div>
