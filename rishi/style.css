@@ -512,3 +512,11 @@
   object-fit:contain;
   background:#080d17;
 }
+
+.road-log{display:block}
+.road-log-header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}
+.road-log-header span{color:var(--cyan);font-size:.48rem;letter-spacing:.12em}
+.road-log-header small{color:#64718b;font-size:.44rem;letter-spacing:.08em}
+.road-log-history{display:flex;flex-direction:column;gap:7px;max-height:132px;overflow:auto;padding-right:4px}
+.road-log-entry{margin:0;padding:7px 9px;border-left:1px solid #273753;color:#77849e;font-size:.58rem;line-height:1.65}
+.road-log-entry.is-latest{border-left-color:var(--cyan);color:var(--muted);background:#0d1728}
