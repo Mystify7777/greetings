@@ -618,7 +618,11 @@ function drawBoss(){
 function updateBossHud(){bossBar.style.width=Math.max(0,bossState.boss.hp/bossState.boss.maxHp*100)+'%';bossHpText.textContent=Math.max(0,bossState.boss.hp)+' / '+bossState.boss.maxHp;bossPlayerHp.textContent='HP '+('♥'.repeat(Math.max(0,bossState.player.hp))+'♡'.repeat(Math.max(0,5-bossState.player.hp)))+' · ARMOUR '+bossState.player.armour}
 function bossDefeat(){bossState.active=false;playCue('setback',.8);state.hp=bossState.startingHp;state.armour=bossState.startingArmour;state.bossDeaths++;state.bravery++;state.mobility=Math.min(2.5,state.mobility+.15);updateStats();bossMessage.textContent=['DOWN, NOT OUT. You learned the attack timing.','THE BOSS WON THAT ROUND. Now you know what to dodge.','DEFEATED. Good. Knowledge acquired.','ONE MORE ROUND. The opening is there.'][state.bossDeaths%4];setStory("CHAPTER IV","THE SETBACK","The boss wins this round. Rishi is still here. Round lost. Story over nahi hui.","This is the part the story needed. A setback is not a verdict. Har attempt kuch sikhata hai, aur next run zero se nahi, experience se start hota hai.");
  emitNarrative('boss.setback');setTimeout(()=>initBoss(false),500)}
-function winBoss(){bossState.active=false;playCue('victory');bossMessage.textContent="BOSS DEFEATED. QUEST COMPLETE. Next chapter unlocked.";setStory("CHAPTER V","THE NEXT CHAPTER","The fight is over. Rishi's story is not.","The maze, the memories and the boss were only a metaphor for one thing: the road ahead will contain hard chapters too. Life ka difficulty setting kabhi permanently easy nahi hota. Keep moving through it anyway.");
+function winBoss(){
+ bossState.active=false;
+ playCue('victory');
+ try{localStorage.setItem(STORY_COMPLETE_KEY,"1")}catch{}
+bossMessage.textContent="BOSS DEFEATED. QUEST COMPLETE. Next chapter unlocked.";setStory("CHAPTER V","THE NEXT CHAPTER","The fight is over. Rishi's story is not.","The maze, the memories and the boss were only a metaphor for one thing: the road ahead will contain hard chapters too. Life ka difficulty setting kabhi permanently easy nahi hota. Keep moving through it anyway.");
  emitNarrative('boss.victory',true);ending.hidden=false;bossRechallenge.hidden=false;secretReveal.hidden=state.collected.size>0&&secretRoutes.some(route=>route.sequence.every((value,i)=>state.claimOrder[i]===value));runSummary.textContent="MEMORIES 7/7 · FINAL HP "+state.hp+" · FINAL ARMOUR "+state.armour+" · BRAVERY "+state.bravery+" · MOBILITY "+state.mobility.toFixed(1)+"× · MAZE DEATHS "+state.deaths+" · BOSS ATTEMPTS "+(state.bossDeaths+1)+" · REMATCHES "+bossState.rechallengeCount;
  document.querySelector('#historyMemories').textContent=state.memory+' / 7';
  document.querySelector('#historyBravery').textContent=String(state.bravery);
@@ -641,12 +645,7 @@ function winBoss(){bossState.active=false;playCue('victory');bossMessage.textCon
 function bossFrame(t){const dt=Math.min(.035,(t-bossState.last)/1000||0);bossState.last=t;if(state.started&&!state.paused&&bossState.active)updateBoss(dt);requestAnimationFrame(bossFrame)}
 requestAnimationFrame(bossFrame);
 
-keepPlayingMaze?.addEventListener('click',()=>{
-  mazeSkipPanel.hidden=true;
-  setLog('SKIP AVAILABLE. KEEP EXPLORING THE MAZE.');
-});
-
-skipMaze?.addEventListener('click',()=>{
+function continueAfterMazeSkip(){
   state.mazeSkipped=true;
   state.bossUnlocked=false;
   state.paused=false;
@@ -666,7 +665,16 @@ skipMaze?.addEventListener('click',()=>{
   setStory("CHAPTER V","THE NEXT CHAPTER","The maze can wait. The story cannot.","You skipped the maze and the boss after two setbacks. Several memories are still buried in the archive. You can return later to recover them all. For now, the story moves forward.");
   setLog('MAZE + BOSS SKIPPED. MEMORY ARCHIVE INCOMPLETE. RETURN LATER TO RECOVER THE REST.');
   if(mazeReturnPanel)mazeReturnPanel.hidden=false;
-ending.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth',block:'center'});
+  ending.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth',block:'center'});
+}
+
+keepPlayingMaze?.addEventListener('click',()=>{
+  mazeSkipPanel.hidden=true;
+  setLog('SKIP AVAILABLE. KEEP EXPLORING THE MAZE.');
+});
+
+skipMaze?.addEventListener('click',()=>{
+  continueAfterMazeSkip();
 });
 
 returnToMaze?.addEventListener('click',()=>{
@@ -680,6 +688,11 @@ returnToMaze?.addEventListener('click',()=>{
 });
 
 document.querySelector('#beginMaze')?.addEventListener('click',()=>{
+ if(state.mazeSkipped){
+   playCue('confirm');
+   continueAfterMazeSkip();
+   return;
+ }
  playCue('confirm');
  gameShell.hidden=false;state.started=true;missionState.textContent='ACTIVE';stageHint.textContent='FOCUS ACTIVE · WASD / ARROWS TO MOVE';
  gameShell.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth',block:'center'});
@@ -692,8 +705,21 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden){state.keys
 
 updateStats();
 
+clearUnverifiedProgress();
+
 const ROAD_SAVE_KEY = "rishi-road-progress-v1";
 const ROAD_UNLOCK_KEY = "rishi-road-unlocked-v1";
+const STORY_COMPLETE_KEY = "rishi-story-complete-v1";
+function storyCompletionSaved(){
+ try{return localStorage.getItem(STORY_COMPLETE_KEY)==="1"}catch{return false}
+}
+function clearUnverifiedProgress(){
+ if(storyCompletionSaved())return;
+ try{
+   localStorage.removeItem(ROAD_SAVE_KEY);
+   localStorage.removeItem(ROAD_UNLOCK_KEY);
+ }catch{}
+}
 const roadCheckpointDistances = [0,100,260,520,940,1620,2720,4500,7380,12040,19620];
 const roadLaneX = [205,380,555];
 const roadState = {
@@ -721,6 +747,7 @@ function roadSafeSet(key,value){
  try{localStorage.setItem(key,value)}catch{}
 }
 function roadSave(){
+ if(!storyCompletionSaved())return;
  roadSafeSet(ROAD_SAVE_KEY,JSON.stringify({
   distance:roadState.distance,
   score:roadState.score,
@@ -732,6 +759,10 @@ function roadSave(){
  }));
 }
 function roadLoad(){
+ if(!storyCompletionSaved()){
+   clearUnverifiedProgress();
+   return false;
+ }
  const raw=roadSafeGet(ROAD_SAVE_KEY);
  if(!raw)return false;
  try{
@@ -775,6 +806,7 @@ function roadSetOverlay(kicker,title,text,buttonText){
  roadOverlay.hidden=false;
 }
 function roadUnlock(){
+ if(!storyCompletionSaved())return;
  roadSafeSet(ROAD_UNLOCK_KEY,"1");
  if(roadGame)roadGame.hidden=false;
 }
