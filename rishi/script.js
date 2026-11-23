@@ -304,9 +304,9 @@ function resetPlayer(reason){
  state.hp=5;state.player.x=1.5*TILE;state.player.y=1.5*TILE;
  updateStats();setLog(reason+' You ran out of HP. The next attempt starts with a full recovery.');
  missionText.textContent=state.deaths%2?'The maze won that round. It does not keep the win.':'Caught. Good. Now you know where the danger is.';
- if(state.deaths>=3 && !state.mazeSkipped){
+ if(state.deaths>=2 && !state.mazeSkipped){
    mazeSkipPanel.hidden=false;
-   setLog('THREE DEATHS RECORDED. The archive offers a temporary way forward.');
+   setLog('TWO DEATHS RECORDED. The archive offers a temporary way forward.');
  }
  setStory("CHAPTER III","THE SETBACK","Rishi falls. The story does not.","Every failed run changes the next one. A little more bravery. A little more speed. A little more knowledge. The point was never to avoid falling.");
  emitNarrative(state.deaths===1?'maze.death.first':'maze.death.repeat');
@@ -648,18 +648,24 @@ keepPlayingMaze?.addEventListener('click',()=>{
 
 skipMaze?.addEventListener('click',()=>{
   state.mazeSkipped=true;
-  state.bossUnlocked=true;
+  state.bossUnlocked=false;
   state.paused=false;
   mazeSkipPanel.hidden=true;
   gameShell.hidden=true;
-  chapter4Intro.hidden=false;
-  bossShell.hidden=false;
-  setStory("CHAPTER IV","THE FIGHT","The maze can wait. The story cannot.","You skipped the maze after three setbacks. Several memories are still buried in it. You can return later and recover them all, but for now the road continues.");
-  missionState.textContent='MAZE SKIPPED';
-  setLog('MAZE SKIPPED. MEMORY ARCHIVE INCOMPLETE. RETURN LATER TO RECOVER THE REST.');
-  chapter4Intro.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth',block:'center'});
-  bossStage.focus();
-  initBoss();
+  chapter4Intro.hidden=true;
+  bossShell.hidden=true;
+  ending.hidden=false;
+  bossRechallenge.hidden=true;
+  secretReveal.hidden=true;
+  const endingText=document.querySelector('#endingText');
+  if(endingText)endingText.textContent="You chose to leave the maze behind for now. Some memories are still buried there, and the birthday boss was skipped too. The story continues, but the unfinished parts are still waiting for you.";
+  const runSummary=document.querySelector('#runSummary');
+  if(runSummary)runSummary.textContent="MAZE SKIPPED · MEMORIES "+state.memory+"/7 · BOSS SKIPPED";
+  missionState.textContent='CHAPTER V';
+  missionText.textContent='Maze and boss skipped. The unfinished memories remain in the archive.';
+  setStory("CHAPTER V","THE NEXT CHAPTER","The maze can wait. The story cannot.","You skipped the maze and the boss after two setbacks. Several memories are still buried in the archive. You can return later to recover them all. For now, the story moves forward.");
+  setLog('MAZE + BOSS SKIPPED. MEMORY ARCHIVE INCOMPLETE. RETURN LATER TO RECOVER THE REST.');
+  ending.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth',block:'center'});
 });
 
 returnToMaze?.addEventListener('click',()=>{
