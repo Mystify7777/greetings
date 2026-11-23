@@ -370,14 +370,15 @@ const memoryMedia={
   2:{type:'video',src:MEMORY_MEDIA_BASE+'rishi-memory-03.mp4'},
   3:{type:'image',src:MEMORY_MEDIA_BASE+'rishi-memory-04.webp',alt:'Player memory collage'},
   4:{type:'image',src:MEMORY_MEDIA_BASE+'rishi-memory-05-ordinary.jpeg',alt:'An ordinary day'},
-  6:{type:'relic'}
+  6:{type:'image',src:MEMORY_MEDIA_BASE+'rishi-final-relic.webp',alt:'Final relic memory'}
 };
 function renderMemoryMedia(index){
   if(index===1||index===5)return '<div class="reward-message">'+memoryMessages[index]+'</div>';
   const media=memoryMedia[index];
   if(!media)return '<div class="reward-media"><div><strong>MEMORY '+String(index+1).padStart(2,'0')+'</strong></div></div>';
-  if(media.type==='relic')return '<div class="reward-media reward-relic"><div><strong>★ FINAL RELIC</strong><br>The strongest memory was saved for last. The Birthday Boss is awake.</div></div>';
+  
   if(media.type==='video')return '<div class="reward-media reward-video"><video controls playsinline preload="metadata" src="'+media.src+'"></video></div>';
+  if(index===6)return '<div class="reward-media reward-image reward-final-relic"><img src="'+media.src+'" alt="'+media.alt+'" loading="lazy"><div class="reward-relic-overlay"><strong>★ FINAL RELIC</strong><span>The strongest memory was saved for last. The Birthday Boss is awake.</span></div></div>';
   return '<div class="reward-media reward-image"><img src="'+media.src+'" alt="'+media.alt+'" loading="lazy"></div>';
 }
 function openReward(index){
@@ -1018,6 +1019,32 @@ function startChapterSummary(){
 }
 if(chapterSummary&&'IntersectionObserver' in window){const chapterSummaryObserver=new IntersectionObserver(entries=>{if(entries.some(entry=>entry.isIntersecting)){startChapterSummary();chapterSummaryObserver.disconnect();}},{threshold:.25});chapterSummaryObserver.observe(chapterSummary);}else startChapterSummary();
 
+const chapter5Video=document.querySelector('#chapter5Video');
+if(chapter5Video){
+  chapter5Video.muted=false;
+  chapter5Video.volume=1;
+  const tryChapter5Play=()=>{
+    chapter5Video.muted=false;
+    chapter5Video.play().catch(()=>{
+      const fallback=document.querySelector('#chapter5AudioFallback');
+      if(fallback)fallback.hidden=false;
+    });
+  };
+  const chapter5Observer=new IntersectionObserver(entries=>{
+    if(entries.some(entry=>entry.isIntersecting)){
+      tryChapter5Play();
+    }else{
+      chapter5Video.pause();
+    }
+  },{threshold:.35});
+  chapter5Observer.observe(chapter5Video.closest('.final-memory'));
+}
+document.querySelector('#chapter5AudioFallback')?.addEventListener('click',()=>{
+  const video=document.querySelector('#chapter5Video');
+  if(!video)return;
+  video.muted=false;
+  video.play().then(()=>{document.querySelector('#chapter5AudioFallback').hidden=true;});
+});
 document.querySelector('#continueChapter7')?.addEventListener('click',()=>{
  playCue('confirm');
  const chapter7=document.querySelector('#chapterSummary');
