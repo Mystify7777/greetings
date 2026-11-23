@@ -906,3 +906,20 @@ document.addEventListener("visibilitychange",()=>{
   roadState.active=false;
  }
 });
+
+
+/* Chapter VII: typed birthday message + five-photo memory reel */
+const chapterSummary=document.querySelector('#chapterSummary');
+const typedBirthdayMessage=document.querySelector('#typedBirthdayMessage');
+const chapterSummaryImages=[...document.querySelectorAll('.chapter-summary-image')];
+const chapterSummaryText="Many phases came into your life. You faced a lot, made some incredibly sweet memories, went through heartbreaks, made friends, lost some, and still kept moving. You kept pushing, and I believe you will keep grinding until you attain what you wish for.\n\nAnd knowing you, you are definitely going to settle there instead of pushing ahead. But know that I will always be there, watching you, lifting you, supporting you sometimes, and sometimes pulling your leg just so you don't get so mesmerized by everything that you forget your roots.\n\nSo give it your best. Keep growing until growing becomes just a passive skill.\n\nOnce again, happy birthday. There are still many birthdays in the store, and doing everything here would be a waste of resources. Let's save some emotions for the upcoming ones, so we know we're definitely celebrating them.";
+let chapterSummaryStarted=false;
+function startChapterSummary(){
+ if(chapterSummaryStarted||!typedBirthdayMessage)return;
+ chapterSummaryStarted=true;
+ const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
+ if(reducedMotion){typedBirthdayMessage.textContent=chapterSummaryText;typedBirthdayMessage.classList.add('done');}
+ else{let index=0;const typeNext=()=>{typedBirthdayMessage.textContent=chapterSummaryText.slice(0,index++);if(index<=chapterSummaryText.length)setTimeout(typeNext,28);else typedBirthdayMessage.classList.add('done');};typeNext();}
+ if(chapterSummaryImages.length>1&&!reducedMotion){let active=0;setInterval(()=>{chapterSummaryImages[active].classList.remove('is-active');active=(active+1)%chapterSummaryImages.length;chapterSummaryImages[active].classList.add('is-active');},4200);}
+}
+if(chapterSummary&&'IntersectionObserver' in window){const chapterSummaryObserver=new IntersectionObserver(entries=>{if(entries.some(entry=>entry.isIntersecting)){startChapterSummary();chapterSummaryObserver.disconnect();}},{threshold:.25});chapterSummaryObserver.observe(chapterSummary);}else startChapterSummary();
