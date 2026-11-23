@@ -13,13 +13,13 @@ Failure is progression. A failed attempt teaches the player a route or attack pa
 ## Experience structure
 
 ### 0. Title screen
-- "RISHI // PLAYER 24"
+- "RISHI // PLAYER 23"
 - Birthday-specific framing, not generic arcade filler.
 - Single **START ADVENTURE** action.
 - Starting the adventure scrolls the game board to the visual center and moves keyboard focus to the game stage.
 
 ### 1. Maze of Memories
-- 19 × 14 tile maze.
+- 25 × 17 tile maze.
 - Keyboard: WASD + arrow keys.
 - Mobile: on-screen directional pad.
 - The game stage is focusable and announces controls.
@@ -51,7 +51,7 @@ Each relic has:
 - title
 - type
 - short flavor text
-- placeholder media slot
+- real media or message
 - progression reward
 
 Current placeholders:
@@ -63,7 +63,7 @@ Current placeholders:
 6. Birthday Letter / LETTER
 7. Final Relic / LEGEND
 
-The actual photos, videos and messages will replace the placeholders later.
+The actual photos, videos and messages are integrated in the birthday build.
 
 ### 4. Reward interaction
 Opening a relic uses a proper modal dialog:
@@ -96,7 +96,7 @@ After the boss reaches 0 HP:
 - "HAPPY BIRTHDAY, RISHI."
 - short personalized message
 - progression summary
-- final media slot for the strongest birthday memory
+- final birthday chapter with a typed message and five-photo memory reel
 - no arbitrary "play again" requirement
 
 ## Progression model
