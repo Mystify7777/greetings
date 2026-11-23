@@ -665,6 +665,8 @@ function continueAfterMazeSkip(){
   setStory("CHAPTER V","THE NEXT CHAPTER","The maze can wait. The story cannot.","You skipped the maze and the boss after two setbacks. Several memories are still buried in the archive. You can return later to recover them all. For now, the story moves forward.");
   setLog('MAZE + BOSS SKIPPED. MEMORY ARCHIVE INCOMPLETE. RETURN LATER TO RECOVER THE REST.');
   if(mazeReturnPanel)mazeReturnPanel.hidden=false;
+  roadUnlock();
+  roadSetOverlay("CHAPTER VI // THE LONG ROAD","THE NEXT SUCCESS IS FARTHER.","The maze was skipped, so this progress is only for this visit. Complete the maze and defeat the boss on a future run if you want the road to remember your checkpoints after refresh.","▶ START THE ROAD");
   ending.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth',block:'center'});
 }
 
@@ -805,8 +807,7 @@ function roadSetOverlay(kicker,title,text,buttonText){
  roadOverlay.hidden=false;
 }
 function roadUnlock(){
- if(!storyCompletionSaved())return;
- roadSafeSet(ROAD_UNLOCK_KEY,"1");
+ if(storyCompletionSaved())roadSafeSet(ROAD_UNLOCK_KEY,"1");
  if(roadGame)roadGame.hidden=false;
 }
 function unlockRoadGame(){
