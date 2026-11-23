@@ -7,7 +7,7 @@ const hpStat=document.querySelector('#hpStat'),armourStat=document.querySelector
 const modal=document.querySelector('#rewardModal'),modalClose=document.querySelector('#modalClose'),rewardKicker=document.querySelector('#rewardKicker'),rewardTitle=document.querySelector('#rewardTitle'),rewardBody=document.querySelector('#rewardBody');
 const relicPrompt=document.querySelector('#relicPrompt'),relicPromptType=document.querySelector('#relicPromptType'),relicPromptTitle=document.querySelector('#relicPromptTitle'),claimMemory=document.querySelector('#claimMemory');
 const chapter4Intro=document.querySelector('#chapter4Intro'),bossShell=document.querySelector('#bossShell'),bossStage=document.querySelector('#bossStage'),bossBar=document.querySelector('#bossBar'),bossHpText=document.querySelector('#bossHpText'),bossMessage=document.querySelector('#bossMessage'),bossPlayerHp=document.querySelector('#bossPlayerHp');
-const mazeSkipPanel=document.querySelector('#mazeSkipPanel'),skipMaze=document.querySelector('#skipMaze'),mazeReturnPanel=document.querySelector('#mazeReturnPanel'),returnToMaze=document.querySelector('#returnToMaze');
+const mazeSkipPanel=document.querySelector('#mazeSkipPanel'),skipMaze=document.querySelector('#skipMaze'),keepPlayingMaze=document.querySelector('#keepPlayingMaze'),mazeReturnPanel=document.querySelector('#mazeReturnPanel'),returnToMaze=document.querySelector('#returnToMaze');
 const ending=document.querySelector('#ending'),runSummary=document.querySelector('#runSummary'),secretReveal=document.querySelector('#secretReveal'),bossRechallenge=document.querySelector('#bossRechallenge'),rechallengeBoss=document.querySelector('#rechallengeBoss'),roadGame=document.querySelector('#roadGame'),roadCanvas=document.querySelector('#roadCanvas'),roadCtx=roadCanvas?.getContext('2d'),roadOverlay=document.querySelector('#roadOverlay'),roadOverlayKicker=document.querySelector('#roadOverlayKicker'),roadOverlayTitle=document.querySelector('#roadOverlayTitle'),roadOverlayText=document.querySelector('#roadOverlayText'),roadStartButton=document.querySelector('#roadStart'),roadCheckpoint=document.querySelector('#roadCheckpoint'),roadDistance=document.querySelector('#roadDistance'),roadScore=document.querySelector('#roadScore'),roadBest=document.querySelector('#roadBest'),roadLog=document.querySelector('#roadLog');
 
 
@@ -640,6 +640,11 @@ function winBoss(){bossState.active=false;playCue('victory');bossMessage.textCon
 }
 function bossFrame(t){const dt=Math.min(.035,(t-bossState.last)/1000||0);bossState.last=t;if(state.started&&!state.paused&&bossState.active)updateBoss(dt);requestAnimationFrame(bossFrame)}
 requestAnimationFrame(bossFrame);
+
+keepPlayingMaze?.addEventListener('click',()=>{
+  mazeSkipPanel.hidden=true;
+  setLog('SKIP AVAILABLE. KEEP EXPLORING THE MAZE.');
+});
 
 skipMaze?.addEventListener('click',()=>{
   state.mazeSkipped=true;
