@@ -7,6 +7,7 @@ const hpStat=document.querySelector('#hpStat'),armourStat=document.querySelector
 const modal=document.querySelector('#rewardModal'),modalClose=document.querySelector('#modalClose'),rewardKicker=document.querySelector('#rewardKicker'),rewardTitle=document.querySelector('#rewardTitle'),rewardBody=document.querySelector('#rewardBody');
 const relicPrompt=document.querySelector('#relicPrompt'),relicPromptType=document.querySelector('#relicPromptType'),relicPromptTitle=document.querySelector('#relicPromptTitle'),claimMemory=document.querySelector('#claimMemory');
 const chapter4Intro=document.querySelector('#chapter4Intro'),bossShell=document.querySelector('#bossShell'),bossStage=document.querySelector('#bossStage'),bossBar=document.querySelector('#bossBar'),bossHpText=document.querySelector('#bossHpText'),bossMessage=document.querySelector('#bossMessage'),bossPlayerHp=document.querySelector('#bossPlayerHp');
+const mazeSkipPanel=document.querySelector('#mazeSkipPanel'),skipMaze=document.querySelector('#skipMaze'),mazeReturnPanel=document.querySelector('#mazeReturnPanel'),returnToMaze=document.querySelector('#returnToMaze');
 const ending=document.querySelector('#ending'),runSummary=document.querySelector('#runSummary'),secretReveal=document.querySelector('#secretReveal'),bossRechallenge=document.querySelector('#bossRechallenge'),rechallengeBoss=document.querySelector('#rechallengeBoss'),roadGame=document.querySelector('#roadGame'),roadCanvas=document.querySelector('#roadCanvas'),roadCtx=roadCanvas?.getContext('2d'),roadOverlay=document.querySelector('#roadOverlay'),roadOverlayKicker=document.querySelector('#roadOverlayKicker'),roadOverlayTitle=document.querySelector('#roadOverlayTitle'),roadOverlayText=document.querySelector('#roadOverlayText'),roadStartButton=document.querySelector('#roadStart'),roadCheckpoint=document.querySelector('#roadCheckpoint'),roadDistance=document.querySelector('#roadDistance'),roadScore=document.querySelector('#roadScore'),roadBest=document.querySelector('#roadBest'),roadLog=document.querySelector('#roadLog');
 
 
@@ -172,7 +173,7 @@ const relics=[
 const state={
  started:false,paused:false,keys:new Set(),player:{x:1.5*TILE,y:1.5*TILE,r:10},hp:5,armour:0,bravery:0,mobility:1,memory:0,deaths:0,lastTime:0,invulnerableUntil:0,modalReturnFocus:gameStage,
  collected:new Set(),gateNotice:new Set(),claimOrder:[],pendingRelic:null,pendingSecret:null,bossUnlocked:false,bossDeaths:0,resumeUntil:0,pendingBossUnlock:false
-};
+,mazeSkipped:false};
 
 const mobDefs=[
  {x:7.5,y:1.5,speed:1.55,mode:'horizontal',path:[[7,1],[8,1],[9,1],[9,2],[9,3],[9,4],[9,5],[9,6],[9,7],[7,7],[7,6],[7,5],[7,4]]},
@@ -303,6 +304,10 @@ function resetPlayer(reason){
  state.hp=5;state.player.x=1.5*TILE;state.player.y=1.5*TILE;
  updateStats();setLog(reason+' You ran out of HP. The next attempt starts with a full recovery.');
  missionText.textContent=state.deaths%2?'The maze won that round. It does not keep the win.':'Caught. Good. Now you know where the danger is.';
+ if(state.deaths>=3 && !state.mazeSkipped){
+   mazeSkipPanel.hidden=false;
+   setLog('THREE DEATHS RECORDED. The archive offers a temporary way forward.');
+ }
  setStory("CHAPTER III","THE SETBACK","Rishi falls. The story does not.","Every failed run changes the next one. A little more bravery. A little more speed. A little more knowledge. The point was never to avoid falling.");
  emitNarrative(state.deaths===1?'maze.death.first':'maze.death.repeat');
 }
@@ -624,6 +629,7 @@ function winBoss(){bossState.active=false;playCue('victory');bossMessage.textCon
      ? 'You fell once, learned the route, and kept going. That is enough evidence.'
      : 'You fell '+state.deaths+' times. The archive kept the attempts because the point was never perfection.';
  document.querySelector('#historyLine').textContent=historyLine;
+ if(mazeReturnPanel)mazeReturnPanel.hidden=state.memory>=7;
  unlockRoadGame();
  const chapter7=document.querySelector('#chapterSummary');
  const chapter7Unlock=document.querySelector('#chapter7Unlock');
@@ -633,6 +639,31 @@ function winBoss(){bossState.active=false;playCue('victory');bossMessage.textCon
 }
 function bossFrame(t){const dt=Math.min(.035,(t-bossState.last)/1000||0);bossState.last=t;if(state.started&&!state.paused&&bossState.active)updateBoss(dt);requestAnimationFrame(bossFrame)}
 requestAnimationFrame(bossFrame);
+
+skipMaze?.addEventListener('click',()=>{
+  state.mazeSkipped=true;
+  state.paused=false;
+  mazeSkipPanel.hidden=true;
+  gameShell.hidden=true;
+  chapter4Intro.hidden=false;
+  bossShell.hidden=false;
+  setStory("CHAPTER IV","THE FIGHT","The maze can wait. The story cannot.","You skipped the maze after three setbacks. Several memories are still buried in it. You can return later and recover them all, but for now the road continues.");
+  missionState.textContent='MAZE SKIPPED';
+  setLog('MAZE SKIPPED. MEMORY ARCHIVE INCOMPLETE. RETURN LATER TO RECOVER THE REST.');
+  chapter4Intro.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth',block:'center'});
+  bossStage.focus();
+  initBoss();
+});
+
+returnToMaze?.addEventListener('click',()=>{
+  state.mazeSkipped=false;
+  mazeReturnPanel.hidden=true;
+  gameShell.hidden=false;
+  missionState.textContent=state.memory===7?'CLEARED':'RETURNING';
+  missionText.textContent=state.memory===7?'Every memory recovered. The final arena is waiting.':'The archive still has memories buried here. Recover what you left behind.';
+  gameShell.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth',block:'center'});
+  setTimeout(()=>gameStage.focus(),matchMedia('(prefers-reduced-motion:reduce)').matches?0:180);
+});
 
 document.querySelector('#beginMaze')?.addEventListener('click',()=>{
  playCue('confirm');
