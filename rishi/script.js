@@ -705,8 +705,6 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden){state.keys
 
 updateStats();
 
-clearUnverifiedProgress();
-
 const ROAD_SAVE_KEY = "rishi-road-progress-v1";
 const ROAD_UNLOCK_KEY = "rishi-road-unlocked-v1";
 const STORY_COMPLETE_KEY = "rishi-story-complete-v1";
@@ -720,6 +718,7 @@ function clearUnverifiedProgress(){
    localStorage.removeItem(ROAD_UNLOCK_KEY);
  }catch{}
 }
+clearUnverifiedProgress();
 const roadCheckpointDistances = [0,100,260,520,940,1620,2720,4500,7380,12040,19620];
 const roadLaneX = [205,380,555];
 const roadState = {
