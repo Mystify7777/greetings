@@ -483,3 +483,24 @@
     right:16px;
   }
 }
+
+
+.maze-skip-actions{
+  display:flex;
+  gap:10px;
+  flex:0 0 auto;
+  align-items:center;
+}
+.secondary-quiet{
+  opacity:.7;
+}
+@media(max-width:760px){
+  .maze-skip-actions{
+    flex-direction:column;
+    width:100%;
+  }
+  .maze-skip-actions .secondary{
+    width:100%;
+    margin-top:0;
+  }
+}
