@@ -642,6 +642,7 @@ requestAnimationFrame(bossFrame);
 
 skipMaze?.addEventListener('click',()=>{
   state.mazeSkipped=true;
+  state.bossUnlocked=true;
   state.paused=false;
   mazeSkipPanel.hidden=true;
   gameShell.hidden=true;
