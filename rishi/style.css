@@ -160,3 +160,112 @@
 .reward-media{overflow:hidden}
 .reward-message{border:1px solid #2c3b5a;background:#080f1b;padding:20px 22px;color:#d6deec;font-family:Georgia,serif;font-size:.78rem;line-height:1.85;white-space:pre-line;margin:20px 0}
 .reward-relic{border-style:solid;border-color:#ffd866;background:radial-gradient(circle at center,#201d11 0%,#09101d 68%)}
+
+
+/* Chapter VII: background-photo treatment
+   Keep the photo reel present, but make the message the visual priority. */
+.chapter-summary-layout{
+  display:block;
+  position:relative;
+  min-height:760px;
+}
+
+.chapter-summary-copy{
+  position:relative;
+  z-index:4;
+  width:min(760px,100%);
+  max-width:760px;
+  min-height:760px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  padding:72px 0 80px;
+}
+
+.chapter-summary-visuals{
+  position:absolute;
+  z-index:1;
+  inset:0;
+  width:100%;
+  max-width:none;
+  aspect-ratio:auto;
+  border:0;
+  box-shadow:none;
+  background:#090d18;
+}
+
+.chapter-summary-image img{
+  object-fit:cover;
+  filter:brightness(.42) saturate(.62) contrast(.92);
+  transform:scale(1.02);
+}
+
+.chapter-summary-image{
+  transition:opacity 1.5s ease;
+}
+
+.chapter-summary-image-scrim{
+  z-index:2;
+  background:
+    linear-gradient(90deg,#090d18f5 0%,#090d18df 24%,#090d18a8 50%,#090d1852 76%,#090d1838 100%),
+    linear-gradient(0deg,#090d18dc 0%,transparent 32%,#090d1852 100%);
+}
+
+.chapter-summary-kicker,
+.chapter-summary h2,
+.chapter-summary .typed-message{
+  text-shadow:0 2px 18px #000b;
+}
+
+.chapter-summary h2{
+  margin-bottom:32px;
+}
+
+.chapter-summary .typed-message{
+  max-width:700px;
+}
+
+.chapter-summary-end{
+  position:relative;
+  z-index:4;
+}
+
+@media(max-width:800px){
+  .chapter-summary-layout{
+    min-height:760px;
+  }
+
+  .chapter-summary-copy{
+    min-height:760px;
+    padding:56px 0 64px;
+  }
+
+  .chapter-summary-visuals{
+    position:absolute;
+    inset:0;
+    width:100%;
+    max-width:none;
+    aspect-ratio:auto;
+    order:initial;
+  }
+
+  .chapter-summary-image img{
+    filter:brightness(.32) saturate(.58) contrast(.9);
+  }
+
+  .chapter-summary-image-scrim{
+    background:
+      linear-gradient(180deg,#090d18d9 0%,#090d18a8 38%,#090d18c7 78%,#090d18ef 100%),
+      linear-gradient(90deg,#090d1870 0%,transparent 100%);
+  }
+
+  .chapter-summary .typed-message{
+    max-width:none;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  .chapter-summary-image{
+    transition:none;
+  }
+}
