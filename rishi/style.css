@@ -373,7 +373,7 @@
   z-index:0;
   background:
     linear-gradient(90deg,#080d17f2 0%,#080d17cf 42%,#080d1760 100%),
-    linear-gradient(0deg,#080d17e8 0%,transparent 55%,#080d1760 100%);
+    linear-gradient(0deg,#080d17c8 0%,transparent 55%,#080d1740 100%);
 }
 .final-memory-content{
   position:relative;
@@ -423,14 +423,14 @@
   height:100%;
   display:block;
   object-fit:cover;
-  filter:brightness(.38) saturate(.72) contrast(.96);
+  filter:brightness(.62) saturate(.82) contrast(.96);
 }
 .final-memory-visual::after{
   content:"";
   position:absolute;
   inset:0;
   background:
-    linear-gradient(90deg,#080d17f5 0%,#080d17c9 42%,#080d1760 100%),
+    linear-gradient(90deg,#080d17d8 0%,#080d1790 42%,#080d1740 100%),
     linear-gradient(0deg,#080d17e8 0%,transparent 55%,#080d1760 100%);
 }
 .chapter5-audio-fallback{
@@ -503,4 +503,12 @@
     width:100%;
     margin-top:0;
   }
+}
+
+.final-memory{
+  min-height:clamp(300px,48vh,520px);
+}
+.final-memory-visual video{
+  object-fit:contain;
+  background:#080d17;
 }
