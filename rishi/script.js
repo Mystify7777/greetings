@@ -881,18 +881,23 @@ roadStage.addEventListener("click",()=>roadStage.focus());
 
 rechallengeBoss.addEventListener("click",()=>{
  bossState.rechallengeCount++;
+ const carriedBravery=state.bravery;
+ const carriedMobility=state.mobility;
+ const carriedArmour=state.armour;
  state.hp=5;
- state.armour=0;
- state.mobility=1;
+ state.armour=carriedArmour;
+ state.bravery=carriedBravery;
+ state.mobility=carriedMobility;
  state.bossDeaths=0;
+ updateStats();
  bossRechallenge.hidden=true;
  ending.hidden=true;
  missionState.textContent="REMATCH";
- setStory("CHAPTER IV","THE REMATCH","Same arena. New difficulty. Character reset. Lessons retained.","The character resets to the beginning. The obstacle does not. The only thing Rishi gets to carry forward is what he learned. Baaki sab fresh run.");
+ setStory("CHAPTER IV","THE REMATCH","Same arena. New difficulty. Experience retained.","Rishi does not forget how he got here. The next fight starts with the bravery, speed and rewards he earned before. The boss gets stronger. He gets better.");
  bossShell.hidden=false;
  bossShell.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion:reduce)").matches?"auto":"smooth",block:"center"});
  initBoss();
- setLog("REMATCH "+bossState.rechallengeCount+" BEGINS. Fresh character. Stronger boss.");
+ setLog("REMATCH "+bossState.rechallengeCount+" BEGINS. EXPERIENCE RETAINED. BOSS STRONGER.");
 });
 
 document.addEventListener("visibilitychange",()=>{
