@@ -4,9 +4,9 @@ This repository owns three static routes:
 
 | Route | App | Responsibility |
 |---|---|---|
-| `/` | `apps/hub` | Birthday Worlds landing page |
-| `/shruti/` | `apps/shruti` | Shruti's keepsake experience |
-| `/rishi/` | `apps/rishi` | Rishi's interactive RPG |
+| `/` | `index.html` | Birthday Worlds landing page |
+| `/shruti/` | `shruti/` | Shruti's keepsake experience |
+| `/rishi/` | `rishi/` | Rishi's interactive RPG |
 
 ## Boundaries
 
@@ -14,7 +14,9 @@ Each app owns its markup, styles, scripts, assets, and content. Changes to one a
 
 ## Deployment
 
-The Vercel project is `birthday-worlds`. Deploy the repository root and configure the static output/root so the built files resolve as:
+The site is published to GitHub Pages by `.github/workflows/pages.yml` on every push to `main`. The workflow uploads the repository root, so everything in the repo (including `docs/`) is publicly served under `https://mystify7777.github.io/greetings/`.
+
+Routes resolve as:
 
 ```
 index.html
@@ -22,4 +24,6 @@ shruti/index.html
 rishi/index.html
 ```
 
-Never assume that a deployment marked READY has correct route contents. Verify the deployment file tree and all three HTTP routes.
+Rishi's page references media with relative paths (`../apps/rishi/assets/`), so those folders must stay siblings.
+
+Never assume that a deployment marked successful has correct route contents. Verify all three HTTP routes.

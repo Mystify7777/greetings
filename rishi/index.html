@@ -5,6 +5,15 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#090d18">
 <meta name="description" content="Rishi's birthday adventure: memories, battles, setbacks, and the road into his next chapter.">
+<meta name="robots" content="noindex">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Rishi // The Next Chapter">
+<meta property="og:description" content="A birthday adventure: memories, battles, setbacks, and the road into the next chapter.">
+<meta property="og:url" content="https://mystify7777.github.io/greetings/rishi/">
+<meta property="og:image" content="https://mystify7777.github.io/greetings/rishi/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
 <title>Rishi // The Next Chapter</title>
 <link rel="stylesheet" href="style.css">
 <link rel="icon" href="../apps/rishi/assets/rishi-favicon.svg" type="image/svg+xml">
@@ -37,6 +46,8 @@
     <article class="chapter-card"><span>03</span><strong>THE MAZE</strong><small>Life ka maze. No map included.</small></article>
     <article class="chapter-card"><span>04</span><strong>THE FIGHT</strong><small>Boss fight unlocked. Excuses not required.</small></article>
     <article class="chapter-card"><span>05</span><strong>THE NEXT CHAPTER</strong><small>23 is the next checkpoint, not the finish line.</small></article>
+    <article class="chapter-card"><span>06</span><strong>THE LONG ROAD</strong><small>Every success moves the next finish line farther away.</small></article>
+    <article class="chapter-card"><span>07</span><strong>THE WHOLE STORY</strong><small>Somehow, we made it here.</small></article>
   </div>
 </section>
 
@@ -126,7 +137,7 @@
 
   <section class="boss-shell" id="bossShell" hidden>
     <div class="boss-heading">
-      <div><p class="eyebrow">MISSION 02 // THE BIRTHDAY BOSS</p><h2>THE LAST OBSTACLE.</h2></div>
+      <div><p class="eyebrow">CHAPTER IV // THE BIRTHDAY BOSS</p><h2>THE LAST OBSTACLE.</h2></div>
       <div class="boss-hp"><span>BOSS</span><div><i id="bossBar"></i></div><strong id="bossHpText">50 / 50</strong></div><div class="chapter-controls"><button class="sound-toggle chapter-sound-toggle" type="button" data-sound-toggle aria-pressed="true">SOUND ON</button><button class="fullscreen-toggle" type="button" data-fullscreen-target="bossShell">FULLSCREEN</button></div>
     </div>
     <p class="boss-copy">Move. Dodge. Attack. The pattern changes when the boss gets angry, because apparently the universe needed one more difficult opponent. Getting knocked down makes you faster. Thoda unfair, but we'll take it. At least the respawn is free.</p>
@@ -164,7 +175,7 @@
     </div>
     <div class="final-memory">
     <div class="final-memory-visual" id="chapter5Visual" aria-hidden="true">
-  <video id="chapter5Video" autoplay loop playsinline preload="auto">
+  <video id="chapter5Video" loop playsinline preload="none">
     <source src="../apps/rishi/assets/rishi-chapter-05.mp4" type="video/mp4">
   </video>
 </div>
@@ -230,6 +241,7 @@
     <div class="game-play-row road-play-row">
       <div class="road-stage" id="roadStage" tabindex="0" role="application" aria-label="Rishi's traffic racer. Use left and right controls to steer. Avoid obstacles and collect opportunities.">
         <canvas id="roadCanvas" width="760" height="430"></canvas>
+        <div class="stage-hint" id="roadHint">◀ ▶ OR A / D TO STEER</div>
         <div class="road-overlay" id="roadOverlay">
         <span id="roadOverlayKicker">THE ROAD AWAITS</span>
         <strong id="roadOverlayTitle">KEEP MOVING.</strong>
@@ -273,16 +285,13 @@
         <p class="chapter-summary-kicker">SOMEHOW, WE MADE IT HERE.</p>
         <h2 id="chapterSummaryTitle">HAPPY<br><span>BIRTHDAY.</span></h2>
         <div class="typed-message" id="typedBirthdayMessage" aria-live="polite"></div>
-        <noscript>
-          <p class="typed-message-fallback">Many phases came into your life. You faced a lot, made some incredibly sweet memories, went through heartbreaks, made friends, lost some, and still kept moving. You kept pushing, and I believe you will keep grinding until you attain what you wish for. And knowing you, you are definitely going to settle there instead of pushing ahead. But know that I will always be there, watching you, lifting you, supporting you sometimes, and sometimes pulling your leg just so you don't get so mesmerized by everything that you forget your roots. So give it your best. Keep growing until growing becomes just a passive skill. Once again, happy birthday. There are still many birthdays in the store, and doing everything here would be a waste of resources. Let's save some emotions for the upcoming ones, so we know we're definitely celebrating them.</p>
-        </noscript>
       </div>
       <div class="chapter-summary-visuals" aria-hidden="true">
-        <div class="chapter-summary-image is-active"><img src="../apps/rishi/assets/chapter-vii-01.jpeg" alt=""></div>
-        <div class="chapter-summary-image"><img src="../apps/rishi/assets/chapter-vii-02.jpg" alt=""></div>
-        <div class="chapter-summary-image"><img src="../apps/rishi/assets/chapter-vii-03.jpg" alt=""></div>
-        <div class="chapter-summary-image"><img src="../apps/rishi/assets/chapter-vii-04.jpg" alt=""></div>
-        <div class="chapter-summary-image"><img src="../apps/rishi/assets/chapter-vii-05.png" alt=""></div>
+        <div class="chapter-summary-image is-active"><img src="../apps/rishi/assets/chapter-vii-01.jpeg" alt="" loading="lazy" decoding="async"></div>
+        <div class="chapter-summary-image"><img src="../apps/rishi/assets/chapter-vii-02.webp" alt="" loading="lazy" decoding="async"></div>
+        <div class="chapter-summary-image"><img src="../apps/rishi/assets/chapter-vii-03.jpg" alt="" loading="lazy" decoding="async"></div>
+        <div class="chapter-summary-image"><img src="../apps/rishi/assets/chapter-vii-04.jpg" alt="" loading="lazy" decoding="async"></div>
+        <div class="chapter-summary-image"><img src="../apps/rishi/assets/chapter-vii-05.webp" alt="" loading="lazy" decoding="async"></div>
         <div class="chapter-summary-image-scrim"></div>
       </div>
     </div>

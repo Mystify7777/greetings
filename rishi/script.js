@@ -8,7 +8,7 @@ const modal=document.querySelector('#rewardModal'),modalClose=document.querySele
 const relicPrompt=document.querySelector('#relicPrompt'),relicPromptType=document.querySelector('#relicPromptType'),relicPromptTitle=document.querySelector('#relicPromptTitle'),claimMemory=document.querySelector('#claimMemory');
 const chapter4Intro=document.querySelector('#chapter4Intro'),bossShell=document.querySelector('#bossShell'),bossStage=document.querySelector('#bossStage'),bossBar=document.querySelector('#bossBar'),bossHpText=document.querySelector('#bossHpText'),bossMessage=document.querySelector('#bossMessage'),bossPlayerHp=document.querySelector('#bossPlayerHp');
 const mazeSkipPanel=document.querySelector('#mazeSkipPanel'),skipMaze=document.querySelector('#skipMaze'),keepPlayingMaze=document.querySelector('#keepPlayingMaze'),mazeReturnPanel=document.querySelector('#mazeReturnPanel'),returnToMaze=document.querySelector('#returnToMaze');
-const ending=document.querySelector('#ending'),runSummary=document.querySelector('#runSummary'),secretReveal=document.querySelector('#secretReveal'),bossRechallenge=document.querySelector('#bossRechallenge'),rechallengeBoss=document.querySelector('#rechallengeBoss'),roadGame=document.querySelector('#roadGame'),roadCanvas=document.querySelector('#roadCanvas'),roadCtx=roadCanvas?.getContext('2d'),roadOverlay=document.querySelector('#roadOverlay'),roadOverlayKicker=document.querySelector('#roadOverlayKicker'),roadOverlayTitle=document.querySelector('#roadOverlayTitle'),roadOverlayText=document.querySelector('#roadOverlayText'),roadStartButton=document.querySelector('#roadStart'),roadCheckpoint=document.querySelector('#roadCheckpoint'),roadDistance=document.querySelector('#roadDistance'),roadScore=document.querySelector('#roadScore'),roadBest=document.querySelector('#roadBest'),roadLog=document.querySelector('#roadLog');
+const ending=document.querySelector('#ending'),runSummary=document.querySelector('#runSummary'),secretReveal=document.querySelector('#secretReveal'),bossRechallenge=document.querySelector('#bossRechallenge'),rechallengeBoss=document.querySelector('#rechallengeBoss'),roadGame=document.querySelector('#roadGame'),roadCanvas=document.querySelector('#roadCanvas'),roadCtx=roadCanvas?.getContext('2d'),roadOverlay=document.querySelector('#roadOverlay'),roadOverlayKicker=document.querySelector('#roadOverlayKicker'),roadOverlayTitle=document.querySelector('#roadOverlayTitle'),roadOverlayText=document.querySelector('#roadOverlayText'),roadStartButton=document.querySelector('#roadStart'),roadCheckpoint=document.querySelector('#roadCheckpoint'),roadDistance=document.querySelector('#roadDistance'),roadScore=document.querySelector('#roadScore'),roadBest=document.querySelector('#roadBest');
 
 
 const chapterSoundToggles=[...document.querySelectorAll('[data-sound-toggle]')];
@@ -94,10 +94,12 @@ function playCue(name,volume=1,rate=1){
  if(!audioState.enabled||!gameAudio)return;
  try{const id=gameAudio.play(name);gameAudio.volume(.42*volume,id);if(rate!==1)gameAudio.rate(rate,id)}catch{}
 }
+function syncVideoSound(){document.querySelectorAll('video').forEach(v=>{v.muted=!audioState.enabled})}
 function setSoundEnabled(enabled){
  audioState.enabled=enabled;
  try{localStorage.setItem('rishi-sound-enabled',enabled?'1':'0')}catch{}
  if(gameAudio&&!enabled)gameAudio.stop();
+ syncVideoSound();
  chapterSoundToggles.forEach(toggle=>{
   toggle.textContent=enabled?'SOUND ON':'SOUND OFF';
   toggle.setAttribute('aria-pressed',String(enabled));
@@ -132,6 +134,7 @@ fullscreenButtons.forEach(button=>button.addEventListener('click',()=>toggleFull
 document.addEventListener('fullscreenchange',syncFullscreenControls);
 document.addEventListener('webkitfullscreenchange',syncFullscreenControls);
 syncFullscreenControls();
+if(!(document.fullscreenEnabled||document.webkitFullscreenEnabled))fullscreenButtons.forEach(b=>{b.hidden=true});
 
 const TILE=40,W=25,H=17;
 const MAP=[
@@ -162,11 +165,11 @@ const gates=[
 
 const relics=[
  {x:7,y:3,title:'Family Comes First',type:'PHOTO',icon:'✦',text:'The first little piece of the birthday archive. A real photo from the story, finally recovered.',reward:'Recovered memory: +1 armour.'},
- {x:5,y:7,title:'Birthday Letter',type:'MESSAGE',icon:'✉',text:'Something small, personal and probably embarrassing in exactly the right way.',reward:'Recovered memory: +1 bravery and +1 HP (up to 5).'},
+ {x:5,y:7,title:'Birthday Letter',type:'MESSAGE',icon:'✉',text:'Small, personal and embarrassing in exactly the right way.',reward:'Recovered memory: +1 bravery and +1 HP (up to 5).'},
  {x:7,y:9,title:'A Trip Worth Remembering',type:'VIDEO',icon:'▶',text:'A moving memory from the archive. Some moments make more sense when they move.',reward:'Recovered memory: +1 mobility.'},
  {x:13,y:3,title:'The Boy Who Became a Man',type:'GAME',icon:'◆',text:'A memory from the years of games, volleyball, anime, chaos and questionable victory celebrations.',reward:'Recovered memory: +1 armour.'},
  {x:16,y:3,title:'Something Cherishing',type:'MEMORY',icon:'◇',text:'The ordinary moments are usually the ones that become the good stories. College days, games, random conversations, and the people who somehow became part of the routine.',reward:'Recovered memory: +1 bravery and +1 HP (up to 5).'},
- {x:10,y:13,title:'Yet Again',type:'LETTER',icon:'✎',text:'The proper birthday message is waiting inside. Read it when you have recovered this letter. Pushpa probably has evidence that should not be archived without supervision.',reward:'Recovered memory: +1 armour, +1 bravery and +1 HP (up to 5).'},
+ {x:10,y:13,title:'Yet Again',type:'LETTER',icon:'✎',text:'The proper birthday message is right above. Pushpa probably has evidence that should not be archived without supervision.',reward:'Recovered memory: +1 armour, +1 bravery and +1 HP (up to 5).'},
  {x:22,y:15,title:'Happy Birthday',type:'LEGEND',icon:'★',text:'The strongest memory is saved for last. Recovering it opens the final arena.',reward:'Final relic recovered: the Birthday Boss is awake.'}
 ];
 
@@ -255,12 +258,12 @@ function emitNarrative(id,force=false){
 
 function updateStoryAfterProgress(){
  if(state.memory===0)return;
- if(state.memory===1)setStory("CHAPTER II","THE FIRST MEMORY","The past is never as far away as it looks.","The first memory is recovered. One ordinary piece of Rishi's life is enough to remind us that a big story is built from small days.");
- else if(state.memory===2)setStory("CHAPTER II","THE PEOPLE & DAYS","Two memories. Two reasons to keep going.","Not every important moment looks important while it is happening. Some become precious only after time has passed.");
- else if(state.memory===3)setStory("CHAPTER II","THE YEARS","Halfway through the archive.","The maze is getting harder. So is life. Rishi does not get through it by avoiding every obstacle. He gets through it by learning what each one teaches.");
+ if(state.memory===1)setStory("CHAPTER III","THE FIRST MEMORY","The past is never as far away as it looks.","The first memory is recovered. One ordinary piece of Rishi's life is enough to remind us that a big story is built from small days.");
+ else if(state.memory===2)setStory("CHAPTER III","THE PEOPLE & DAYS","Two memories. Two reasons to keep going.","Not every important moment looks important while it is happening. Some become precious only after time has passed.");
+ else if(state.memory===3)setStory("CHAPTER III","THE YEARS","Halfway through the archive.","The maze is getting harder. So is life. Rishi does not get through it by avoiding every obstacle. He gets through it by learning what each one teaches.");
  else if(state.memory===4)setStory("CHAPTER III","THE TURNING POINT","Four memories recovered. The route ahead changes.","At some point, growing up stops being about becoming someone else. It becomes about carrying what you have learned without letting it weigh you down.");
  else if(state.memory===5)setStory("CHAPTER III","THE HARD PART","The last two memories are behind harder doors.","There are chapters nobody volunteers for. Setbacks, mistakes, bad days, missed chances. They still become part of the person who keeps moving.");
- else if(state.memory===6)setStory("CHAPTER IV","THE EDGE OF THE STORY","One memory remains. The easy part is over.","The final door does not open because Rishi is fearless. It opens because he has learned that fear is allowed to come along for the ride.");
+ else if(state.memory===6)setStory("CHAPTER III","THE EDGE OF THE STORY","One memory remains. The easy part is over.","The final door does not open because Rishi is fearless. It opens because he has learned that fear is allowed to come along for the ride.");
  else if(state.memory===7)setStory("CHAPTER IV","THE FIGHT","The memories are safe. Now the story asks a harder question.","What happens when remembering is not enough? The last obstacle is not another memory. It is the part of every story where you have to get back up and fight for the ending.");
 }
 function isGateOpen(g){return state.memory>=g.need}
@@ -384,19 +387,19 @@ function renderMemoryMedia(index){
 function openReward(index){
  state.keys.clear();state.paused=true;gameStage.inert=true;modal.classList.add('open');modal.setAttribute('aria-hidden','false');state.modalReturnFocus=gameStage;
  const r=rewards[index];rewardKicker.textContent='MEMORY '+String(index+1).padStart(2,'0')+' // '+r.type;rewardTitle.textContent=r.icon+' '+r.title;
- rewardBody.innerHTML=renderMemoryMedia(index)+'<p>'+r.text+'</p><div class="reward-reward">'+r.reward+'</div>';
+ rewardBody.innerHTML=renderMemoryMedia(index)+'<p>'+r.text+'</p><div class="reward-reward">'+r.reward+'</div>';syncVideoSound();
  setTimeout(()=>modalClose.focus(),0);
 }
 function openSecretReward(secret){
  state.keys.clear();state.paused=true;gameStage.inert=true;modal.classList.add('open');modal.setAttribute('aria-hidden','false');state.modalReturnFocus=gameStage;
  rewardKicker.textContent='SECRET MEMORY // '+secret.kind;rewardTitle.textContent='✦ '+secret.title;
- rewardBody.innerHTML='<div class="reward-media reward-video"><video controls playsinline preload="metadata" src="'+MEMORY_MEDIA_BASE+secret.media+'"></video></div><p>'+secret.text+'</p><div class="reward-reward">SECRET ROUTE COMPLETE. You found something the main story does not reveal.</div>';
+ rewardBody.innerHTML='<div class="reward-media reward-video"><video controls playsinline preload="metadata" src="'+MEMORY_MEDIA_BASE+secret.media+'"></video></div><p>'+secret.text+'</p><div class="reward-reward">SECRET ROUTE COMPLETE. You found something the main story does not reveal.</div>';syncVideoSound();
  setTimeout(()=>modalClose.focus(),0);
 }
 function closeReward(){
  const secret=state.pendingSecret;
  state.pendingSecret=null;
- state.keys.clear();modal.classList.remove('open');modal.setAttribute('aria-hidden','true');gameStage.inert=false;
+ rewardBody.querySelectorAll('video').forEach(v=>v.pause());state.keys.clear();modal.classList.remove('open');modal.setAttribute('aria-hidden','true');gameStage.inert=false;
  if(secret){
    state.paused=true;
    setTimeout(()=>openSecretReward(secret),260);
@@ -424,7 +427,7 @@ modal.querySelector('[data-close-modal]').addEventListener('click',closeReward);
 function handleKeyDown(e){
  const k=e.key.toLowerCase();
  if((k==='e'||k==='enter')&&state.pendingRelic!==null&&!state.paused){e.preventDefault();collectRelic(state.pendingRelic);return}
- if(['arrowup','arrowdown','arrowleft','arrowright','w','a','s','d',' '].includes(k)||e.code==='Space'){e.preventDefault();state.keys.add(k);if(k===' '||e.code==='Space')bossState.attackQueued=true}
+ if(['arrowup','arrowdown','arrowleft','arrowright','w','a','s','d',' '].includes(k)||e.code==='Space'){e.preventDefault();state.keys.add(k);if((k===' '||e.code==='Space')&&bossState.active)bossState.attackQueued=true}
 }
 function handleKeyUp(e){state.keys.delete(e.key.toLowerCase())}
 gameStage.addEventListener('keydown',handleKeyDown);bossStage.addEventListener('keydown',handleKeyDown);
@@ -547,7 +550,7 @@ function frame(t){
 requestAnimationFrame(frame);
 
 const bossState={active:false,startingHp:5,startingArmour:0,rechallengeCount:0,player:{x:100,y:210,r:11,hp:5,armour:0,invulnerableUntil:0},boss:{x:620,y:210,r:25,hp:50,maxHp:50,phase:1,shotTimer:0,moveTimer:0,dir:1,vx:0,vy:0},shots:[],playerShots:[],attackQueued:false,last:0,buffs:[]};
-function initBoss(playIntroCue=true){if(playIntroCue){playCue('bossStart',.9);emitNarrative('boss.start',true)}bossState.active=true;bossState.startingHp=Math.max(1,state.hp);bossState.startingArmour=state.armour;const level=bossState.rechallengeCount;const maxHp=50+level*25;bossState.player={x:100,y:210,r:11,hp:bossState.startingHp,armour:bossState.startingArmour,invulnerableUntil:0};bossState.boss={x:620,y:210,r:25,hp:maxHp,maxHp,phase:1,shotTimer:0,moveTimer:0,dir:1,vx:0,vy:0};bossState.shots=[];bossState.playerShots=[];bossState.buffs=[];bossState.last=performance.now();bossMessage.textContent=level===0?"The boss is waiting. Find the rhythm. Your maze health and armour carried forward.":"REMATCH "+level+". Rishi starts fresh. The boss does not.";updateBossHud();}
+function initBoss(playIntroCue=true){if(playIntroCue){playCue('bossStart',.9);emitNarrative('boss.start',true)}bossState.active=true;bossState.startingHp=Math.max(1,state.hp);bossState.startingArmour=state.armour;const level=bossState.rechallengeCount;const maxHp=50+level*25;bossState.player={x:100,y:210,r:11,hp:bossState.startingHp,armour:bossState.startingArmour,invulnerableUntil:0};bossState.boss={x:620,y:210,r:25,hp:maxHp,maxHp,phase:1,shotTimer:0,moveTimer:0,dir:1,vx:0,vy:0};bossState.shots=[];bossState.playerShots=[];bossState.buffs=[];bossState.attackQueued=false;bossState.last=performance.now();bossMessage.textContent=level===0?"The boss is waiting. Find the rhythm. Your maze health and armour carried forward.":"REMATCH "+level+". Rishi starts fresh. The boss does not.";updateBossHud();}
 function bossMove(dt){
  let dx=0,dy=0;if(state.keys.has('arrowleft')||state.keys.has('a'))dx--;if(state.keys.has('arrowright')||state.keys.has('d'))dx++;if(state.keys.has('arrowup')||state.keys.has('w'))dy--;if(state.keys.has('arrowdown')||state.keys.has('s'))dy++;
  if(dx||dy){const l=Math.hypot(dx,dy);bossState.player.x=Math.max(15,Math.min(745,bossState.player.x+dx/l*170*state.mobility*dt));bossState.player.y=Math.max(15,Math.min(405,bossState.player.y+dy/l*170*state.mobility*dt))}
@@ -650,7 +653,7 @@ function continueAfterMazeSkip(){
   state.bossUnlocked=false;
   state.paused=false;
   mazeSkipPanel.hidden=true;
-  gameShell.hidden=true;
+  gameShell.classList.add('maze-skipped');
   chapter4Intro.hidden=true;
   bossShell.hidden=true;
   ending.hidden=false;
@@ -666,6 +669,9 @@ function continueAfterMazeSkip(){
   setLog('MAZE + BOSS SKIPPED. MEMORY ARCHIVE INCOMPLETE. RETURN LATER TO RECOVER THE REST.');
   if(mazeReturnPanel)mazeReturnPanel.hidden=false;
   roadUnlock();
+  const ch7=document.querySelector('#chapterSummary'),ch7Unlock=document.querySelector('#chapter7Unlock');
+  if(ch7)ch7.hidden=false;
+  if(ch7Unlock)ch7Unlock.hidden=false;
   roadSetOverlay("CHAPTER VI // THE LONG ROAD","THE NEXT SUCCESS IS FARTHER.","The maze was skipped, so this progress is only for this visit. Complete the maze and defeat the boss on a future run if you want the road to remember your checkpoints after refresh.","▶ START THE ROAD");
   ending.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth',block:'center'});
 }
@@ -682,11 +688,14 @@ skipMaze?.addEventListener('click',()=>{
 returnToMaze?.addEventListener('click',()=>{
   state.mazeSkipped=false;
   mazeReturnPanel.hidden=true;
+  gameShell.classList.remove('maze-skipped');
   gameShell.hidden=false;
+  ending.hidden=true;
   missionState.textContent=state.memory===7?'CLEARED':'RETURNING';
   missionText.textContent=state.memory===7?'Every memory recovered. The final arena is waiting.':'The archive still has memories buried here. Recover what you left behind.';
   gameShell.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth',block:'center'});
   setTimeout(()=>gameStage.focus(),matchMedia('(prefers-reduced-motion:reduce)').matches?0:180);
+  if(state.memory===7&&!state.bossUnlocked)unlockBoss();
 });
 
 document.querySelector('#beginMaze')?.addEventListener('click',()=>{
@@ -815,15 +824,6 @@ function unlockRoadGame(){
  roadSetOverlay("CHAPTER VI // THE LONG ROAD","THE NEXT SUCCESS IS FARTHER.","The road remembers where you stopped. The next checkpoint will demand more distance than the last. Easy mode was never promised.","▶ START THE ROAD");
  roadGame.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion:reduce)").matches?"auto":"smooth",block:"center"});
 }
-function roadResetSegment(){
- roadState.distance=roadCheckpointDistances[roadState.checkpoint];
- roadState.score=roadState.checkpointScore;
- roadState.lane=1;
- roadState.targetLane=1;
- roadState.objects=[];
- roadState.spawnTimer=.35;
- roadState.crashCooldown=1.2;
-}
 function roadStart(){
  playCue('roadStart',.9);emitNarrative('road.start',true);
  roadLoad();
@@ -832,7 +832,6 @@ function roadStart(){
  roadOverlay.hidden=true;
  roadGame.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion:reduce)").matches?"auto":"smooth",block:"center"});
  const startMessage=roadState.checkpoint===0?"The first checkpoint is close. The next one will not be. First win easy thi. Ab asli road shuru.":"Checkpoint "+roadState.checkpoint+" restored. The road ahead is yours again.";
- roadLog.textContent=startMessage;
  roadLogMessage(startMessage);
  roadStage.focus();
 }
@@ -855,7 +854,6 @@ function roadAdvanceCheckpoint(){
  'You are still moving. That is the important part.'
 ];
 const message=checkpointMessages[(roadState.checkpoint-1)%checkpointMessages.length];
-roadLog.textContent=message;
 roadLogMessage('CHECKPOINT '+String(next).padStart(2,'0')+' CLEARED AT '+roadState.checkpointScore+' POINTS. '+message);
 const personalNote=document.querySelector('#roadPersonalNote');
 if(personalNote)personalNote.textContent=message;
@@ -877,8 +875,7 @@ function roadCrash(){
   roadState.checkpointScore=roadState.checkpointScores[fallback]||0;
   roadState.distance=roadCheckpointDistances[fallback];
   roadState.score=roadState.checkpointScore;
-  const fallbackMessage='Three failures on the same stretch. You fell back to checkpoint '+String(fallback).padStart(2,'0')+', but the checkpoint is still yours. Change the approach and go again.';
-roadLog.textContent=fallbackMessage;
+  const fallbackMessage='Three failures on the same stretch. You fell back to '+(fallback===0?'the start':'checkpoint '+String(fallback).padStart(2,'0'))+', but the checkpoint is still yours. Change the approach and go again.';
 roadLogMessage(fallbackMessage);
 emitNarrative('road.fallback',true);
  }else{
@@ -893,7 +890,6 @@ emitNarrative('road.fallback',true);
  'The checkpoint is still yours. Learn the pattern and go again.'
 ];
 const crashMessage=crashMessages[(attempts-1)%crashMessages.length];
-roadLog.textContent=crashMessage;
 roadLogMessage('CRASH · '+crashMessage);
 emitNarrative(attempts===1?'road.crash.first':'road.crash.repeat');
  }
@@ -925,7 +921,6 @@ function roadUpdate(dt){
  roadState.score+=roadState.speed*dt*.045;
  roadState.lane+=(roadState.targetLane-roadState.lane)*Math.min(1,dt*9);
  roadState.lane=Math.max(0,Math.min(2,roadState.lane));
- const laneX=roadLaneX[roadState.targetLane];
  const currentX=roadLaneX[0]+(roadLaneX[2]-roadLaneX[0])*(roadState.lane/2);
  roadState.spawnTimer-=dt;
  if(roadState.spawnTimer<=0){
@@ -939,7 +934,6 @@ function roadUpdate(dt){
    if(o.type==="opportunity"){
     o.y=999;playCue('opportunity',.8);
     roadState.score+=150;
-    roadLog.textContent="OPPORTUNITY TAKEN. +150. Keep your eyes open.";
     roadLogMessage('OPPORTUNITY TAKEN · +150. Keep your eyes open.');
     emitNarrative('road.opportunity');
    }else{
@@ -1013,7 +1007,6 @@ function roadRestart(){
  playCue('roadStart',.75);
  emitNarrative('road.restart',true);
  roadSetOverlay("FRESH START","THE ROAD STARTS OVER.","Checkpoint and current score cleared. Your best score stays on the board.","▶ START THE ROAD");
- roadLog.textContent="New run ready. Every checkpoint is yours to earn again.";
  roadMessageHistory.length=0;
  roadLogMessage("New run ready. Every checkpoint is yours to earn again.");
  roadGame.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion:reduce)").matches?"auto":"smooth",block:"center"});
@@ -1096,10 +1089,10 @@ if(chapterSummary&&'IntersectionObserver' in window){const chapterSummaryObserve
 
 const chapter5Video=document.querySelector('#chapter5Video');
 if(chapter5Video){
-  chapter5Video.muted=false;
+  chapter5Video.muted=!audioState.enabled;
   chapter5Video.volume=1;
   const tryChapter5Play=()=>{
-    chapter5Video.muted=false;
+    chapter5Video.muted=!audioState.enabled;
     chapter5Video.play().catch(()=>{
       const fallback=document.querySelector('#chapter5AudioFallback');
       if(fallback)fallback.hidden=false;
@@ -1117,7 +1110,7 @@ if(chapter5Video){
 document.querySelector('#chapter5AudioFallback')?.addEventListener('click',()=>{
   const video=document.querySelector('#chapter5Video');
   if(!video)return;
-  video.muted=false;
+  video.muted=!audioState.enabled;
   video.play().then(()=>{document.querySelector('#chapter5AudioFallback').hidden=true;});
 });
 document.querySelector('#continueChapter7')?.addEventListener('click',()=>{
