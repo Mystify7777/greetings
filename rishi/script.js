@@ -176,7 +176,7 @@ const relics=[
 const state={
  started:false,paused:false,keys:new Set(),player:{x:1.5*TILE,y:1.5*TILE,r:10},hp:5,armour:0,bravery:0,mobility:1,memory:0,deaths:0,lastTime:0,invulnerableUntil:0,modalReturnFocus:gameStage,
  collected:new Set(),gateNotice:new Set(),claimOrder:[],pendingRelic:null,pendingSecret:null,bossUnlocked:false,bossDeaths:0,resumeUntil:0,pendingBossUnlock:false
-,mazeSkipped:false};
+,mazeSkipped:false,shakeUntil:0};
 
 const mobDefs=[
  {x:7.5,y:1.5,speed:1.55,mode:'horizontal',path:[[7,1],[8,1],[9,1],[9,2],[9,3],[9,4],[9,5],[9,6],[9,7],[7,7],[7,6],[7,5],[7,4]]},
@@ -186,7 +186,7 @@ const mobDefs=[
  {x:17.5,y:11.5,speed:1.45,mode:'hunter',path:[[17,11],[17,12],[17,13],[17,14],[17,15],[18,15],[19,15],[20,15],[21,15],[22,15],[23,15]]}
 ];
 const mobColors=['#52b7ff','#ffad4d','#b77cff','#5fe39a','#ff647c'];
-const mobs=mobDefs.map((m,i)=>({...m,index:i,color:mobColors[i],px:m.x*TILE,py:m.y*TILE,target:0,dir:1,alert:0,pulse:0}));
+const mobs=mobDefs.map((m,i)=>({...m,index:i,color:mobColors[i],px:m.x*TILE,py:m.y*TILE,target:0,dir:1,alert:0,pulse:0,stun:0}));
 
 const rewards=Object.fromEntries(relics.map((r,i)=>[i,r]));
 // The Trick follows the maze's natural relic order. The Treat deliberately zig-zags across the map.
@@ -287,29 +287,57 @@ function moveEntity(e,dx,dy){
  if(!circleHitsWall(nx,e.y,e.r)){e.x=nx}
  if(!circleHitsWall(e.x,ny,e.r)){e.y=ny}
 }
-function resetPlayer(reason){
- if(performance.now()<state.invulnerableUntil)return;
+const REDUCE_MOTION=matchMedia('(prefers-reduced-motion:reduce)').matches;
+function respawnPoint(){
+ // Back to the last memory you recovered (or the start), unless a guardian is standing on it.
+ const lastIndex=state.claimOrder.length?state.claimOrder[state.claimOrder.length-1]-1:-1;
+ if(lastIndex>=0){
+  const r=relics[lastIndex],x=(r.x+.5)*TILE,y=(r.y+.5)*TILE;
+  if(!mobs.some(m=>Math.hypot(m.px-x,m.py-y)<70))return {x,y,label:r.title};
+ }
+ return {x:1.5*TILE,y:1.5*TILE,label:null};
+}
+function knockPlayer(from){
+ // Push away from the guardian; in a tight corridor fall back to the best free direction (never toward it).
+ const p=state.player;let dx=p.x-from.px,dy=p.y-from.py,d=Math.hypot(dx,dy);
+ if(d<1){dx=1;dy=0;d=1}
+ dx/=d;dy/=d;
+ const options=[[dx,dy],[1,0],[-1,0],[0,1],[0,-1]].filter((o,i)=>i===0||o[0]*dx+o[1]*dy>=-.01).sort((a,b)=>(b[0]*dx+b[1]*dy)-(a[0]*dx+a[1]*dy));
+ for(const [ox,oy] of options){
+  const sx=p.x,sy=p.y;
+  for(let i=0;i<10;i++)moveEntity(p,ox*4,oy*4);
+  if(Math.hypot(p.x-sx,p.y-sy)>=16)return;
+  p.x=sx;p.y=sy;
+ }
+}
+function resetPlayer(reason,source){
+ const now=performance.now();
+ if(now<state.invulnerableUntil)return;
  playCue('collision',.8);
- state.invulnerableUntil=performance.now()+750;
+ state.invulnerableUntil=now+1500;
+ state.shakeUntil=now+220;
+ if(source){knockPlayer(source);source.stun=1.1}
  if(state.armour>0){
-   state.armour--;playCue('armour');state.player.x=1.5*TILE;state.player.y=1.5*TILE;updateStats();
+   state.armour--;playCue('armour');updateStats();
    setLog('ARMOUR ABSORBED THE HIT. '+reason+' The shield held.');
    return;
  }
  state.hp--;playCue('hit');
  if(state.hp>0){
-   state.player.x=1.5*TILE;state.player.y=1.5*TILE;updateStats();
-   setLog(reason+' HP -1. You have '+state.hp+' heart'+(state.hp===1?'':'s')+' left.');
+   updateStats();
+   setLog(reason+' HP -1. You have '+state.hp+' heart'+(state.hp===1?'':'s')+' left. Shake it off and keep moving.');
    missionText.textContent=state.hp<=2?'Low health. The next memory matters.':'The maze hit hard. Keep moving.';
    return;
  }
  state.deaths++;state.bravery++;state.mobility=Math.min(2.5,state.mobility+.1);playCue('gameOver');
- state.hp=5;state.player.x=1.5*TILE;state.player.y=1.5*TILE;
- updateStats();setLog(reason+' You ran out of HP. The next attempt starts with a full recovery.');
+ const spot=respawnPoint();
+ state.hp=5;state.player.x=spot.x;state.player.y=spot.y;state.invulnerableUntil=now+1800;
+ const where=spot.label?'Back at "'+spot.label+'" with full hearts.':'Back at the start with full hearts.';
+ updateStats();setLog(reason+' You ran out of HP. '+where);
  missionText.textContent=state.deaths%2?'The maze won that round. It does not keep the win.':'Caught. Good. Now you know where the danger is.';
  if(state.deaths>=2 && !state.mazeSkipped){
    mazeSkipPanel.hidden=false;
-   setLog('TWO DEATHS RECORDED. The archive offers a temporary way forward.');
+   setLog('TWO DEATHS RECORDED. The archive offers a temporary way forward. '+where);
  }
  setStory("CHAPTER III","THE SETBACK","Rishi falls. The story does not.","Every failed run changes the next one. A little more bravery. A little more speed. A little more knowledge. The point was never to avoid falling.");
  emitNarrative(state.deaths===1?'maze.death.first':'maze.death.repeat');
@@ -506,12 +534,13 @@ function updatePlayer(dt){
   relicPrompt.hidden=true;
  }
  if(state.paused)return;
- mobs.forEach(m=>{if(Math.hypot(state.player.x-m.px,state.player.y-m.py)<20)resetPlayer('GUARDIAN CONTACT.')});
+ mobs.forEach(m=>{if(Math.hypot(state.player.x-m.px,state.player.y-m.py)<20)resetPlayer('GUARDIAN CONTACT.',m)});
 }
 function pathPoint(m){const p=m.path[m.target];return {x:(p[0]+.5)*TILE,y:(p[1]+.5)*TILE}}
 function updateMobs(dt){
  mobs.forEach(m=>{
    m.pulse+=dt;
+   if(m.stun>0){m.stun=Math.max(0,m.stun-dt);m.alert=Math.max(0,m.alert-dt*2);return}
    const p=pathPoint(m),dx=p.x-m.px,dy=p.y-m.py,d=Math.hypot(dx,dy);
    const chase=m.mode==='hunter'&&Math.hypot(state.player.x-m.px,state.player.y-m.py)<145;
    if(chase){m.alert=Math.min(1,m.alert+dt*3);const ang=Math.atan2(state.player.y-m.py,state.player.x-m.px);m.px+=Math.cos(ang)*m.speed*92*dt;m.py+=Math.sin(ang)*m.speed*92*dt}
@@ -525,6 +554,8 @@ function updateMobs(dt){
 }
 function drawMaze(){
  ctx.clearRect(0,0,canvas.width,canvas.height);
+ const shakeLeft=state.shakeUntil-performance.now();ctx.save();
+ if(shakeLeft>0&&!REDUCE_MOTION){const k=shakeLeft/220*5;ctx.translate((Math.random()-.5)*k*2,(Math.random()-.5)*k*2)}
  ctx.fillStyle='#060a13';ctx.fillRect(0,0,canvas.width,canvas.height);
  for(let y=0;y<H;y++)for(let x=0;x<W;x++){
    const wall=MAP[y][x]==='1';ctx.fillStyle=wall?'#17233b':'#070d18';ctx.fillRect(x*TILE,y*TILE,TILE,TILE);
@@ -538,8 +569,8 @@ function drawMaze(){
   if(near){ctx.strokeStyle='#fff0a3';ctx.lineWidth=2;ctx.beginPath();ctx.arc(cx,cy,19+pulse,0,Math.PI*2);ctx.stroke();ctx.lineWidth=1}
   ctx.fillStyle='#3b2b0b';ctx.font='bold 10px monospace';ctx.textAlign='center';ctx.fillText(String(i+1),cx,cy+3);
 });
- mobs.forEach(m=>{const bob=Math.sin(m.pulse*5+m.index)*2,cx=m.px,cy=m.py+bob;ctx.beginPath();ctx.arc(cx,cy,14+(m.alert*2),0,Math.PI*2);ctx.fillStyle=m.alert>.2?m.color:m.color;ctx.globalAlpha=m.alert>.2?1:.82;ctx.fill();ctx.globalAlpha=1;ctx.fillStyle='#310d1e';ctx.font='bold 13px monospace';ctx.textAlign='center';ctx.fillText('!',cx,cy+5);if(m.alert>.2){ctx.strokeStyle=m.color+'88';ctx.beginPath();ctx.arc(cx,cy,21+Math.sin(m.pulse*8)*3,0,Math.PI*2);ctx.stroke()}});
- const p=state.player;ctx.beginPath();ctx.arc(p.x,p.y,12,0,Math.PI*2);ctx.fillStyle='#70e6d6';ctx.fill();ctx.fillStyle='#06211e';ctx.font='bold 10px monospace';ctx.textAlign='center';ctx.fillText('R',p.x,p.y+4);
+ mobs.forEach(m=>{const bob=Math.sin(m.pulse*5+m.index)*2,cx=m.px,cy=m.py+bob;ctx.beginPath();ctx.arc(cx,cy,14+(m.alert*2),0,Math.PI*2);ctx.fillStyle=m.alert>.2?m.color:m.color;ctx.globalAlpha=m.stun>0?.35:(m.alert>.2?1:.82);ctx.fill();ctx.globalAlpha=1;ctx.fillStyle='#310d1e';ctx.font='bold 13px monospace';ctx.textAlign='center';ctx.fillText('!',cx,cy+5);if(m.alert>.2){ctx.strokeStyle=m.color+'88';ctx.beginPath();ctx.arc(cx,cy,21+Math.sin(m.pulse*8)*3,0,Math.PI*2);ctx.stroke()}});
+ const p=state.player,nowT=performance.now();if(nowT<state.invulnerableUntil)ctx.globalAlpha=REDUCE_MOTION?.6:(Math.floor(nowT/90)%2?1:.35);ctx.beginPath();ctx.arc(p.x,p.y,12,0,Math.PI*2);ctx.fillStyle='#70e6d6';ctx.fill();ctx.fillStyle='#06211e';ctx.font='bold 10px monospace';ctx.textAlign='center';ctx.fillText('R',p.x,p.y+4);ctx.globalAlpha=1;ctx.restore();
 }
 function frame(t){
  const dt=Math.min(.035,(t-state.lastTime)/1000||0);state.lastTime=t;

@@ -23,3 +23,9 @@ Rishi page review fixes:
 
 Known and intentionally unchanged: the three memory gates can be walked around, which the Treat secret route relies on; some guardians cross wall tiles; Space Mono is named in the CSS but not bundled.
 
+### Maze: fairer hits (2026-11-24)
+
+- Taking a hit no longer sends the player back to the start tile. It costs a heart, knocks the player back, stuns the guardian for about a second and gives about 1.5s of grace.
+- Running out of hearts respawns at the last recovered memory instead of the start.
+- Added a short screen shake and blink on hit (both reduced when the system asks for reduced motion).
+

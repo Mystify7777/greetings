@@ -40,7 +40,8 @@ Five guardians use different movement behaviors:
 - Short chase burst when the player enters a warning radius, then return to route.
 - Orbit/loop movement around a small corridor.
 - Guardians have idle bobbing, pulse rings, direction changes, warning states and small movement interpolation.
-- Collision respawns the player.
+- A hit costs one heart, knocks the player back (away from the guardian, or along the corridor if a wall is in the way), briefly stuns that guardian, and gives about 1.5s of grace (blinking). Armour absorbs a hit the same way.
+- Losing all hearts restores full hearts and respawns the player at the last recovered memory (or the start if none, or if a guardian is standing on it).
 - Collected relics remain collected.
 - Every death increments bravery and mobility.
 - Mobility is capped so the game remains controllable.
