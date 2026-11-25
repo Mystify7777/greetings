@@ -29,3 +29,9 @@ Known and intentionally unchanged: the three memory gates can be walked around, 
 - Running out of hearts respawns at the last recovered memory instead of the start.
 - Added a short screen shake and blink on hit (both reduced when the system asks for reduced motion).
 
+
+## 2026-11-25
+
+Maze polish, step 1:
+
+- The empty south-west corner now has a sixth guardian (a patrol along its corridors, no chasing) and a hidden bonus at the end of the longest dead end: +1 armour and the existing second letter. The bonus is not a memory and does not affect the 0/7 count, secret routes or the boss.

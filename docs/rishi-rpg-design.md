@@ -33,7 +33,7 @@ Failure is progression. A failed attempt teaches the player a route or attack pa
 - No dead-end "wall embedded" collectibles.
 
 ### 2. Guardians
-Five guardians use different movement behaviors:
+Six guardians use different movement behaviors (the sixth patrols the south-west corner and never chases):
 - Vertical patrol.
 - Horizontal patrol.
 - Ping-pong corridor patrol.
@@ -41,6 +41,7 @@ Five guardians use different movement behaviors:
 - Orbit/loop movement around a small corridor.
 - Guardians have idle bobbing, pulse rings, direction changes, warning states and small movement interpolation.
 - A hit costs one heart, knocks the player back (away from the guardian, or along the corridor if a wall is in the way), briefly stuns that guardian, and gives about 1.5s of grace (blinking). Armour absorbs a hit the same way.
+- A hidden bonus sits at the end of the south-west dead end (tile 1,11): +1 armour and the second letter again. It is not a memory and does not change the 0/7 count, claim order, secret routes or boss unlock.
 - Losing all hearts restores full hearts and respawns the player at the last recovered memory (or the start if none, or if a guardian is standing on it).
 - Collected relics remain collected.
 - Every death increments bravery and mobility.

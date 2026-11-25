@@ -175,7 +175,7 @@ const relics=[
 
 const state={
  started:false,paused:false,keys:new Set(),player:{x:1.5*TILE,y:1.5*TILE,r:10},hp:5,armour:0,bravery:0,mobility:1,memory:0,deaths:0,lastTime:0,invulnerableUntil:0,modalReturnFocus:gameStage,
- collected:new Set(),gateNotice:new Set(),claimOrder:[],pendingRelic:null,pendingSecret:null,bossUnlocked:false,bossDeaths:0,resumeUntil:0,pendingBossUnlock:false
+ collected:new Set(),gateNotice:new Set(),claimOrder:[],pendingRelic:null,pendingBonus:null,bonusClaimed:new Set(),pendingSecret:null,bossUnlocked:false,bossDeaths:0,resumeUntil:0,pendingBossUnlock:false
 ,mazeSkipped:false,shakeUntil:0};
 
 const mobDefs=[
@@ -183,9 +183,12 @@ const mobDefs=[
  {x:11.5,y:1.5,speed:1.35,mode:'vertical',path:[[11,1],[11,2],[11,3],[11,4],[11,5],[11,6],[11,7],[10,7]]},
  {x:5.5,y:5.5,speed:1.7,mode:'loop',path:[[5,5],[5,6],[5,7],[6,7],[7,7],[7,6],[7,5],[7,4],[7,3],[6,3],[5,3],[4,3],[3,3],[3,2],[3,1],[4,1],[5,1],[6,1],[7,1],[8,1],[9,1],[9,2],[9,3],[9,4],[9,5],[9,6],[9,7],[10,7],[11,7],[11,6],[11,5]]},
  {x:13.5,y:9.5,speed:1.5,mode:'vertical',path:[[13,9],[14,9],[15,9],[15,8],[15,7],[15,6],[15,5],[16,5],[17,5],[18,5],[19,5],[19,4],[19,3],[18,3],[17,3],[17,2],[17,1],[18,1],[19,1],[20,1],[21,1],[22,1],[23,1],[23,2],[23,3],[22,3],[21,3],[21,4],[21,5],[21,6],[21,7],[20,7],[19,7],[19,8],[19,9],[19,10],[19,11],[18,11],[17,11],[16,11],[15,11],[14,11],[13,11],[13,12],[13,13],[13,14],[13,15]]},
- {x:17.5,y:11.5,speed:1.45,mode:'hunter',path:[[17,11],[17,12],[17,13],[17,14],[17,15],[18,15],[19,15],[20,15],[21,15],[22,15],[23,15]]}
+ {x:17.5,y:11.5,speed:1.45,mode:'hunter',path:[[17,11],[17,12],[17,13],[17,14],[17,15],[18,15],[19,15],[20,15],[21,15],[22,15],[23,15]]},
+ {x:1.5,y:9.5,speed:1.5,mode:'horizontal',path:[[1,9],[2,9],[3,9],[3,10],[3,11],[4,11],[5,11],[5,12],[5,13],[4,13],[3,13],[3,14],[3,15],[2,15],[1,15],[1,14],[1,13]]}
 ];
-const mobColors=['#52b7ff','#ffad4d','#b77cff','#5fe39a','#ff647c'];
+/* Non-counting bonus: a hidden armour pickup that reopens an existing letter. Not a memory. */
+const bonuses=[{x:1,y:11,type:'ARMOUR',title:'THE HIDDEN CORNER',messageIndex:5}];
+const mobColors=['#52b7ff','#ffad4d','#b77cff','#5fe39a','#ff647c','#c4f04d'];
 const mobs=mobDefs.map((m,i)=>({...m,index:i,color:mobColors[i],px:m.x*TILE,py:m.y*TILE,target:0,dir:1,alert:0,pulse:0,stun:0}));
 
 const rewards=Object.fromEntries(relics.map((r,i)=>[i,r]));
@@ -418,6 +421,15 @@ function openReward(index){
  rewardBody.innerHTML=renderMemoryMedia(index)+'<p>'+r.text+'</p><div class="reward-reward">'+r.reward+'</div>';syncVideoSound();
  setTimeout(()=>modalClose.focus(),0);
 }
+function collectBonus(i){
+ if(state.bonusClaimed.has(i))return;
+ const b=bonuses[i];playCue('relicCollect');state.bonusClaimed.add(i);state.pendingBonus=null;relicPrompt.hidden=true;
+ state.armour++;updateStats();setLog('HIDDEN CORNER FOUND. +1 armour. This is a bonus, not a memory.');
+ state.keys.clear();state.paused=true;gameStage.inert=true;modal.classList.add('open');modal.setAttribute('aria-hidden','false');state.modalReturnFocus=gameStage;
+ rewardKicker.textContent='BONUS // '+b.type;rewardTitle.textContent='🛡 '+b.title;
+ rewardBody.innerHTML='<div class="reward-message">'+memoryMessages[b.messageIndex]+'</div><p>Nobody had to come down this far. You did.</p><div class="reward-reward">+1 ARMOUR. A bonus, not a memory. Your count stays where it was.</div>';syncVideoSound();
+ setTimeout(()=>modalClose.focus(),0);
+}
 function openSecretReward(secret){
  state.keys.clear();state.paused=true;gameStage.inert=true;modal.classList.add('open');modal.setAttribute('aria-hidden','false');state.modalReturnFocus=gameStage;
  rewardKicker.textContent='SECRET MEMORY // '+secret.kind;rewardTitle.textContent='✦ '+secret.title;
@@ -455,12 +467,13 @@ modal.querySelector('[data-close-modal]').addEventListener('click',closeReward);
 function handleKeyDown(e){
  const k=e.key.toLowerCase();
  if((k==='e'||k==='enter')&&state.pendingRelic!==null&&!state.paused){e.preventDefault();collectRelic(state.pendingRelic);return}
+  if((k==='e'||k==='enter')&&state.pendingBonus!==null&&!state.paused){e.preventDefault();collectBonus(state.pendingBonus);return}
  if(['arrowup','arrowdown','arrowleft','arrowright','w','a','s','d',' '].includes(k)||e.code==='Space'){e.preventDefault();state.keys.add(k);if((k===' '||e.code==='Space')&&bossState.active)bossState.attackQueued=true}
 }
 function handleKeyUp(e){state.keys.delete(e.key.toLowerCase())}
 gameStage.addEventListener('keydown',handleKeyDown);bossStage.addEventListener('keydown',handleKeyDown);
 document.addEventListener('keyup',handleKeyUp);
-claimMemory.addEventListener('click',()=>{if(state.pendingRelic!==null&&!state.paused)collectRelic(state.pendingRelic)});
+claimMemory.addEventListener('click',()=>{if(state.paused)return;if(state.pendingRelic!==null)collectRelic(state.pendingRelic);else if(state.pendingBonus!==null)collectBonus(state.pendingBonus)});
 gameStage.addEventListener('click',()=>gameStage.focus());bossStage.addEventListener('click',()=>bossStage.focus());
 
 const mobilePointers=new Map();
@@ -521,7 +534,12 @@ function updatePlayer(dt){
  relics.forEach((r,i)=>{
   if(!state.collected.has(i)&&Math.hypot(state.player.x-(r.x+.5)*TILE,state.player.y-(r.y+.5)*TILE)<30)nearbyRelic=i;
  });
- if(nearbyRelic!==null){
+ let nearbyBonus=null;
+ if(nearbyRelic===null)bonuses.forEach((b,i)=>{if(!state.bonusClaimed.has(i)&&Math.hypot(state.player.x-(b.x+.5)*TILE,state.player.y-(b.y+.5)*TILE)<30)nearbyBonus=i});
+ state.pendingBonus=nearbyBonus;
+ if(nearbyBonus!==null){
+  state.pendingRelic=null;relicPromptType.textContent='BONUS // '+bonuses[nearbyBonus].type;relicPromptTitle.textContent=bonuses[nearbyBonus].title;relicPrompt.hidden=false;
+ }else if(nearbyRelic!==null){
   if(audioState.lastRelic!==nearbyRelic){playCue('relicNear');audioState.lastRelic=nearbyRelic}
   state.pendingRelic=nearbyRelic;
   const r=relics[nearbyRelic];
@@ -569,6 +587,11 @@ function drawMaze(){
   if(near){ctx.strokeStyle='#fff0a3';ctx.lineWidth=2;ctx.beginPath();ctx.arc(cx,cy,19+pulse,0,Math.PI*2);ctx.stroke();ctx.lineWidth=1}
   ctx.fillStyle='#3b2b0b';ctx.font='bold 10px monospace';ctx.textAlign='center';ctx.fillText(String(i+1),cx,cy+3);
 });
+ bonuses.forEach((b,i)=>{
+  if(state.bonusClaimed.has(i))return;
+  const cx=(b.x+.5)*TILE,cy=(b.y+.5)*TILE,pulse=Math.sin(performance.now()/300)*2,r=11+pulse;
+  ctx.beginPath();ctx.moveTo(cx,cy-r);ctx.lineTo(cx+r,cy);ctx.lineTo(cx,cy+r);ctx.lineTo(cx-r,cy);ctx.closePath();ctx.fillStyle='#8fd3ff';ctx.fill();ctx.strokeStyle='#d8f1ff';ctx.stroke();
+ });
  mobs.forEach(m=>{const bob=Math.sin(m.pulse*5+m.index)*2,cx=m.px,cy=m.py+bob;ctx.beginPath();ctx.arc(cx,cy,14+(m.alert*2),0,Math.PI*2);ctx.fillStyle=m.alert>.2?m.color:m.color;ctx.globalAlpha=m.stun>0?.35:(m.alert>.2?1:.82);ctx.fill();ctx.globalAlpha=1;ctx.fillStyle='#310d1e';ctx.font='bold 13px monospace';ctx.textAlign='center';ctx.fillText('!',cx,cy+5);if(m.alert>.2){ctx.strokeStyle=m.color+'88';ctx.beginPath();ctx.arc(cx,cy,21+Math.sin(m.pulse*8)*3,0,Math.PI*2);ctx.stroke()}});
  const p=state.player,nowT=performance.now();if(nowT<state.invulnerableUntil)ctx.globalAlpha=REDUCE_MOTION?.6:(Math.floor(nowT/90)%2?1:.35);ctx.beginPath();ctx.arc(p.x,p.y,12,0,Math.PI*2);ctx.fillStyle='#70e6d6';ctx.fill();ctx.fillStyle='#06211e';ctx.font='bold 10px monospace';ctx.textAlign='center';ctx.fillText('R',p.x,p.y+4);ctx.globalAlpha=1;ctx.restore();
 }
