@@ -52,3 +52,9 @@ Maze polish, step 4:
 
 - Added a memory tray above the maze: seven small circles that light up as memories are recovered (numbers only, no spoilers).
 - After about six seconds standing still, a faint gold arrow appears beside Rishi pointing along the corridor toward the nearest reachable memory. It disappears when he moves, and does not use motion when reduced motion is on.
+
+Maze polish, step 5:
+
+- Touch: put a finger anywhere on the maze and drag to move (a small ring and knob show the drag). The on-screen arrow buttons still work.
+- A PAUSE button (and the P key, or tapping the dimmed maze) freezes the game. The game also pauses by itself when the tab is hidden. Pausing is ignored while a memory popup is open.
+- Walls and floor are painted once into an offscreen layer instead of tile by tile every frame; closed gates are still drawn live.

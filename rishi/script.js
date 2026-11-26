@@ -175,7 +175,7 @@ const relics=[
 
 const state={
  started:false,paused:false,keys:new Set(),player:{x:1.5*TILE,y:1.5*TILE,r:10},hp:5,armour:0,bravery:0,mobility:1,memory:0,deaths:0,lastTime:0,invulnerableUntil:0,modalReturnFocus:gameStage,
- collected:new Set(),gateNotice:new Set(),claimOrder:[],pendingRelic:null,pendingBonus:null,idle:0,hintDir:null,hintAt:0,bonusClaimed:new Set(),pendingSecret:null,bossUnlocked:false,bossDeaths:0,resumeUntil:0,pendingBossUnlock:false
+ collected:new Set(),gateNotice:new Set(),claimOrder:[],pendingRelic:null,pendingBonus:null,stick:null,userPaused:false,idle:0,hintDir:null,hintAt:0,bonusClaimed:new Set(),pendingSecret:null,bossUnlocked:false,bossDeaths:0,resumeUntil:0,pendingBossUnlock:false
 ,mazeSkipped:false,shakeUntil:0};
 
 const mobDefs=[
@@ -476,6 +476,8 @@ modal.querySelector('[data-close-modal]').addEventListener('click',closeReward);
 
 function handleKeyDown(e){
  const k=e.key.toLowerCase();
+ if(e.currentTarget===gameStage&&(k==='p'||(k==='escape'&&!state.paused))){e.preventDefault();setUserPause(!state.userPaused);return}
+ if(state.userPaused)return;
  if((k==='e'||k==='enter')&&state.pendingRelic!==null&&!state.paused){e.preventDefault();collectRelic(state.pendingRelic);return}
   if((k==='e'||k==='enter')&&state.pendingBonus!==null&&!state.paused){e.preventDefault();collectBonus(state.pendingBonus);return}
  if(['arrowup','arrowdown','arrowleft','arrowright','w','a','s','d',' '].includes(k)||e.code==='Space'){e.preventDefault();state.keys.add(k);if((k===' '||e.code==='Space')&&bossState.active)bossState.attackQueued=true}
@@ -486,6 +488,31 @@ document.addEventListener('keyup',handleKeyUp);
 claimMemory.addEventListener('click',()=>{if(state.paused)return;if(state.pendingRelic!==null)collectRelic(state.pendingRelic);else if(state.pendingBonus!==null)collectBonus(state.pendingBonus)});
 gameStage.addEventListener('click',()=>gameStage.focus());bossStage.addEventListener('click',()=>bossStage.focus());
 
+/* Drag joystick: put a finger anywhere on the maze and drag. */
+const stickRing=document.querySelector('#stickRing'),stickKnob=document.querySelector('#stickKnob');
+let stickPointer=null,stickOrigin=null;
+gameStage.addEventListener('pointerdown',e=>{
+ if(e.pointerType==='mouse'||e.target.closest('button')||stickPointer!==null||state.paused)return;
+ stickPointer=e.pointerId;stickOrigin={x:e.clientX,y:e.clientY};try{gameStage.setPointerCapture?.(e.pointerId)}catch(_){}
+ const r=gameStage.getBoundingClientRect();stickRing.style.left=(e.clientX-r.left)+'px';stickRing.style.top=(e.clientY-r.top)+'px';stickKnob.style.transform='translate(-50%,-50%)';stickRing.hidden=false;
+});
+gameStage.addEventListener('pointermove',e=>{
+ if(e.pointerId!==stickPointer)return;
+ let vx=e.clientX-stickOrigin.x,vy=e.clientY-stickOrigin.y;const len=Math.hypot(vx,vy),max=44;
+ state.stick=len>12?{x:vx/len,y:vy/len}:null;
+ const k=Math.min(1,max/(len||1));stickKnob.style.transform='translate(calc(-50% + '+(vx*k)+'px),calc(-50% + '+(vy*k)+'px))';
+});
+const endStick=e=>{if(e.pointerId!==stickPointer)return;stickPointer=null;state.stick=null;stickRing.hidden=true};
+gameStage.addEventListener('pointerup',endStick);gameStage.addEventListener('pointercancel',endStick);gameStage.addEventListener('lostpointercapture',endStick);
+/* Pause */
+const pauseBtn=document.querySelector('#pauseBtn'),pauseOverlay=document.querySelector('#pauseOverlay');
+function setUserPause(on){
+ if(on){if(!state.started||state.paused||!bossShell.hidden||!ending.hidden)return;state.userPaused=true;state.paused=true;state.keys.clear();state.stick=null;pauseOverlay.hidden=false;pauseBtn.textContent='RESUME';pauseBtn.setAttribute('aria-pressed','true')}
+ else{if(!state.userPaused||modal.classList.contains('open'))return;state.userPaused=false;state.paused=false;pauseOverlay.hidden=true;pauseBtn.textContent='PAUSE';pauseBtn.setAttribute('aria-pressed','false');setTimeout(()=>gameStage.focus(),0)}
+}
+pauseBtn.addEventListener('click',()=>setUserPause(!state.userPaused));
+pauseOverlay.addEventListener('click',()=>setUserPause(false));
+document.addEventListener('visibilitychange',()=>{if(document.hidden)setUserPause(true)});
 const mobilePointers=new Map();
 document.querySelectorAll('[data-dir]').forEach(btn=>{
  const dir=btn.dataset.dir;
@@ -539,6 +566,7 @@ function updatePlayer(dt){
  if(state.keys.has('arrowright')||state.keys.has('d'))dx++;
  if(state.keys.has('arrowup')||state.keys.has('w'))dy--;
  if(state.keys.has('arrowdown')||state.keys.has('s'))dy++;
+ if(state.stick){dx+=state.stick.x;dy+=state.stick.y}
  if(dx||dy){const len=Math.hypot(dx,dy);const speed=115*state.mobility;moveEntity(state.player,dx/len*speed*dt,dy/len*speed*dt);audioState.stepTimer-=dt;if(audioState.stepTimer<=0){playCue('step',.65,1+Math.random()*.08);audioState.stepTimer=.17/state.mobility}}else audioState.stepTimer=0;
  state.idle=(dx||dy)?0:state.idle+dt;
  if(state.idle>6&&performance.now()-state.hintAt>800){state.hintAt=performance.now();state.hintDir=nearestMemoryStep()}
@@ -616,16 +644,18 @@ function updateMobs(dt){
    if(m.mode==='vertical'&&m.target===0)m.dir=1;
  });
 }
+// Walls and floor never change, so they are painted once into an offscreen layer.
+const wallLayer=document.createElement('canvas');wallLayer.width=W*TILE;wallLayer.height=H*TILE;
+(function(){const c=wallLayer.getContext('2d');c.fillStyle='#060a13';c.fillRect(0,0,wallLayer.width,wallLayer.height);
+ for(let y=0;y<H;y++)for(let x=0;x<W;x++){const wall=MAP[y][x]==='1';c.fillStyle=wall?'#17233b':'#070d18';c.fillRect(x*TILE,y*TILE,TILE,TILE);c.strokeStyle=wall?'#263856':'#101a2c';c.strokeRect(x*TILE+.5,y*TILE+.5,TILE-1,TILE-1)}})();
 function drawMaze(){
  ctx.clearRect(0,0,canvas.width,canvas.height);
  const shakeLeft=state.shakeUntil-performance.now();ctx.save();
  if(shakeLeft>0&&!REDUCE_MOTION){const k=shakeLeft/220*5;ctx.translate((Math.random()-.5)*k*2,(Math.random()-.5)*k*2)}
  ctx.fillStyle='#060a13';ctx.fillRect(0,0,canvas.width,canvas.height);
- for(let y=0;y<H;y++)for(let x=0;x<W;x++){
-   const wall=MAP[y][x]==='1';ctx.fillStyle=wall?'#17233b':'#070d18';ctx.fillRect(x*TILE,y*TILE,TILE,TILE);
-   ctx.strokeStyle=wall?'#263856':'#101a2c';ctx.strokeRect(x*TILE+.5,y*TILE+.5,TILE-1,TILE-1);
-   const g=gateAt(x,y);if(g&&!isGateOpen(g)){ctx.fillStyle='#2a1730';ctx.fillRect(x*TILE+4,y*TILE+4,TILE-8,TILE-8);ctx.strokeStyle='#ff78ad';ctx.lineWidth=2;ctx.strokeRect(x*TILE+6,y*TILE+6,TILE-12,TILE-12);ctx.lineWidth=1;ctx.fillStyle='#ff78ad';ctx.font='bold 9px monospace';ctx.textAlign='center';ctx.fillText(g.need+'',x*TILE+20,y*TILE+24)}
- }
+ ctx.drawImage(wallLayer,0,0);
+ gates.forEach(g=>{if(isGateOpen(g))return;const x=g.x,y=g.y;
+   ctx.fillStyle='#2a1730';ctx.fillRect(x*TILE+4,y*TILE+4,TILE-8,TILE-8);ctx.strokeStyle='#ff78ad';ctx.lineWidth=2;ctx.strokeRect(x*TILE+6,y*TILE+6,TILE-12,TILE-12);ctx.lineWidth=1;ctx.fillStyle='#ff78ad';ctx.font='bold 9px monospace';ctx.textAlign='center';ctx.fillText(g.need+'',x*TILE+20,y*TILE+24)});
  relics.forEach((r,i)=>{
   if(state.collected.has(i))return;
   const cx=(r.x+.5)*TILE,cy=(r.y+.5)*TILE,pulse=Math.sin(performance.now()/280+i)*2,near=state.pendingRelic===i;
