@@ -47,3 +47,8 @@ Maze polish, step 2:
 Maze polish, step 3:
 
 - The hunter now finds its way with a breadth-first search over open tiles. It chases only when you are within about six tiles by corridor, so it no longer chases through walls, and it walks back to its patrol along real corridors.
+
+Maze polish, step 4:
+
+- Added a memory tray above the maze: seven small circles that light up as memories are recovered (numbers only, no spoilers).
+- After about six seconds standing still, a faint gold arrow appears beside Rishi pointing along the corridor toward the nearest reachable memory. It disappears when he moves, and does not use motion when reduced motion is on.

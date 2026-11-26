@@ -148,3 +148,8 @@ The game is intentionally built around replaceable content objects. Real birthda
 - No external game engine.
 - No complex inventory system.
 - No procedural maze generation for this birthday version.
+
+## Maze guidance
+
+- A memory tray above the maze shows seven circles that light up as memories are recovered.
+- Idle for about six seconds: a faint arrow points along the corridor route to the nearest reachable uncollected memory (breadth-first search, so it follows real paths and ignores memories behind closed gates).

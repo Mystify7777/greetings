@@ -175,7 +175,7 @@ const relics=[
 
 const state={
  started:false,paused:false,keys:new Set(),player:{x:1.5*TILE,y:1.5*TILE,r:10},hp:5,armour:0,bravery:0,mobility:1,memory:0,deaths:0,lastTime:0,invulnerableUntil:0,modalReturnFocus:gameStage,
- collected:new Set(),gateNotice:new Set(),claimOrder:[],pendingRelic:null,pendingBonus:null,bonusClaimed:new Set(),pendingSecret:null,bossUnlocked:false,bossDeaths:0,resumeUntil:0,pendingBossUnlock:false
+ collected:new Set(),gateNotice:new Set(),claimOrder:[],pendingRelic:null,pendingBonus:null,idle:0,hintDir:null,hintAt:0,bonusClaimed:new Set(),pendingSecret:null,bossUnlocked:false,bossDeaths:0,resumeUntil:0,pendingBossUnlock:false
 ,mazeSkipped:false,shakeUntil:0};
 
 const mobDefs=[
@@ -198,7 +198,17 @@ const secretRoutes=[
  {kind:'TREAT',sequence:[1,4,7,2,6,3,5],title:'THE CHERISHED MEMORY',text:'You found the hidden route. This is the kind of memory that makes the whole maze worth walking: a real moment, kept because it mattered. Some memories are not flashy. They are just yours. The kind you remember because the people in them mattered.',media:'rishi-secret-treat.mp4'}
 ];
 
+const memoryTray=document.querySelector('#memoryTray');
+function nearestMemoryStep(){
+ // Direction of the first corridor step toward the nearest reachable uncollected memory (null if none).
+ const px=Math.floor(state.player.x/TILE),py=Math.floor(state.player.y/TILE);let best=null;
+ relics.forEach((r,i)=>{if(state.collected.has(i))return;const route=navRoute(px,py,r.x,r.y);if(route&&(!best||route.length<best.length))best=route});
+ if(!best)return null;
+ const next=best.length>1?best[1]:best[0];
+ return Math.atan2((next[1]+.5)*TILE-state.player.y,(next[0]+.5)*TILE-state.player.x);
+}
 function updateStats(){
+ if(memoryTray){memoryTray.querySelectorAll('i').forEach((el,i)=>el.classList.toggle('lit',state.collected.has(i)));memoryTray.setAttribute('aria-label',state.memory+' of 7 memories recovered')}
  hpStat.textContent='♥'.repeat(Math.max(0,state.hp))+'♡'.repeat(5-Math.max(0,state.hp));
  armourStat.textContent=String(state.armour);
  braveryStat.textContent=String(state.bravery);
@@ -530,6 +540,9 @@ function updatePlayer(dt){
  if(state.keys.has('arrowup')||state.keys.has('w'))dy--;
  if(state.keys.has('arrowdown')||state.keys.has('s'))dy++;
  if(dx||dy){const len=Math.hypot(dx,dy);const speed=115*state.mobility;moveEntity(state.player,dx/len*speed*dt,dy/len*speed*dt);audioState.stepTimer-=dt;if(audioState.stepTimer<=0){playCue('step',.65,1+Math.random()*.08);audioState.stepTimer=.17/state.mobility}}else audioState.stepTimer=0;
+ state.idle=(dx||dy)?0:state.idle+dt;
+ if(state.idle>6&&performance.now()-state.hintAt>800){state.hintAt=performance.now();state.hintDir=nearestMemoryStep()}
+ if(state.idle<=6)state.hintDir=null;
  let nearbyRelic=null;
  relics.forEach((r,i)=>{
   if(!state.collected.has(i)&&Math.hypot(state.player.x-(r.x+.5)*TILE,state.player.y-(r.y+.5)*TILE)<30)nearbyRelic=i;
@@ -626,6 +639,10 @@ function drawMaze(){
   ctx.beginPath();ctx.moveTo(cx,cy-r);ctx.lineTo(cx+r,cy);ctx.lineTo(cx,cy+r);ctx.lineTo(cx-r,cy);ctx.closePath();ctx.fillStyle='#8fd3ff';ctx.fill();ctx.strokeStyle='#d8f1ff';ctx.stroke();
  });
  mobs.forEach(m=>{const bob=Math.sin(m.pulse*5+m.index)*2,cx=m.px,cy=m.py+bob;ctx.beginPath();ctx.arc(cx,cy,14+(m.alert*2),0,Math.PI*2);ctx.fillStyle=m.alert>.2?m.color:m.color;ctx.globalAlpha=m.stun>0?.35:(m.alert>.2?1:.82);ctx.fill();ctx.globalAlpha=1;ctx.fillStyle='#310d1e';ctx.font='bold 13px monospace';ctx.textAlign='center';ctx.fillText('!',cx,cy+5);if(m.alert>.2){ctx.strokeStyle=m.color+'88';ctx.beginPath();ctx.arc(cx,cy,21+Math.sin(m.pulse*8)*3,0,Math.PI*2);ctx.stroke()}});
+ if(state.hintDir!==null&&state.idle>6){
+  const a=state.hintDir,pl=state.player,pulse=REDUCE_MOTION?.45:.3+.25*Math.sin(performance.now()/260),bx=pl.x+Math.cos(a)*30,by=pl.y+Math.sin(a)*30;
+  ctx.save();ctx.translate(bx,by);ctx.rotate(a);ctx.globalAlpha=pulse;ctx.fillStyle='#ffd866';ctx.beginPath();ctx.moveTo(9,0);ctx.lineTo(-6,-7);ctx.lineTo(-6,7);ctx.closePath();ctx.fill();ctx.restore();
+ }
  const p=state.player,nowT=performance.now();if(nowT<state.invulnerableUntil)ctx.globalAlpha=REDUCE_MOTION?.6:(Math.floor(nowT/90)%2?1:.35);ctx.beginPath();ctx.arc(p.x,p.y,12,0,Math.PI*2);ctx.fillStyle='#70e6d6';ctx.fill();ctx.fillStyle='#06211e';ctx.font='bold 10px monospace';ctx.textAlign='center';ctx.fillText('R',p.x,p.y+4);ctx.globalAlpha=1;ctx.restore();
 }
 function frame(t){
