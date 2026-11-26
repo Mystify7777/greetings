@@ -155,3 +155,5 @@ The game is intentionally built around replaceable content objects. Real birthda
 - A memory tray above the maze shows seven circles that light up as memories are recovered.
 - Idle for about six seconds: a faint arrow points along the corridor route to the nearest reachable uncollected memory (breadth-first search, so it follows real paths and ignores memories behind closed gates).
 - Controls: WASD or arrows, drag anywhere on touch screens, on-screen arrows, P or the PAUSE button to pause (auto-pauses when the tab is hidden).
+- Progress: saved to localStorage while collecting (cleared at seven memories or story completion) and restored when the maze is started again.
+- Fog of war: breadth-first light along corridors, remembered tiles dimmed, FOG button to disable. Vibration cues on phones unless reduced motion is on.

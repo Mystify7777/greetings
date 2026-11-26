@@ -64,3 +64,10 @@ Maze polish, step 6:
 - Gates are now real chokepoints instead of decorations that could be walked around. Gate I (2 memories) seals Memory 03, Gate II (2 memories) seals the final relic, Gate III (4 memories) seals the second letter (Memory 06). Two side entrances to Memory 06's pocket were walled off, and the hunter and the third guardian had their routes shortened to stay out of the sealed areas.
 - Needs are low so TRICK and TREAT can both still be completed. Verified by walking both orders with real collision.
 - Touching a sealed gate logs what it needs. The 'harder doors' line at five memories was changed because all doors are open by then.
+
+## 2026-11-26 (session 2)
+
+- Maze progress is saved in the browser while the maze is in progress (memories, claim order, bonus, hearts, armour, explored tiles) and restored when the maze is started again after a refresh. Rishi restarts from his last memory with a short grace period. The save is validated, so a corrupted one is ignored and cleared. It is removed once all seven memories are collected or the story is completed.
+- Vibration on phones: a short tap when claiming a memory or the bonus, a light tap when armour absorbs a hit and a stronger pattern when a heart is lost. Skipped when reduced motion is on.
+- Fog of war: light follows the corridors around Rishi (about four tiles), explored tiles stay dimly visible and unexplored ones are nearly black. A FOG: ON/OFF button turns it off and remembers the choice.
+- Fixed: pausing and then hiding and showing the tab could un-pause the game behind the pause screen.

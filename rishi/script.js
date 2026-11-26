@@ -178,7 +178,7 @@ const relics=[
 const state={
  started:false,paused:false,keys:new Set(),player:{x:1.5*TILE,y:1.5*TILE,r:10},hp:5,armour:0,bravery:0,mobility:1,memory:0,deaths:0,lastTime:0,invulnerableUntil:0,modalReturnFocus:gameStage,
  collected:new Set(),gateNotice:new Set(),claimOrder:[],pendingRelic:null,pendingBonus:null,stick:null,userPaused:false,idle:0,hintDir:null,hintAt:0,bonusClaimed:new Set(),pendingSecret:null,bossUnlocked:false,bossDeaths:0,resumeUntil:0,pendingBossUnlock:false
-,mazeSkipped:false,shakeUntil:0};
+,mazeSkipped:false,shakeUntil:0,seen:new Uint8Array(W*H)};
 
 const mobDefs=[
  {x:7.5,y:1.5,speed:1.55,mode:'horizontal',path:[[7,1],[8,1],[9,1],[9,2],[9,3],[9,4],[9,5],[9,6],[9,7]]},
@@ -303,6 +303,7 @@ function moveEntity(e,dx,dy){
  if(!circleHitsWall(e.x,ny,e.r)){e.y=ny}
 }
 const REDUCE_MOTION=matchMedia('(prefers-reduced-motion:reduce)').matches;
+function buzz(pattern){if(REDUCE_MOTION||!navigator.vibrate)return;try{navigator.vibrate(pattern)}catch{}}
 function respawnPoint(){
  // Back to the last memory you recovered (or the start), unless a guardian is standing on it.
  const lastIndex=state.claimOrder.length?state.claimOrder[state.claimOrder.length-1]-1:-1;
@@ -328,7 +329,7 @@ function knockPlayer(from){
 function resetPlayer(reason,source){
  const now=performance.now();
  if(now<state.invulnerableUntil)return;
- playCue('collision',.8);
+ playCue('collision',.8);buzz(state.armour>0?30:[90,40,90]);
  state.invulnerableUntil=now+1500;
  state.shakeUntil=now+220;
  if(source){knockPlayer(source);source.stun=1.1}
@@ -359,7 +360,7 @@ function resetPlayer(reason,source){
 }
 function collectRelic(index){
  if(state.collected.has(index))return;
- playCue('relicCollect');
+ playCue('relicCollect');buzz([25,40,25]);
  state.collected.add(index);state.memory++;state.bravery++;state.claimOrder.push(index+1);
  if(gates.some(g=>g.need===state.memory))playCue('gate');
  state.pendingRelic=null;relicPrompt.hidden=true;
@@ -435,7 +436,7 @@ function openReward(index){
 }
 function collectBonus(i){
  if(state.bonusClaimed.has(i))return;
- const b=bonuses[i];playCue('relicCollect');state.bonusClaimed.add(i);state.pendingBonus=null;relicPrompt.hidden=true;
+ const b=bonuses[i];playCue('relicCollect');buzz([25,40,25]);state.bonusClaimed.add(i);state.pendingBonus=null;relicPrompt.hidden=true;
  state.armour++;updateStats();setLog('HIDDEN CORNER FOUND. +1 armour. This is a bonus, not a memory.');
  state.keys.clear();state.paused=true;gameStage.inert=true;modal.classList.add('open');modal.setAttribute('aria-hidden','false');state.modalReturnFocus=gameStage;
  rewardKicker.textContent='BONUS // '+b.type;rewardTitle.textContent='🛡 '+b.title;
@@ -512,6 +513,11 @@ function setUserPause(on){
  if(on){if(!state.started||state.paused||!bossShell.hidden||!ending.hidden)return;state.userPaused=true;state.paused=true;state.keys.clear();state.stick=null;pauseOverlay.hidden=false;pauseBtn.textContent='RESUME';pauseBtn.setAttribute('aria-pressed','true')}
  else{if(!state.userPaused||modal.classList.contains('open'))return;state.userPaused=false;state.paused=false;pauseOverlay.hidden=true;pauseBtn.textContent='PAUSE';pauseBtn.setAttribute('aria-pressed','false');setTimeout(()=>gameStage.focus(),0)}
 }
+const FOG_KEY='rishi-fog-off',LIGHT_R=6;
+let fogOn=(()=>{try{return localStorage.getItem(FOG_KEY)!=='1'}catch{return true}})();
+const fogBtn=document.querySelector('#fogBtn');
+function syncFogBtn(){fogBtn.textContent='FOG: '+(fogOn?'ON':'OFF');fogBtn.setAttribute('aria-pressed',String(fogOn))}
+fogBtn.addEventListener('click',()=>{fogOn=!fogOn;try{localStorage.setItem(FOG_KEY,fogOn?'0':'1')}catch{}syncFogBtn()});syncFogBtn();
 pauseBtn.addEventListener('click',()=>setUserPause(!state.userPaused));
 pauseOverlay.addEventListener('click',()=>setUserPause(false));
 document.addEventListener('visibilitychange',()=>{if(document.hidden)setUserPause(true)});
@@ -647,11 +653,64 @@ function updateMobs(dt){
    if(m.mode==='vertical'&&m.target===0)m.dir=1;
  });
 }
+/* Progress: saved while the maze is in progress, so a refresh does not lose memories. */
+const MAZE_SAVE_KEY='rishi-maze-progress-v1';
+function saveMaze(){
+ if(!state.started||state.memory>=7||(state.memory===0&&!state.bonusClaimed.size))return;
+ try{localStorage.setItem(MAZE_SAVE_KEY,JSON.stringify({v:1,collected:[...state.collected],claimOrder:state.claimOrder,bonus:[...state.bonusClaimed],hp:state.hp,armour:state.armour,bravery:state.bravery,mobility:state.mobility,deaths:state.deaths,seen:Array.from(state.seen).join('')}))}catch{}
+}
+function restoreMaze(){
+ let d=null;try{d=JSON.parse(localStorage.getItem(MAZE_SAVE_KEY)||'null')}catch{try{localStorage.removeItem(MAZE_SAVE_KEY)}catch{}}
+ if(!d)return false;
+ const ints=(a,lo,hi)=>Array.isArray(a)&&a.every(v=>Number.isInteger(v)&&v>=lo&&v<=hi)&&new Set(a).size===a.length;
+ const ok=d.v===1&&ints(d.collected,0,6)&&d.collected.length<7&&ints(d.claimOrder,1,7)&&d.claimOrder.length===d.collected.length
+  &&d.claimOrder.every(n=>d.collected.includes(n-1))&&ints(d.bonus,0,bonuses.length-1)
+  &&Number.isInteger(d.hp)&&d.hp>=1&&d.hp<=5&&Number.isInteger(d.armour)&&d.armour>=0&&d.armour<=8
+  &&Number.isFinite(d.bravery)&&Number.isFinite(d.mobility)&&d.mobility>=0&&d.mobility<=3&&Number.isInteger(d.deaths)&&d.deaths>=0
+  &&typeof d.seen==='string'&&d.seen.length===W*H&&/^[01]+$/.test(d.seen);
+ if(!ok){try{localStorage.removeItem(MAZE_SAVE_KEY)}catch{}return false}
+ state.collected=new Set(d.collected);state.claimOrder=d.claimOrder.slice();state.memory=d.collected.length;state.bonusClaimed=new Set(d.bonus);
+ state.hp=d.hp;state.armour=d.armour;state.bravery=d.bravery;state.mobility=d.mobility;state.deaths=d.deaths;
+ for(let i=0;i<W*H;i++)state.seen[i]=d.seen[i]==='1'?1:0;
+ const rp=respawnPoint();state.player.x=rp.x;state.player.y=rp.y;state.invulnerableUntil=performance.now()+1500;
+ updateStats();updateStoryAfterProgress();
+ return state.memory>0||state.bonusClaimed.size>0;
+}
+setInterval(saveMaze,3000);
+addEventListener('pagehide',saveMaze);
+document.addEventListener('visibilitychange',()=>{if(document.hidden)saveMaze()});
+/* Fog of war: light follows the corridors around Rishi; explored tiles stay dimly remembered. */
+const lightDepth=new Int8Array(W*H);
+function updateLight(){
+ lightDepth.fill(-1);
+ const sx=Math.max(0,Math.min(W-1,Math.floor(state.player.x/TILE))),sy=Math.max(0,Math.min(H-1,Math.floor(state.player.y/TILE)));
+ const q=[[sx,sy]];lightDepth[sy*W+sx]=0;
+ for(let i=0;i<q.length;i++){
+  const [x,y]=q[i],d=lightDepth[y*W+x];
+  if(d>=LIGHT_R||(d>0&&isBlockedTile(x,y)))continue;
+  for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){
+   const nx=x+dx,ny=y+dy,k=ny*W+nx;
+   if(nx<0||ny<0||nx>=W||ny>=H||lightDepth[k]>=0)continue;
+   lightDepth[k]=d+1;
+   if(MAP[ny][nx]==='0')q.push([nx,ny]);
+  }
+ }
+ for(let k=0;k<W*H;k++)if(lightDepth[k]>=0)state.seen[k]=1;
+}
+function drawFog(){
+ if(!fogOn)return;
+ for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+  const k=y*W+x,d=lightDepth[k];
+  const a=d>=0?(d<=LIGHT_R-2?0:d===LIGHT_R-1?.28:.55):(state.seen[k]?.6:.92);
+  if(a>0){ctx.fillStyle='rgba(3,6,12,'+a+')';ctx.fillRect(x*TILE,y*TILE,TILE,TILE)}
+ }
+}
 // Walls and floor never change, so they are painted once into an offscreen layer.
 const wallLayer=document.createElement('canvas');wallLayer.width=W*TILE;wallLayer.height=H*TILE;
 (function(){const c=wallLayer.getContext('2d');c.fillStyle='#060a13';c.fillRect(0,0,wallLayer.width,wallLayer.height);
  for(let y=0;y<H;y++)for(let x=0;x<W;x++){const wall=MAP[y][x]==='1';c.fillStyle=wall?'#17233b':'#070d18';c.fillRect(x*TILE,y*TILE,TILE,TILE);c.strokeStyle=wall?'#263856':'#101a2c';c.strokeRect(x*TILE+.5,y*TILE+.5,TILE-1,TILE-1)}})();
 function drawMaze(){
+ updateLight();
  ctx.clearRect(0,0,canvas.width,canvas.height);
  const shakeLeft=state.shakeUntil-performance.now();ctx.save();
  if(shakeLeft>0&&!REDUCE_MOTION){const k=shakeLeft/220*5;ctx.translate((Math.random()-.5)*k*2,(Math.random()-.5)*k*2)}
@@ -676,6 +735,7 @@ function drawMaze(){
   const a=state.hintDir,pl=state.player,pulse=REDUCE_MOTION?.45:.3+.25*Math.sin(performance.now()/260),bx=pl.x+Math.cos(a)*30,by=pl.y+Math.sin(a)*30;
   ctx.save();ctx.translate(bx,by);ctx.rotate(a);ctx.globalAlpha=pulse;ctx.fillStyle='#ffd866';ctx.beginPath();ctx.moveTo(9,0);ctx.lineTo(-6,-7);ctx.lineTo(-6,7);ctx.closePath();ctx.fill();ctx.restore();
  }
+ drawFog();
  const p=state.player,nowT=performance.now();if(nowT<state.invulnerableUntil)ctx.globalAlpha=REDUCE_MOTION?.6:(Math.floor(nowT/90)%2?1:.35);ctx.beginPath();ctx.arc(p.x,p.y,12,0,Math.PI*2);ctx.fillStyle='#70e6d6';ctx.fill();ctx.fillStyle='#06211e';ctx.font='bold 10px monospace';ctx.textAlign='center';ctx.fillText('R',p.x,p.y+4);ctx.globalAlpha=1;ctx.restore();
 }
 function frame(t){
@@ -761,7 +821,7 @@ function bossDefeat(){bossState.active=false;playCue('setback',.8);state.hp=boss
 function winBoss(){
  bossState.active=false;
  playCue('victory');
- try{localStorage.setItem(STORY_COMPLETE_KEY,"1")}catch{}
+ try{localStorage.setItem(STORY_COMPLETE_KEY,"1");localStorage.removeItem(MAZE_SAVE_KEY)}catch{}
 bossMessage.textContent="BOSS DEFEATED. QUEST COMPLETE. Next chapter unlocked.";setStory("CHAPTER V","THE NEXT CHAPTER","The fight is over. Rishi's story is not.","The maze, the memories and the boss were only a metaphor for one thing: the road ahead will contain hard chapters too. Life ka difficulty setting kabhi permanently easy nahi hota. Keep moving through it anyway.");
  emitNarrative('boss.victory',true);ending.hidden=false;bossRechallenge.hidden=false;secretReveal.hidden=state.collected.size>0&&secretRoutes.some(route=>route.sequence.every((value,i)=>state.claimOrder[i]===value));runSummary.textContent="MEMORIES 7/7 · FINAL HP "+state.hp+" · FINAL ARMOUR "+state.armour+" · BRAVERY "+state.bravery+" · MOBILITY "+state.mobility.toFixed(1)+"× · MAZE DEATHS "+state.deaths+" · BOSS ATTEMPTS "+(state.bossDeaths+1)+" · REMATCHES "+bossState.rechallengeCount;
  document.querySelector('#historyMemories').textContent=state.memory+' / 7';
@@ -848,8 +908,9 @@ document.querySelector('#beginMaze')?.addEventListener('click',()=>{
  setLog('CHAPTER III BEGINS. The next part cannot be read from a screen.');
  setStory('CHAPTER III','THE MAZE','Now you have to live the difficult chapter.','The next part cannot be read from a screen. Rishi has to walk it. Learn the guardians. Find the memories. Get lost. Try again.');
  emitNarrative('maze.start',true);
+ if(restoreMaze())setLog('WELCOME BACK. '+state.memory+' of 7 memories restored. You start from your last memory.');
 });
-document.addEventListener('visibilitychange',()=>{if(document.hidden){state.keys.clear();state.paused=true}else if(modal.getAttribute('aria-hidden')==='true'&&!state.resumeUntil){state.paused=false}});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){state.keys.clear();state.paused=true}else if(!state.userPaused&&modal.getAttribute('aria-hidden')==='true'&&!state.resumeUntil){state.paused=false}});
 
 updateStats();
 
