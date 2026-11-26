@@ -25,11 +25,12 @@ Failure is progression. A failed attempt teaches the player a route or attack pa
 - The game stage is focusable and announces controls.
 - Seven memory relics.
 - Relics persist after death.
-- Three sealed passages create meaningful progression gates:
-  - Gate I opens after 2 memories.
-  - Gate II opens after 4 memories.
-  - Gate III opens after 6 memories.
-- The map is intentionally constructed so the sealed relics are visibly nearby but inaccessible until their gate condition is met.
+- Three sealed passages are real chokepoints: while closed, each cuts exactly one memory off from the start.
+  - Gate I (tile 5,8) opens after 2 memories and protects Memory 03.
+  - Gate II (tile 21,15) opens after 2 memories and protects Memory 07, the final relic.
+  - Gate III (tile 7,14) opens after 4 memories and protects Memory 06, the second letter. Two side entrances to that pocket were walled off so the gate is the only way in.
+- Needs are kept low on purpose: TRICK (1-7) and TREAT (1-4-7-2-6-3-5) must both stay walkable. Every gate is open by the time either order reaches its memory, and four memories (1, 2, 4, 5) are never gated, so nobody can get stuck.
+- Walking into a sealed gate logs how many memories it needs.
 - No dead-end "wall embedded" collectibles.
 
 ### 2. Guardians

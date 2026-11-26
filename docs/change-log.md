@@ -58,3 +58,9 @@ Maze polish, step 5:
 - Touch: put a finger anywhere on the maze and drag to move (a small ring and knob show the drag). The on-screen arrow buttons still work.
 - A PAUSE button (and the P key, or tapping the dimmed maze) freezes the game. The game also pauses by itself when the tab is hidden. Pausing is ignored while a memory popup is open.
 - Walls and floor are painted once into an offscreen layer instead of tile by tile every frame; closed gates are still drawn live.
+
+Maze polish, step 6:
+
+- Gates are now real chokepoints instead of decorations that could be walked around. Gate I (2 memories) seals Memory 03, Gate II (2 memories) seals the final relic, Gate III (4 memories) seals the second letter (Memory 06). Two side entrances to Memory 06's pocket were walled off, and the hunter and the third guardian had their routes shortened to stay out of the sealed areas.
+- Needs are low so TRICK and TREAT can both still be completed. Verified by walking both orders with real collision.
+- Touching a sealed gate logs what it needs. The 'harder doors' line at five memories was changed because all doors are open by then.

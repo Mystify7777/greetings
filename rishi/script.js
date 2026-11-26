@@ -150,17 +150,19 @@ const MAP=[
 "1000100000001000101010001",
 "1010111110101111111010111",
 "1010001000001000000010101",
-"1111101111111011101010101",
+"1111101111111111101010101",
 "1000001000000010101010101",
-"1010111011111010101110101",
+"1010111011111110101110101",
 "1000000000000000100000001",
 "1111111111111111111111111"
 ];
 
 const gates=[
-  {x:9,y:10,need:2,label:'MEMORY GATE I'},
-  {x:15,y:8,need:4,label:'MEMORY GATE II'},
-  {x:21,y:14,need:6,label:'MEMORY GATE III'}
+  /* Each gate is a real chokepoint: closed, it seals one memory away from the start.
+     Needs are low enough that both secret orders (TRICK 1-7, TREAT 1-4-7-2-6-3-5) can always pass. */
+  {x:5,y:8,need:2,label:'MEMORY GATE I'},      // protects Memory 03
+  {x:21,y:15,need:2,label:'MEMORY GATE II'},   // protects Memory 07 (final relic)
+  {x:7,y:14,need:4,label:'MEMORY GATE III'}    // protects Memory 06 (the second letter)
 ];
 
 const relics=[
@@ -182,8 +184,8 @@ const mobDefs=[
  {x:7.5,y:1.5,speed:1.55,mode:'horizontal',path:[[7,1],[8,1],[9,1],[9,2],[9,3],[9,4],[9,5],[9,6],[9,7]]},
  {x:11.5,y:1.5,speed:1.35,mode:'vertical',path:[[11,1],[11,2],[11,3],[11,4],[11,5],[11,6],[11,7],[10,7]]},
  {x:5.5,y:5.5,speed:1.7,mode:'horizontal',path:[[5,5],[5,6],[5,7],[6,7],[7,7],[7,6],[7,5],[7,4],[7,3],[6,3],[5,3],[4,3],[3,3],[3,2],[3,1],[4,1],[5,1],[6,1],[7,1],[8,1],[9,1],[9,2],[9,3],[9,4],[9,5],[9,6],[9,7],[10,7],[11,7],[11,6],[11,5]]},
- {x:13.5,y:9.5,speed:1.5,mode:'vertical',path:[[13,9],[14,9],[15,9],[15,8],[15,7],[15,6],[15,5],[16,5],[17,5],[18,5],[19,5],[19,4],[19,3],[18,3],[17,3],[17,2],[17,1],[18,1],[19,1],[20,1],[21,1],[22,1],[23,1],[23,2],[23,3],[22,3],[21,3],[21,4],[21,5],[21,6],[21,7],[20,7],[19,7],[19,8],[19,9],[19,10],[19,11],[18,11],[17,11],[16,11],[15,11],[14,11],[13,11],[13,12],[13,13],[13,14],[13,15]]},
- {x:17.5,y:11.5,speed:1.45,mode:'hunter',path:[[17,11],[17,12],[17,13],[17,14],[17,15],[18,15],[19,15],[20,15],[21,15],[22,15],[23,15],[22,15],[21,15],[20,15],[19,15],[18,15],[17,15],[17,14],[17,13],[17,12]]},
+ {x:13.5,y:9.5,speed:1.5,mode:'vertical',path:[[13,9],[14,9],[15,9],[15,8],[15,7],[15,6],[15,5],[16,5],[17,5],[18,5],[19,5],[19,4],[19,3],[18,3],[17,3],[17,2],[17,1],[18,1],[19,1],[20,1],[21,1],[22,1],[23,1],[23,2],[23,3],[22,3],[21,3],[21,4],[21,5],[21,6],[21,7],[20,7],[19,7],[19,8],[19,9],[19,10],[19,11],[18,11],[17,11],[16,11],[15,11],[14,11],[13,11]]},
+ {x:17.5,y:11.5,speed:1.45,mode:'hunter',path:[[17,11],[17,12],[17,13],[17,14],[17,15],[18,15],[19,15],[20,15],[19,15],[18,15],[17,15],[17,14],[17,13],[17,12]]},
  {x:1.5,y:9.5,speed:1.5,mode:'horizontal',path:[[1,9],[2,9],[3,9],[3,10],[3,11],[4,11],[5,11],[5,12],[5,13],[4,13],[3,13],[3,14],[3,15],[2,15],[1,15],[1,14],[1,13]]}
 ];
 /* Non-counting bonus: a hidden armour pickup that reopens an existing letter. Not a memory. */
@@ -275,7 +277,7 @@ function updateStoryAfterProgress(){
  else if(state.memory===2)setStory("CHAPTER III","THE PEOPLE & DAYS","Two memories. Two reasons to keep going.","Not every important moment looks important while it is happening. Some become precious only after time has passed.");
  else if(state.memory===3)setStory("CHAPTER III","THE YEARS","Halfway through the archive.","The maze is getting harder. So is life. Rishi does not get through it by avoiding every obstacle. He gets through it by learning what each one teaches.");
  else if(state.memory===4)setStory("CHAPTER III","THE TURNING POINT","Four memories recovered. The route ahead changes.","At some point, growing up stops being about becoming someone else. It becomes about carrying what you have learned without letting it weigh you down.");
- else if(state.memory===5)setStory("CHAPTER III","THE HARD PART","The last two memories are behind harder doors.","There are chapters nobody volunteers for. Setbacks, mistakes, bad days, missed chances. They still become part of the person who keeps moving.");
+ else if(state.memory===5)setStory("CHAPTER III","THE HARD PART","Two memories remain. Every door is open now.","There are chapters nobody volunteers for. Setbacks, mistakes, bad days, missed chances. They still become part of the person who keeps moving.");
  else if(state.memory===6)setStory("CHAPTER III","THE EDGE OF THE STORY","One memory remains. The easy part is over.","The final door does not open because Rishi is fearless. It opens because he has learned that fear is allowed to come along for the ride.");
  else if(state.memory===7)setStory("CHAPTER IV","THE FIGHT","The memories are safe. Now the story asks a harder question.","What happens when remembering is not enough? The last obstacle is not another memory. It is the part of every story where you have to get back up and fight for the ending.");
 }
@@ -575,6 +577,7 @@ function updatePlayer(dt){
  relics.forEach((r,i)=>{
   if(!state.collected.has(i)&&Math.hypot(state.player.x-(r.x+.5)*TILE,state.player.y-(r.y+.5)*TILE)<30)nearbyRelic=i;
  });
+ gates.forEach((g,i)=>{if(isGateOpen(g)||state.gateNotice.has(i))return;if(Math.hypot(state.player.x-(g.x+.5)*TILE,state.player.y-(g.y+.5)*TILE)<48){state.gateNotice.add(i);setLog(g.label+' is sealed. Recover '+g.need+' memories to open it.')}});
  let nearbyBonus=null;
  if(nearbyRelic===null)bonuses.forEach((b,i)=>{if(!state.bonusClaimed.has(i)&&Math.hypot(state.player.x-(b.x+.5)*TILE,state.player.y-(b.y+.5)*TILE)<30)nearbyBonus=i});
  state.pendingBonus=nearbyBonus;
