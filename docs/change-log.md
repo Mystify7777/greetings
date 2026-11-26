@@ -41,3 +41,9 @@ Maze polish, step 1:
 Maze polish, step 2:
 
 - Guardian routes now follow real corridors. Three guardians used to cut through walls on their return leg: the first now patrols (7,1) to (9,7) only, the third ping-pongs between its ends, and the hunter returns along the corridor instead of jumping across. A 90 second simulation confirms no guardian ever leaves an open tile.
+
+## 2026-11-26
+
+Maze polish, step 3:
+
+- The hunter now finds its way with a breadth-first search over open tiles. It chases only when you are within about six tiles by corridor, so it no longer chases through walls, and it walks back to its patrol along real corridors.

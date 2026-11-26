@@ -555,14 +555,47 @@ function updatePlayer(dt){
  mobs.forEach(m=>{if(Math.hypot(state.player.x-m.px,state.player.y-m.py)<20)resetPlayer('GUARDIAN CONTACT.',m)});
 }
 function pathPoint(m){const p=m.path[m.target];return {x:(p[0]+.5)*TILE,y:(p[1]+.5)*TILE}}
+function navRoute(sx,sy,gx,gy){
+ // Breadth-first search over open tiles so hunters follow corridors instead of cutting through walls.
+ if(sx===gx&&sy===gy)return [[sx,sy]];
+ const seen=new Map([[sy*W+sx,null]]),q=[[sx,sy]];
+ for(let i=0;i<q.length;i++){
+  const [x,y]=q[i];
+  for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){
+   const nx=x+dx,ny=y+dy,k=ny*W+nx;
+   if(nx<0||ny<0||nx>=W||ny>=H||seen.has(k)||isBlockedTile(nx,ny))continue;
+   seen.set(k,y*W+x);
+   if(nx===gx&&ny===gy){const r=[[nx,ny]];let c=y*W+x;while(c!==null){r.push([c%W,Math.floor(c/W)]);c=seen.get(c)}return r.reverse()}
+   q.push([nx,ny]);
+  }
+ }
+ return null;
+}
 function updateMobs(dt){
  mobs.forEach(m=>{
    m.pulse+=dt;
    if(m.stun>0){m.stun=Math.max(0,m.stun-dt);m.alert=Math.max(0,m.alert-dt*2);return}
    const p=pathPoint(m),dx=p.x-m.px,dy=p.y-m.py,d=Math.hypot(dx,dy);
-   const chase=m.mode==='hunter'&&Math.hypot(state.player.x-m.px,state.player.y-m.py)<145;
-   if(chase){m.alert=Math.min(1,m.alert+dt*3);const ang=Math.atan2(state.player.y-m.py,state.player.x-m.px);m.px+=Math.cos(ang)*m.speed*92*dt;m.py+=Math.sin(ang)*m.speed*92*dt}
-   else{m.alert=Math.max(0,m.alert-dt*2);if(d<2){m.target=(m.target+m.dir+m.path.length)%m.path.length}const pp=pathPoint(m),a=Math.atan2(pp.y-m.py,pp.x-m.px);m.px+=Math.cos(a)*m.speed*92*dt;m.py+=Math.sin(a)*m.speed*92*dt}
+   if(m.mode==='hunter'){
+     const htx=Math.floor(m.px/TILE),hty=Math.floor(m.py/TILE),ptx=Math.floor(state.player.x/TILE),pty=Math.floor(state.player.y/TILE);
+     const near=Math.hypot(state.player.x-m.px,state.player.y-m.py)<145;
+     const route=near?navRoute(htx,hty,ptx,pty):null;
+     const chase=!!route&&route.length-1<=6;
+     let gx,gy;
+     if(chase){
+       m.alert=Math.min(1,m.alert+dt*3);
+       if(route.length>1){gx=(route[1][0]+.5)*TILE;gy=(route[1][1]+.5)*TILE}else{gx=state.player.x;gy=state.player.y}
+     }else{
+       m.alert=Math.max(0,m.alert-dt*2);
+       if(d<3)m.target=(m.target+m.dir+m.path.length)%m.path.length;
+       const wp=m.path[m.target],r=navRoute(htx,hty,wp[0],wp[1]);
+       if(r&&r.length>1){gx=(r[1][0]+.5)*TILE;gy=(r[1][1]+.5)*TILE}else{gx=(wp[0]+.5)*TILE;gy=(wp[1]+.5)*TILE}
+     }
+     const ang=Math.atan2(gy-m.py,gx-m.px),step=Math.min(m.speed*92*dt,Math.hypot(gx-m.px,gy-m.py));
+     m.px+=Math.cos(ang)*step;m.py+=Math.sin(ang)*step;
+   }else{
+   m.alert=Math.max(0,m.alert-dt*2);if(d<2){m.target=(m.target+m.dir+m.path.length)%m.path.length}const pp=pathPoint(m),a=Math.atan2(pp.y-m.py,pp.x-m.px);m.px+=Math.cos(a)*m.speed*92*dt;m.py+=Math.sin(a)*m.speed*92*dt;
+   }
    if(m.mode==='loop'&&m.target===0)m.dir=1;
    if(m.mode==='horizontal'&&m.target===m.path.length-1)m.dir=-1;
    if(m.mode==='horizontal'&&m.target===0)m.dir=1;

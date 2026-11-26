@@ -37,7 +37,7 @@ Six guardians use different movement behaviors (the sixth patrols the south-west
 - Vertical patrol.
 - Horizontal patrol.
 - Ping-pong corridor patrol.
-- Short chase burst when the player enters a warning radius, then return to route.
+- Short chase burst when the player is within about six corridor tiles (found with a breadth-first search, so it never cuts through walls), then return to route along corridors.
 - Orbit/loop movement around a small corridor.
 - Guardians have idle bobbing, pulse rings, direction changes, warning states and small movement interpolation.
 - A hit costs one heart, knocks the player back (away from the guardian, or along the corridor if a wall is in the way), briefly stuns that guardian, and gives about 1.5s of grace (blinking). Armour absorbs a hit the same way.
