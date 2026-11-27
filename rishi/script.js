@@ -491,22 +491,28 @@ document.addEventListener('keyup',handleKeyUp);
 claimMemory.addEventListener('click',()=>{if(state.paused)return;if(state.pendingRelic!==null)collectRelic(state.pendingRelic);else if(state.pendingBonus!==null)collectBonus(state.pendingBonus)});
 gameStage.addEventListener('click',()=>gameStage.focus());bossStage.addEventListener('click',()=>bossStage.focus());
 
-/* Drag joystick: put a finger anywhere on the maze and drag. */
-const stickRing=document.querySelector('#stickRing'),stickKnob=document.querySelector('#stickKnob');
-let stickPointer=null,stickOrigin=null;
-gameStage.addEventListener('pointerdown',e=>{
- if(e.pointerType==='mouse'||e.target.closest('button')||stickPointer!==null||state.paused)return;
- stickPointer=e.pointerId;stickOrigin={x:e.clientX,y:e.clientY};try{gameStage.setPointerCapture?.(e.pointerId)}catch(_){}
- const r=gameStage.getBoundingClientRect();stickRing.style.left=(e.clientX-r.left)+'px';stickRing.style.top=(e.clientY-r.top)+'px';stickKnob.style.transform='translate(-50%,-50%)';stickRing.hidden=false;
-});
-gameStage.addEventListener('pointermove',e=>{
- if(e.pointerId!==stickPointer)return;
- let vx=e.clientX-stickOrigin.x,vy=e.clientY-stickOrigin.y;const len=Math.hypot(vx,vy),max=44;
- state.stick=len>12?{x:vx/len,y:vy/len}:null;
- const k=Math.min(1,max/(len||1));stickKnob.style.transform='translate(calc(-50% + '+(vx*k)+'px),calc(-50% + '+(vy*k)+'px))';
-});
-const endStick=e=>{if(e.pointerId!==stickPointer)return;stickPointer=null;state.stick=null;stickRing.hidden=true};
-gameStage.addEventListener('pointerup',endStick);gameStage.addEventListener('pointercancel',endStick);gameStage.addEventListener('lostpointercapture',endStick);
+/* Drag joystick: put a finger anywhere on the maze or the boss arena and drag. */
+function attachStick(stage,ring,knob,canStart,onSecondTap){
+ let ptr=null,origin=null;
+ stage.addEventListener('pointerdown',e=>{
+  if(e.pointerType==='mouse'||e.target.closest('button'))return;
+  if(ptr!==null){if(onSecondTap&&e.pointerId!==ptr){e.preventDefault();onSecondTap()}return}
+  if(!canStart())return;
+  ptr=e.pointerId;origin={x:e.clientX,y:e.clientY};try{stage.setPointerCapture?.(e.pointerId)}catch(_){}
+  const r=stage.getBoundingClientRect();ring.style.left=(e.clientX-r.left)+'px';ring.style.top=(e.clientY-r.top)+'px';knob.style.transform='translate(-50%,-50%)';ring.hidden=false;
+ });
+ stage.addEventListener('pointermove',e=>{
+  if(e.pointerId!==ptr)return;
+  const vx=e.clientX-origin.x,vy=e.clientY-origin.y,len=Math.hypot(vx,vy),max=44;
+  state.stick=len>12?{x:vx/len,y:vy/len}:null;
+  const k=Math.min(1,max/(len||1));knob.style.transform='translate(calc(-50% + '+(vx*k)+'px),calc(-50% + '+(vy*k)+'px))';
+ });
+ const end=e=>{if(e.pointerId!==ptr)return;ptr=null;state.stick=null;ring.hidden=true};
+ stage.addEventListener('pointerup',end);stage.addEventListener('pointercancel',end);stage.addEventListener('lostpointercapture',end);
+}
+attachStick(gameStage,document.querySelector('#stickRing'),document.querySelector('#stickKnob'),()=>!state.paused);
+// On the boss arena a second finger tapping anywhere attacks, so one thumb steers and the other attacks.
+attachStick(bossStage,document.querySelector('#bossStickRing'),document.querySelector('#bossStickKnob'),()=>bossState.active,()=>{if(bossState.active)bossState.attackQueued=true});
 /* Pause */
 const pauseBtn=document.querySelector('#pauseBtn'),pauseOverlay=document.querySelector('#pauseOverlay');
 function setUserPause(on){
@@ -752,6 +758,7 @@ const bossState={active:false,startingHp:5,startingArmour:0,rechallengeCount:0,p
 function initBoss(playIntroCue=true){if(playIntroCue){playCue('bossStart',.9);emitNarrative('boss.start',true)}bossState.active=true;bossState.startingHp=Math.max(1,state.hp);bossState.startingArmour=state.armour;const level=bossState.rechallengeCount;const maxHp=50+level*25;bossState.player={x:100,y:210,r:11,hp:bossState.startingHp,armour:bossState.startingArmour,invulnerableUntil:0};bossState.boss={x:620,y:210,r:25,hp:maxHp,maxHp,phase:1,shotTimer:0,moveTimer:0,dir:1,vx:0,vy:0};bossState.shots=[];bossState.playerShots=[];bossState.buffs=[];bossState.attackQueued=false;bossState.last=performance.now();bossMessage.textContent=level===0?"The boss is waiting. Find the rhythm. Your maze health and armour carried forward.":"REMATCH "+level+". Rishi starts fresh. The boss does not.";updateBossHud();}
 function bossMove(dt){
  let dx=0,dy=0;if(state.keys.has('arrowleft')||state.keys.has('a'))dx--;if(state.keys.has('arrowright')||state.keys.has('d'))dx++;if(state.keys.has('arrowup')||state.keys.has('w'))dy--;if(state.keys.has('arrowdown')||state.keys.has('s'))dy++;
+ if(state.stick){dx+=state.stick.x;dy+=state.stick.y}
  if(dx||dy){const l=Math.hypot(dx,dy);bossState.player.x=Math.max(15,Math.min(745,bossState.player.x+dx/l*170*state.mobility*dt));bossState.player.y=Math.max(15,Math.min(405,bossState.player.y+dy/l*170*state.mobility*dt))}
  if(bossState.attackQueued){bossState.attackQueued=false;if(bossState.playerShots.length<4){playCue('attack',.75);const a=Math.atan2(bossState.boss.y-bossState.player.y,bossState.boss.x-bossState.player.x);bossState.playerShots.push({x:bossState.player.x+15*Math.cos(a),y:bossState.player.y+15*Math.sin(a),vx:Math.cos(a)*420,vy:Math.sin(a)*420})}}
 }

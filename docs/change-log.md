@@ -78,3 +78,7 @@ Phone fixes after real-device testing:
 
 - Road game: the setback screen no longer overflows the game area on phones. Text is smaller, the two buttons sit side by side, and the overlay scrolls as a fallback.
 - Maze: the keyboard hint (WASD / arrows) is hidden on touch and narrow screens because it covered the bottom of the map. On narrow screens the light radius is wider and the fog is lighter, because tiles are tiny there.
+
+Boss fight on phones:
+
+- Drag anywhere on the boss arena to move (same ring and knob as the maze). A second finger tapping the arena attacks, so one thumb steers and the other attacks. The ATTACK button and arrow pad still work, and the keyboard hint is hidden on touch screens.

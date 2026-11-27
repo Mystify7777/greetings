@@ -149,6 +149,7 @@
       <div class="boss-stage" id="bossStage" tabindex="0" role="application" aria-label="Birthday boss arena. Use WASD or arrow keys to move and Space to attack.">
         <canvas id="bossCanvas" width="760" height="420"></canvas>
         <div class="boss-hint">WASD / ARROWS · SPACE = ATTACK</div>
+        <div class="stick-ring" id="bossStickRing" hidden><i id="bossStickKnob"></i></div>
       </div>
       <aside class="narrative-rail" data-narrative-rail="boss" aria-live="polite">
         <span>THE FIGHT</span>
@@ -162,7 +163,7 @@
         <div><button data-dir="left" aria-label="Move left">◀</button><button data-dir="down" aria-label="Move down">▼</button><button data-dir="right" aria-label="Move right">▶</button></div>
       </div>
       <button class="attack-button" data-action="attack" aria-label="Attack">ATTACK</button>
-      <p>HOLD A DIRECTION · TAP ATTACK</p>
+      <p>DRAG ON THE ARENA TO MOVE · TAP WITH A SECOND FINGER OR PRESS ATTACK</p>
     </div>
     <div class="boss-status" aria-live="polite"><span id="bossMessage">The arena is waiting.</span><strong id="bossPlayerHp">HP ♥♥♥♥♥ · ARMOUR 0</strong></div>
   </section>
