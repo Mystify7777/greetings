@@ -513,7 +513,8 @@ function setUserPause(on){
  if(on){if(!state.started||state.paused||!bossShell.hidden||!ending.hidden)return;state.userPaused=true;state.paused=true;state.keys.clear();state.stick=null;pauseOverlay.hidden=false;pauseBtn.textContent='RESUME';pauseBtn.setAttribute('aria-pressed','true')}
  else{if(!state.userPaused||modal.classList.contains('open'))return;state.userPaused=false;state.paused=false;pauseOverlay.hidden=true;pauseBtn.textContent='PAUSE';pauseBtn.setAttribute('aria-pressed','false');setTimeout(()=>gameStage.focus(),0)}
 }
-const FOG_KEY='rishi-fog-off',LIGHT_R=6;
+const FOG_KEY='rishi-fog-off';
+let LIGHT_R=6; // wider light on small screens, where tiles are tiny
 let fogOn=(()=>{try{return localStorage.getItem(FOG_KEY)!=='1'}catch{return true}})();
 const fogBtn=document.querySelector('#fogBtn');
 function syncFogBtn(){fogBtn.textContent='FOG: '+(fogOn?'ON':'OFF');fogBtn.setAttribute('aria-pressed',String(fogOn))}
@@ -682,6 +683,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)saveMaze()}
 /* Fog of war: light follows the corridors around Rishi; explored tiles stay dimly remembered. */
 const lightDepth=new Int8Array(W*H);
 function updateLight(){
+ LIGHT_R=canvas.clientWidth&&canvas.clientWidth<620?9:6;
  lightDepth.fill(-1);
  const sx=Math.max(0,Math.min(W-1,Math.floor(state.player.x/TILE))),sy=Math.max(0,Math.min(H-1,Math.floor(state.player.y/TILE)));
  const q=[[sx,sy]];lightDepth[sy*W+sx]=0;
@@ -701,7 +703,7 @@ function drawFog(){
  if(!fogOn)return;
  for(let y=0;y<H;y++)for(let x=0;x<W;x++){
   const k=y*W+x,d=lightDepth[k];
-  const a=d>=0?(d<=LIGHT_R-2?0:d===LIGHT_R-1?.28:.55):(state.seen[k]?.6:.92);
+  const a=d>=0?(d<=LIGHT_R-2?0:d===LIGHT_R-1?.2:.42):(state.seen[k]?.42:.84);
   if(a>0){ctx.fillStyle='rgba(3,6,12,'+a+')';ctx.fillRect(x*TILE,y*TILE,TILE,TILE)}
  }
 }

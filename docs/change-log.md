@@ -71,3 +71,10 @@ Maze polish, step 6:
 - Vibration on phones: a short tap when claiming a memory or the bonus, a light tap when armour absorbs a hit and a stronger pattern when a heart is lost. Skipped when reduced motion is on.
 - Fog of war: light follows the corridors around Rishi (about four tiles), explored tiles stay dimly visible and unexplored ones are nearly black. A FOG: ON/OFF button turns it off and remembers the choice.
 - Fixed: pausing and then hiding and showing the tab could un-pause the game behind the pause screen.
+
+## 2026-11-27
+
+Phone fixes after real-device testing:
+
+- Road game: the setback screen no longer overflows the game area on phones. Text is smaller, the two buttons sit side by side, and the overlay scrolls as a fallback.
+- Maze: the keyboard hint (WASD / arrows) is hidden on touch and narrow screens because it covered the bottom of the map. On narrow screens the light radius is wider and the fog is lighter, because tiles are tiny there.
